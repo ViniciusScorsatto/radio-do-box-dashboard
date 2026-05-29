@@ -1,0 +1,25 @@
+{
+  "name": "radio-do-box-remotion",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync:data": "node scripts/sync-f1.mjs",
+    "dashboard": "node --env-file=.env scripts/dashboard-server.mjs",
+    "dev": "node scripts/dev.mjs",
+    "studio": "remotion studio",
+    "build": "remotion bundle",
+    "render": "SPORT=f1 node --env-file=.env scripts/render-current-job.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.271"
+  },
+  "devDependencies": {
+    "@remotion/cli": "^4.0.271",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.6.3"
+  }
+}

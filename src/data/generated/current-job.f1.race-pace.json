@@ -1,0 +1,208 @@
+{
+  "sport": "f1",
+  "template": "race-pace",
+  "compositionId": "F1RacePaceShort",
+  "season": 2026,
+  "competitionId": 1,
+  "competitionName": "Formula 1",
+  "competitionConfig": {
+    "competitionId": 1,
+    "label": "Formula 1",
+    "shortLabel": "F1",
+    "countryCode": "INT"
+  },
+  "themeConfig": {
+    "variant": "blue",
+    "background": "linear-gradient(180deg, #12246d 0%, #101f59 52%, #080f2f 100%)",
+    "accent": "#74a8ff",
+    "secondaryAccent": "#ffe06b",
+    "panelFill": "linear-gradient(180deg, rgba(8,18,49,0.96), rgba(4,10,27,0.98))",
+    "panelStroke": "rgba(141, 181, 255, 0.9)",
+    "text": "#f7f9ff",
+    "mutedText": "#d5def6"
+  },
+  "templateConfig": {
+    "template": "race-pace",
+    "label": "Ritmo de Corrida",
+    "compositionId": "F1RacePaceShort",
+    "themeVariant": "blue",
+    "durationInFrames": 360
+  },
+  "title": "Ritmo de Corrida",
+  "subtitle": "Média limpa da corrida",
+  "raceType": "Race",
+  "raceId": 2530,
+  "raceName": "GP do Japão",
+  "countryCode": "JPN",
+  "circuitName": "Suzuka International Racing Course",
+  "brandName": "Radio do Box",
+  "brandLogoPath": "/branding/radio-do-box/white.png",
+  "outputName": "f1-race-pace-australia-2026.mp4",
+  "durationInFrames": 360,
+  "dataSource": "api",
+  "warnings": [],
+  "sessionCode": "R",
+  "paceSummary": "Média limpa da corrida",
+  "entries": [
+    {
+      "position": 1,
+      "name": "Andrea Kimi Antonelli",
+      "team": "Mercedes-AMG Petronas",
+      "badge": {
+        "label": "AK",
+        "accentColor": "#65e1c6",
+        "imagePath": "/f1/drivers/mercedes-amg-petronas-andrea-kimi-antonelli.png",
+        "logoPath": "/f1/teams/custom/mercedes.png",
+        "sublabel": "Mercedes-AMG Petronas"
+      },
+      "value": "1:39.687",
+      "secondaryValue": "--",
+      "driverNumber": "12",
+      "accentColor": "#65e1c6"
+    },
+    {
+      "position": 2,
+      "name": "Oscar Piastri",
+      "team": "McLaren Racing",
+      "badge": {
+        "label": "OP",
+        "accentColor": "#ff9a3d",
+        "imagePath": "/f1/drivers/mclaren-racing-oscar-piastri.png",
+        "logoPath": "/f1/teams/custom/mclaren.png",
+        "sublabel": "McLaren Racing"
+      },
+      "value": "1:39.946",
+      "secondaryValue": "+0.259s/volta",
+      "driverNumber": "81",
+      "accentColor": "#ff9a3d"
+    },
+    {
+      "position": 3,
+      "name": "Charles Leclerc",
+      "team": "Scuderia Ferrari",
+      "badge": {
+        "label": "CL",
+        "accentColor": "#ff5546",
+        "imagePath": "/f1/drivers/scuderia-ferrari-charles-leclerc.png",
+        "logoPath": "/f1/teams/custom/ferrari.png",
+        "sublabel": "Scuderia Ferrari"
+      },
+      "value": "1:39.975",
+      "secondaryValue": "+0.288s/volta",
+      "driverNumber": "16",
+      "accentColor": "#ff5546"
+    },
+    {
+      "position": 4,
+      "name": "George Russell",
+      "team": "Mercedes-AMG Petronas",
+      "badge": {
+        "label": "GR",
+        "accentColor": "#65e1c6",
+        "imagePath": "/f1/drivers/mercedes-amg-petronas-george-russell.png",
+        "logoPath": "/f1/teams/custom/mercedes.png",
+        "sublabel": "Mercedes-AMG Petronas"
+      },
+      "value": "1:39.984",
+      "secondaryValue": "+0.297s/volta",
+      "driverNumber": "63",
+      "accentColor": "#65e1c6"
+    },
+    {
+      "position": 5,
+      "name": "Lando Norris",
+      "team": "McLaren Racing",
+      "badge": {
+        "label": "LN",
+        "accentColor": "#ff9a3d",
+        "imagePath": "/f1/drivers/mclaren-racing-lando-norris.png",
+        "logoPath": "/f1/teams/custom/mclaren.png",
+        "sublabel": "McLaren Racing"
+      },
+      "value": "1:40.130",
+      "secondaryValue": "+0.443s/volta",
+      "driverNumber": "1",
+      "accentColor": "#ff9a3d"
+    },
+    {
+      "position": 6,
+      "name": "Lewis Hamilton",
+      "team": "Scuderia Ferrari",
+      "badge": {
+        "label": "LH",
+        "accentColor": "#ff5546",
+        "imagePath": "/f1/drivers/scuderia-ferrari-lewis-hamilton.png",
+        "logoPath": "/f1/teams/custom/ferrari.png",
+        "sublabel": "Scuderia Ferrari"
+      },
+      "value": "1:40.159",
+      "secondaryValue": "+0.472s/volta",
+      "driverNumber": "44",
+      "accentColor": "#ff5546"
+    },
+    {
+      "position": 7,
+      "name": "Pierre Gasly",
+      "team": "Alpine F1 Team",
+      "badge": {
+        "label": "PG",
+        "accentColor": "#ff76db",
+        "imagePath": "/f1/drivers/alpine-f1-team-pierre-gasly.png",
+        "logoPath": "/f1/teams/custom/alpine.png",
+        "sublabel": "Alpine F1 Team"
+      },
+      "value": "1:40.297",
+      "secondaryValue": "+0.610s/volta",
+      "driverNumber": "10",
+      "accentColor": "#ff76db"
+    },
+    {
+      "position": 8,
+      "name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "badge": {
+        "label": "MV",
+        "accentColor": "#5d74ff",
+        "imagePath": "/f1/drivers/red-bull-racing-max-verstappen.png",
+        "logoPath": "/f1/teams/custom/red-bull.png",
+        "sublabel": "Red Bull Racing"
+      },
+      "value": "1:40.303",
+      "secondaryValue": "+0.617s/volta",
+      "driverNumber": "3",
+      "accentColor": "#5d74ff"
+    },
+    {
+      "position": 9,
+      "name": "Liam Lawson",
+      "team": "Racing Bulls",
+      "badge": {
+        "label": "LL",
+        "accentColor": "#7b94ff",
+        "imagePath": "/f1/drivers/racing-bulls-liam-lawson.png",
+        "logoPath": "/f1/teams/custom/racing-bulls.png",
+        "sublabel": "Racing Bulls"
+      },
+      "value": "1:40.634",
+      "secondaryValue": "+0.947s/volta",
+      "driverNumber": "30",
+      "accentColor": "#7b94ff"
+    },
+    {
+      "position": 10,
+      "name": "Esteban Ocon",
+      "team": "Haas F1 Team",
+      "badge": {
+        "label": "EO",
+        "accentColor": "#f1f1f1",
+        "imagePath": "/f1/drivers/haas-f1-team-esteban-ocon.png",
+        "logoPath": "/f1/teams/custom/haas.png",
+        "sublabel": "Haas F1 Team"
+      },
+      "value": "1:40.653",
+      "secondaryValue": "+0.966s/volta",
+      "driverNumber": "31",
+      "accentColor": "#f1f1f1"
+    }
+  ]
+}

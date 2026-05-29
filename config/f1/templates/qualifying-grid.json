@@ -1,0 +1,8 @@
+{
+  "template": "qualifying-grid",
+  "label": "Grid de Largada",
+  "compositionId": "F1QualifyingGridShort",
+  "themeVariant": "blue",
+  "durationInFrames": 360,
+  "headlinePrefix": "Grande Premio"
+}

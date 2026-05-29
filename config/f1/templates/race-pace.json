@@ -1,0 +1,7 @@
+{
+  "template": "race-pace",
+  "label": "Ritmo de Corrida",
+  "compositionId": "F1RacePaceShort",
+  "themeVariant": "blue",
+  "durationInFrames": 360
+}

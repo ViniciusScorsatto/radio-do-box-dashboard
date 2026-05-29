@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>F1 Large Videos Still Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <nav class="top-nav dashboard-top-nav">
+        <a class="back-link" href="/">All dashboards</a>
+        <div class="dashboard-status">
+          <span class="chip subtle">Formula 1</span>
+          <span class="chip subtle">PNG stills</span>
+          <span class="chip">1920x1080</span>
+        </div>
+      </nav>
+
+      <section class="dashboard-header f1-dashboard-header">
+        <div>
+          <p class="eyebrow">Formula 1 Console</p>
+          <h1>F1 Large Videos</h1>
+        </div>
+        <p id="dashboard-quick-status" class="quick-status">
+          Render landscape PNG stills for Canva long-form videos.
+        </p>
+      </section>
+
+      <section class="production-grid">
+        <form id="still-form" class="panel form-panel compact-form-panel">
+          <div class="panel-header">
+            <h2>Still Setup</h2>
+            <span class="chip">Broadcast PNG</span>
+          </div>
+
+          <section class="form-section">
+            <div class="section-title">
+              <span>Essentials</span>
+            </div>
+            <div class="two-up">
+              <label>
+                Template
+                <select name="template" id="template"></select>
+              </label>
+              <label>
+                Temporada
+                <input type="number" name="season" required />
+              </label>
+            </div>
+            <label>
+              Competicao
+              <select name="competition" id="competition"></select>
+            </label>
+          </section>
+
+          <section class="form-section" id="race-data-section">
+            <div class="section-title">
+              <span>Race Data</span>
+            </div>
+            <div class="two-up">
+              <label>
+                Tipo da sessao
+                <select name="raceType" id="race-type-select">
+                  <option value="Race">Race</option>
+                  <option value="Sprint">Sprint</option>
+                </select>
+              </label>
+              <label>
+                Corrida
+                <select name="raceId" id="race-id-select">
+                  <option value="">Automatico (mais recente)</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <div class="section-title">
+              <span>Content</span>
+            </div>
+            <label>
+              Nome da competicao
+              <input type="text" name="competitionName" placeholder="Formula 1" />
+            </label>
+            <div class="two-up">
+              <label>
+                Label override
+                <input type="text" name="labelOverride" placeholder="Opcional" />
+              </label>
+              <label>
+                Output filename
+                <input type="text" name="outputName" id="output-name" placeholder="Automatico" />
+              </label>
+            </div>
+          </section>
+
+          <details class="form-section compact-details">
+            <summary>Advanced</summary>
+            <div class="details-body">
+              <div class="two-up">
+                <label>
+                  Competition ID
+                  <input type="number" name="competitionId" required />
+                </label>
+                <label>
+                  Brand name
+                  <input type="text" name="brandName" placeholder="Radio do Box" />
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <input type="hidden" name="voiceoverEnabled" value="false" />
+          <input type="hidden" name="soundtrackPath" value="" />
+          <input type="hidden" name="soundtrackVolume" value="0" />
+
+          <section class="job-status-strip">
+            <div id="current-job" class="job-summary"></div>
+            <div id="render-download" class="job-summary"></div>
+          </section>
+
+          <div class="actions sticky-actions">
+            <button type="button" id="render-button">Render PNG Still</button>
+          </div>
+        </form>
+
+        <aside class="preview-rail">
+          <section class="panel preview-panel f1-preview-panel">
+            <div class="panel-header">
+              <h2>Still Preview</h2>
+              <span class="chip subtle">16:9 PNG</span>
+            </div>
+            <div class="still-preview-frame">
+              <img id="still-preview-image" alt="F1 large still preview" hidden />
+              <div id="still-preview-empty" class="still-preview-empty">
+                Render a PNG still to preview it here.
+              </div>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <details class="panel log-panel compact-details">
+        <summary>Activity</summary>
+        <div id="error-banner" class="helper" hidden>
+          <p>Erro ao renderizar still</p>
+          <span id="error-banner-text"></span>
+        </div>
+        <pre id="log-output"></pre>
+      </details>
+    </main>
+
+    <script type="module" src="/f1-large-videos/app.js"></script>
+  </body>
+</html>

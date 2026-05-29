@@ -1,0 +1,7 @@
+{
+  "template": "constructor-standings",
+  "label": "Mundial de Construtores",
+  "compositionId": "F1ConstructorStandingsShort",
+  "themeVariant": "orange",
+  "durationInFrames": 360
+}

@@ -1,0 +1,193 @@
+{
+  "sport": "f1",
+  "template": "teammate-battle",
+  "compositionId": "F1TeammateBattleShort",
+  "season": 2026,
+  "competitionId": 1,
+  "competitionName": "Formula 1",
+  "competitionConfig": {
+    "competitionId": 1,
+    "label": "Formula 1",
+    "shortLabel": "F1",
+    "countryCode": "INT"
+  },
+  "themeConfig": {
+    "variant": "blue",
+    "background": "linear-gradient(180deg, #12246d 0%, #101f59 52%, #080f2f 100%)",
+    "accent": "#74a8ff",
+    "secondaryAccent": "#ffe06b",
+    "panelFill": "linear-gradient(180deg, rgba(8,18,49,0.96), rgba(4,10,27,0.98))",
+    "panelStroke": "rgba(141, 181, 255, 0.9)",
+    "text": "#f7f9ff",
+    "mutedText": "#d5def6"
+  },
+  "templateConfig": {
+    "template": "teammate-battle",
+    "label": "Head-to-Head de Equipe",
+    "compositionId": "F1TeammateBattleShort",
+    "themeVariant": "blue",
+    "durationInFrames": 360
+  },
+  "title": "GP dos Estados Unidos",
+  "subtitle": "Head-to-Head de Equipe",
+  "raceType": "Race",
+  "raceId": 2541,
+  "raceName": "GP dos Estados Unidos",
+  "countryCode": "USA",
+  "circuitName": "Miami International Autodrome",
+  "brandName": "Radio do Box",
+  "brandLogoPath": "/branding/radio-do-box/white.png",
+  "soundtrackPath": "/audio/f1/country-rough-everet-almond.mp3",
+  "soundtrackLabel": "Country Rough - Everet Almond",
+  "soundtrackVolume": 0.3,
+  "introTitle": "Mercedes-AMG Petronas",
+  "introSubtitle": "Head-to-Head de Equipe",
+  "voiceoverText": "Fala, galera do box. Duelo interno da Mercedes-AMG Petronas no GP dos Estados Unidos.",
+  "voiceoverEnabled": false,
+  "outputName": "gp-dos-estados-unidos-head-to-head-mercedes-amg-petronas-2026.mp4",
+  "durationInFrames": 360,
+  "dataSource": "api",
+  "warnings": [],
+  "teamId": 1,
+  "teamName": "Red Bull Racing",
+  "driver1": {
+    "code": "VER",
+    "name": "Max Verstappen",
+    "team": "Red Bull Racing",
+    "badge": {
+      "label": "MV",
+      "accentColor": "#5d74ff",
+      "imagePath": "/f1/drivers/red-bull-racing-max-verstappen.png",
+      "logoPath": "/f1/teams/custom/red-bull.png",
+      "sublabel": "Red Bull Racing"
+    },
+    "accentColor": "#5d74ff"
+  },
+  "driver2": {
+    "code": "HAD",
+    "name": "Isack Hadjar",
+    "team": "Red Bull Racing",
+    "badge": {
+      "label": "IH",
+      "accentColor": "#5d74ff",
+      "imagePath": "/f1/drivers/red-bull-racing-isack-hadjar.png",
+      "logoPath": "/f1/teams/custom/red-bull.png",
+      "sublabel": "Red Bull Racing"
+    },
+    "accentColor": "#5d74ff"
+  },
+  "qualifyingScore": {
+    "driver1": 2,
+    "driver2": 2,
+    "label": "Classificação (Temporada)"
+  },
+  "raceFinishScore": {
+    "driver1": 3,
+    "driver2": 1,
+    "label": "Corrida (Temporada)"
+  },
+  "championshipPoints": {
+    "driver1": 26,
+    "driver2": 4,
+    "label": "Pontos no Campeonato"
+  },
+  "podiums": {
+    "driver1": 0,
+    "driver2": 0,
+    "label": "Pódios",
+    "hasData": true
+  },
+  "wins": {
+    "driver1": 0,
+    "driver2": 0,
+    "label": "Vitórias",
+    "hasData": true
+  },
+  "bestRaceFinish": {
+    "driver1": 5,
+    "driver2": 8,
+    "driver1Display": "5º",
+    "driver2Display": "8º",
+    "label": "Melhor Chegada",
+    "higherIsBetter": false,
+    "hasData": true
+  },
+  "highestGridPosition": {
+    "driver1": 2,
+    "driver2": 3,
+    "driver1Display": "2º",
+    "driver2Display": "3º",
+    "label": "Melhor Largada",
+    "higherIsBetter": false,
+    "hasData": true
+  },
+  "dnfCount": {
+    "driver1": 1,
+    "driver2": 1,
+    "label": "DNF · Abandono",
+    "higherIsBetter": false,
+    "hasData": true
+  },
+  "dnsCount": {
+    "driver1": 0,
+    "driver2": 0,
+    "label": "DNS · Não largou",
+    "higherIsBetter": false,
+    "hasData": true
+  },
+  "dsqCount": {
+    "driver1": 0,
+    "driver2": 0,
+    "label": "DSQ · Desclassificado",
+    "higherIsBetter": false,
+    "hasData": true
+  },
+  "driverStats": [
+    {
+      "driverId": 25,
+      "name": "Max Verstappen",
+      "championshipPosition": 7,
+      "championshipPoints": 26,
+      "wins": 0,
+      "podiums": 0,
+      "poles": 0,
+      "bestFinish": 5,
+      "averageFinish": 6.3,
+      "bestGrid": 2,
+      "averageGrid": 10.3,
+      "racesStarted": 4,
+      "classifiedResults": 3,
+      "dnfCount": 1,
+      "dnsCount": 0,
+      "dsqCount": 0
+    },
+    {
+      "driverId": 100,
+      "name": "Isack Hadjar",
+      "championshipPosition": 13,
+      "championshipPoints": 4,
+      "wins": 0,
+      "podiums": 0,
+      "poles": 0,
+      "bestFinish": 8,
+      "averageFinish": 10,
+      "bestGrid": 3,
+      "averageGrid": 6.7,
+      "racesStarted": 3,
+      "classifiedResults": 2,
+      "dnfCount": 1,
+      "dnsCount": 0,
+      "dsqCount": 0
+    }
+  ],
+  "leaderDriverId": 25,
+  "diagnostics": {
+    "completedRaceCount": 4,
+    "raceResultRaceCount": 4,
+    "startingGridRaceCount": 4,
+    "skippedRaceIds": [],
+    "warnings": []
+  },
+  "championshipLeader": "driver1",
+  "contextSubtitle": "Após o GP de dos Estados Unidos"
+}

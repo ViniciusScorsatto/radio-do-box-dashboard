@@ -1,0 +1,7 @@
+{
+  "template": "circuit-insights",
+  "label": "Guia do Circuito",
+  "compositionId": "F1CircuitInsightsShort",
+  "themeVariant": "orange",
+  "durationInFrames": 360
+}

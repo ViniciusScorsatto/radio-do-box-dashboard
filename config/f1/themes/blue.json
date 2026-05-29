@@ -1,0 +1,10 @@
+{
+  "variant": "blue",
+  "background": "linear-gradient(180deg, #12246d 0%, #101f59 52%, #080f2f 100%)",
+  "accent": "#74a8ff",
+  "secondaryAccent": "#ffe06b",
+  "panelFill": "linear-gradient(180deg, rgba(8,18,49,0.96), rgba(4,10,27,0.98))",
+  "panelStroke": "rgba(141, 181, 255, 0.9)",
+  "text": "#f7f9ff",
+  "mutedText": "#d5def6"
+}

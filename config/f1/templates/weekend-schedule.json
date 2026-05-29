@@ -1,0 +1,7 @@
+{
+  "template": "weekend-schedule",
+  "label": "Horarios do GP",
+  "compositionId": "F1WeekendScheduleShort",
+  "themeVariant": "orange",
+  "durationInFrames": 360
+}

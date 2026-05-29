@@ -1,0 +1,85 @@
+{
+  "sport": "f1",
+  "template": "circuit-insights",
+  "compositionId": "F1CircuitInsightsShort",
+  "season": 2026,
+  "competitionId": 1,
+  "competitionName": "Formula 1",
+  "competitionConfig": {
+    "competitionId": 1,
+    "label": "Formula 1",
+    "shortLabel": "F1",
+    "countryCode": "INT"
+  },
+  "themeConfig": {
+    "variant": "orange",
+    "background": "linear-gradient(180deg, #4c120b 0%, #2a0b10 44%, #12070d 100%)",
+    "accent": "#ff8a3d",
+    "secondaryAccent": "#ffe36d",
+    "panelFill": "linear-gradient(180deg, rgba(44,13,10,0.96), rgba(15,6,9,0.98))",
+    "panelStroke": "rgba(255, 161, 77, 0.92)",
+    "text": "#fff4e5",
+    "mutedText": "#f6d9bb"
+  },
+  "templateConfig": {
+    "template": "circuit-insights",
+    "label": "Guia do Circuito",
+    "compositionId": "F1CircuitInsightsShort",
+    "themeVariant": "orange",
+    "durationInFrames": 360
+  },
+  "title": "GP do Japão",
+  "subtitle": "Guia do Circuito",
+  "raceType": "Race",
+  "raceId": 2530,
+  "raceName": "GP do Japão",
+  "countryCode": "JPN",
+  "circuitName": "Suzuka International Racing Course",
+  "brandName": "Radio do Box",
+  "brandLogoPath": "/branding/radio-do-box/yellow.png",
+  "soundtrackPath": "/audio/f1/country-rough-everet-almond.mp3",
+  "soundtrackLabel": "Country Rough - Everet Almond",
+  "introTitle": "GP do Japão",
+  "introSubtitle": "Guia do Circuito",
+  "voiceoverText": "Fala, galera do box. Guia rápido do circuito para o GP do Japão.",
+  "voiceoverPath": "/voiceovers/f1/pt-br-4193eda8f3201a36.mp3",
+  "voiceoverLabel": "Fala, galera do box. Guia rápido do circuito para o GP do Japão.",
+  "outputName": "gp-do-japao-circuit-insights-2026.mp4",
+  "durationInFrames": 360,
+  "dataSource": "api",
+  "warnings": [],
+  "keyPoints": [
+    "Suzuka International Racing Course em Suzuka, Japão.",
+    "Traçado de 5.807 km com 53 voltas na corrida.",
+    "Primeiro setor costuma premiar quem acerta bem a entrada de curva.",
+    "Consistência ao longo da volta tende a decidir a classificação."
+  ],
+  "stats": [
+    {
+      "label": "Circuito",
+      "value": "Suzuka International Racing Course"
+    },
+    {
+      "label": "País",
+      "value": "Japão"
+    },
+    {
+      "label": "Cidade",
+      "value": "Suzuka"
+    },
+    {
+      "label": "Comprimento",
+      "value": "5.807 km"
+    },
+    {
+      "label": "Voltas",
+      "value": "53"
+    },
+    {
+      "label": "Próxima sessão",
+      "value": "29/03, 18:10"
+    }
+  ],
+  "historicalNote": "Último vencedor: Max Verstappen (2025)",
+  "trackImagePath": "/f1/circuits/suzuka-international-racing-course-track-2026.png"
+}

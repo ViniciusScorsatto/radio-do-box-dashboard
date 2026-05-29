@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+node_modules/
+/node_modules
+build/
+out/
+public/voiceovers/football/
+public/voiceovers/f1/
+.analysis-frames/
+.qodo/
+*.log
+.DS_Store
+**/.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

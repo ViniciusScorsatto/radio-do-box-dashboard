@@ -1,0 +1,10 @@
+{
+  "variant": "light",
+  "background": "linear-gradient(180deg, #d7e4ff 0%, #c9d7ef 55%, #b2bfd5 100%)",
+  "accent": "#e1b244",
+  "secondaryAccent": "#ffffff",
+  "panelFill": "linear-gradient(180deg, rgba(255,255,255,0.78), rgba(219,226,237,0.84))",
+  "panelStroke": "rgba(255, 255, 255, 0.86)",
+  "text": "#16233b",
+  "mutedText": "#34415d"
+}

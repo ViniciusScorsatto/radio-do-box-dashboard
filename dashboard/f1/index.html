@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>F1 Video Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <nav class="top-nav dashboard-top-nav">
+        <a class="back-link" href="/">All dashboards</a>
+        <div class="dashboard-status">
+          <span class="chip subtle">Formula 1</span>
+          <span class="chip subtle" id="job-template-chip">loading</span>
+          <span class="chip" id="dashboard-competition-chip">Formula 1</span>
+        </div>
+      </nav>
+
+      <section class="dashboard-header f1-dashboard-header">
+        <div>
+          <p class="eyebrow">Formula 1 Console</p>
+          <h1>Radio do Box F1</h1>
+        </div>
+        <p id="dashboard-quick-status" class="quick-status">Escolha um template e prepare o preview.</p>
+      </section>
+
+      <section class="production-grid">
+        <form id="job-form" class="panel form-panel compact-form-panel">
+          <div class="panel-header">
+            <h2>Job Setup</h2>
+            <span class="chip">F1 mode</span>
+          </div>
+
+          <section class="form-section">
+            <div class="section-title">
+              <span>Essentials</span>
+            </div>
+            <div class="two-up">
+              <label>
+                Template
+                <select name="template" id="template"></select>
+              </label>
+              <label>
+                Temporada
+                <input type="number" name="season" required />
+              </label>
+            </div>
+            <label>
+              Competicao
+              <select name="competition" id="competition"></select>
+            </label>
+          </section>
+
+          <section class="form-section" id="race-data-section">
+            <div class="section-title">
+              <span>Race Data</span>
+            </div>
+            <div class="two-up" id="race-selector-fields">
+              <label id="race-type-field">
+                Tipo da sessão
+                <select name="raceType" id="race-type-select">
+                  <option value="Race">Race</option>
+                  <option value="1st Qualifying">1st Qualifying</option>
+                  <option value="2nd Qualifying">2nd Qualifying</option>
+                  <option value="3rd Qualifying">3rd Qualifying</option>
+                  <option value="Sprint">Sprint</option>
+                  <option value="1st Sprint Shootout">1st Sprint Shootout</option>
+                  <option value="2nd Sprint Shootout">2nd Sprint Shootout</option>
+                  <option value="3rd Sprint Shootout">3rd Sprint Shootout</option>
+                  <option value="1st Practice">1st Practice</option>
+                  <option value="2nd Practice">2nd Practice</option>
+                  <option value="3rd Practice">3rd Practice</option>
+                </select>
+              </label>
+              <label id="race-id-field">
+                Corrida (lista da temporada)
+                <select name="raceId" id="race-id-select">
+                  <option value="">Automático (última corrida concluída)</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="teammate-battle-fields" hidden>
+              <label>
+                Equipe
+                <select name="teamId" id="team-id-select">
+                  <option value="">Carregando equipes…</option>
+                </select>
+              </label>
+              <label>
+                Subtítulo do recorte
+                <input
+                  type="text"
+                  name="contextSubtitle"
+                  placeholder="Após o GP de ..."
+                />
+              </label>
+            </div>
+
+          </section>
+
+          <section class="form-section">
+            <div class="section-title">
+              <span>Content</span>
+            </div>
+            <label>
+              Nome da competicao
+              <input type="text" name="competitionName" placeholder="Formula 1" />
+            </label>
+
+            <div class="two-up">
+              <label>
+                Label override
+                <input type="text" name="labelOverride" placeholder="Opcional" />
+              </label>
+              <label>
+                Output filename
+                <input type="text" name="outputName" placeholder="Opcional" />
+              </label>
+            </div>
+          </section>
+
+          <details class="form-section compact-details" id="intro-voiceover-field">
+            <summary>Intro + Narração</summary>
+            <div class="details-body">
+              <p>Texto automático em pt-BR para a abertura Radio do Box. Edite se quiser uma chamada especial.</p>
+              <input type="hidden" name="voiceoverEnabled" value="false" />
+              <label class="toggle-row">
+                <input type="checkbox" name="voiceoverEnabled" value="true" checked />
+                <span>Gerar narração TTS</span>
+              </label>
+              <div class="two-up">
+                <label>
+                  Intro title
+                  <input type="text" name="introTitle" placeholder="Automático" />
+                </label>
+                <label>
+                  Intro subtitle
+                  <input type="text" name="introSubtitle" placeholder="Automático" />
+                </label>
+              </div>
+
+              <label>
+                Speech text
+                <input type="text" name="voiceoverText" placeholder="Automático" />
+              </label>
+            </div>
+          </details>
+
+          <details class="form-section compact-details">
+            <summary>Advanced</summary>
+            <div class="details-body">
+              <div class="two-up">
+                <label>
+                  Competition ID
+                  <input type="number" name="competitionId" required />
+                </label>
+                <label>
+                  Brand name
+                  <input type="text" name="brandName" placeholder="Radio do Box" />
+                </label>
+              </div>
+              <label>
+                Background audio
+                <select name="soundtrackPath" id="soundtrack-select"></select>
+              </label>
+              <label>
+                Background audio volume
+                <div class="volume-control">
+                  <input
+                    type="range"
+                    id="soundtrack-volume-range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value="0.30"
+                  />
+                  <input
+                    type="number"
+                    name="soundtrackVolume"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    placeholder="0.30"
+                  />
+                </div>
+              </label>
+              <p id="template-hint">Carregando dica do template…</p>
+            </div>
+          </details>
+
+          <section class="job-status-strip">
+            <div id="current-job" class="job-summary"></div>
+            <div id="render-download" class="job-summary"></div>
+          </section>
+
+          <div class="actions sticky-actions">
+            <button type="button" id="prepare-button">Prepare Preview Job</button>
+            <button type="button" id="render-button" class="secondary">Render MP4</button>
+          </div>
+        </form>
+
+        <aside class="preview-rail">
+          <section class="panel preview-panel f1-preview-panel">
+            <div class="panel-header">
+              <h2>Video Preview</h2>
+              <span class="chip subtle">9:16</span>
+            </div>
+            <div class="preview-toolbar">
+              <label class="preview-url-field">
+                Studio URL
+                <input type="url" id="studio-url" placeholder="http://127.0.0.1:3000" />
+              </label>
+              <div class="preview-actions">
+                <button type="button" id="apply-preview-button" class="secondary">Load</button>
+                <a id="open-preview-link" class="preview-link" href="#" target="_blank" rel="noreferrer">Open Studio</a>
+              </div>
+            </div>
+            <div class="preview-frame-shell video-only-preview">
+              <iframe id="preview-frame" title="Remotion Studio preview"></iframe>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <details class="panel log-panel compact-details">
+        <summary>Activity</summary>
+        <div id="error-banner" class="helper" hidden>
+          <p>Erro ao carregar dados reais</p>
+          <p id="error-banner-text"></p>
+        </div>
+        <pre id="log-output">Loading F1 dashboard…</pre>
+      </details>
+    </main>
+    <script type="module" src="/f1/app.js"></script>
+  </body>
+</html>

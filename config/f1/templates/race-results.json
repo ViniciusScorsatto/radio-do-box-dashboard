@@ -1,0 +1,8 @@
+{
+  "template": "race-results",
+  "label": "Resultado da Corrida",
+  "compositionId": "F1RaceResultsShort",
+  "themeVariant": "orange",
+  "durationInFrames": 360,
+  "headlinePrefix": "Grande Premio"
+}

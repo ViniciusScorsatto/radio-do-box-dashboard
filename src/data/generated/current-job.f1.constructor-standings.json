@@ -1,0 +1,217 @@
+{
+  "sport": "f1",
+  "template": "constructor-standings",
+  "compositionId": "F1ConstructorStandingsShort",
+  "season": 2026,
+  "competitionId": 1,
+  "competitionName": "Formula 1",
+  "competitionConfig": {
+    "competitionId": 1,
+    "label": "Formula 1",
+    "shortLabel": "F1",
+    "countryCode": "INT"
+  },
+  "themeConfig": {
+    "variant": "orange",
+    "background": "linear-gradient(180deg, #4c120b 0%, #2a0b10 44%, #12070d 100%)",
+    "accent": "#ff8a3d",
+    "secondaryAccent": "#ffe36d",
+    "panelFill": "linear-gradient(180deg, rgba(44,13,10,0.96), rgba(15,6,9,0.98))",
+    "panelStroke": "rgba(255, 161, 77, 0.92)",
+    "text": "#fff4e5",
+    "mutedText": "#f6d9bb"
+  },
+  "templateConfig": {
+    "template": "constructor-standings",
+    "label": "Mundial de Construtores",
+    "compositionId": "F1ConstructorStandingsShort",
+    "themeVariant": "orange",
+    "durationInFrames": 360
+  },
+  "title": "Mundial de Construtores",
+  "subtitle": "Formula 1 2026",
+  "raceType": "1st Practice",
+  "raceId": 2543,
+  "raceName": "GP do Canadá",
+  "countryCode": "CAN",
+  "circuitName": "Circuit Gilles-Villeneuve",
+  "brandName": "Radio do Box",
+  "brandLogoPath": "/branding/radio-do-box/yellow.png",
+  "soundtrackPath": "/audio/f1/country-rough-everet-almond.mp3",
+  "soundtrackLabel": "Country Rough - Everet Almond",
+  "soundtrackVolume": 0,
+  "introTitle": "Mundial de Construtores",
+  "introSubtitle": "Formula 1 2026",
+  "voiceoverText": "Fala, galera do box. Mundial de construtores atualizado da Formula 1 2026.",
+  "voiceoverEnabled": false,
+  "outputName": "f1-large-constructor-standings-2026.png",
+  "durationInFrames": 360,
+  "dataSource": "api",
+  "warnings": [],
+  "leader": {
+    "position": 1,
+    "name": "Mercedes-AMG Petronas",
+    "team": "Mercedes-AMG Petronas",
+    "badge": {
+      "label": "MP",
+      "accentColor": "#65e1c6",
+      "imagePath": "/f1/teams/custom/mercedes.png",
+      "logoPath": "/f1/teams/custom/mercedes.png",
+      "sublabel": "Mercedes-AMG Petronas"
+    },
+    "stat": "219 pts",
+    "accentColor": "#65e1c6"
+  },
+  "entries": [
+    {
+      "position": 1,
+      "name": "Mercedes-AMG Petronas",
+      "team": "",
+      "badge": {
+        "label": "MP",
+        "accentColor": "#65e1c6",
+        "imagePath": "/f1/teams/custom/mercedes.png",
+        "logoPath": "/f1/teams/custom/mercedes.png",
+        "sublabel": "Mercedes-AMG Petronas"
+      },
+      "value": "219",
+      "secondaryValue": "",
+      "accentColor": "#65e1c6"
+    },
+    {
+      "position": 2,
+      "name": "Scuderia Ferrari",
+      "team": "",
+      "badge": {
+        "label": "SF",
+        "accentColor": "#ff5546",
+        "imagePath": "/f1/teams/custom/ferrari.png",
+        "logoPath": "/f1/teams/custom/ferrari.png",
+        "sublabel": "Scuderia Ferrari"
+      },
+      "value": "147",
+      "secondaryValue": "",
+      "accentColor": "#ff5546"
+    },
+    {
+      "position": 3,
+      "name": "McLaren Racing",
+      "team": "",
+      "badge": {
+        "label": "MR",
+        "accentColor": "#ff9a3d",
+        "imagePath": "/f1/teams/custom/mclaren.png",
+        "logoPath": "/f1/teams/custom/mclaren.png",
+        "sublabel": "McLaren Racing"
+      },
+      "value": "106",
+      "secondaryValue": "",
+      "accentColor": "#ff9a3d"
+    },
+    {
+      "position": 4,
+      "name": "Red Bull Racing",
+      "team": "",
+      "badge": {
+        "label": "RB",
+        "accentColor": "#5d74ff",
+        "imagePath": "/f1/teams/custom/red-bull.png",
+        "logoPath": "/f1/teams/custom/red-bull.png",
+        "sublabel": "Red Bull Racing"
+      },
+      "value": "57",
+      "secondaryValue": "",
+      "accentColor": "#5d74ff"
+    },
+    {
+      "position": 5,
+      "name": "Alpine F1 Team",
+      "team": "",
+      "badge": {
+        "label": "AF",
+        "accentColor": "#ff76db",
+        "imagePath": "/f1/teams/custom/alpine.png",
+        "logoPath": "/f1/teams/custom/alpine.png",
+        "sublabel": "Alpine F1 Team"
+      },
+      "value": "35",
+      "secondaryValue": "",
+      "accentColor": "#ff76db"
+    },
+    {
+      "position": 6,
+      "name": "Racing Bulls",
+      "team": "",
+      "badge": {
+        "label": "RB",
+        "accentColor": "#7b94ff",
+        "imagePath": "/f1/teams/custom/racing-bulls.png",
+        "logoPath": "/f1/teams/custom/racing-bulls.png",
+        "sublabel": "Racing Bulls"
+      },
+      "value": "21",
+      "secondaryValue": "",
+      "accentColor": "#7b94ff"
+    },
+    {
+      "position": 7,
+      "name": "Haas F1 Team",
+      "team": "",
+      "badge": {
+        "label": "HF",
+        "accentColor": "#f1f1f1",
+        "imagePath": "/f1/teams/custom/haas.png",
+        "logoPath": "/f1/teams/custom/haas.png",
+        "sublabel": "Haas F1 Team"
+      },
+      "value": "19",
+      "secondaryValue": "",
+      "accentColor": "#f1f1f1"
+    },
+    {
+      "position": 8,
+      "name": "Williams F1 Team",
+      "team": "",
+      "badge": {
+        "label": "WF",
+        "accentColor": "#6fb4ff",
+        "imagePath": "/f1/teams/custom/williams.png",
+        "logoPath": "/f1/teams/custom/williams.png",
+        "sublabel": "Williams F1 Team"
+      },
+      "value": "7",
+      "secondaryValue": "",
+      "accentColor": "#6fb4ff"
+    },
+    {
+      "position": 9,
+      "name": "Audi Revolut F1 Team",
+      "team": "",
+      "badge": {
+        "label": "AR",
+        "accentColor": "#d4d7df",
+        "imagePath": "/f1/teams/custom/audi.png",
+        "logoPath": "/f1/teams/custom/audi.png",
+        "sublabel": "Audi Revolut F1 Team"
+      },
+      "value": "2",
+      "secondaryValue": "",
+      "accentColor": "#d4d7df"
+    },
+    {
+      "position": 10,
+      "name": "Cadillac Formula 1 Team",
+      "team": "",
+      "badge": {
+        "label": "CF",
+        "accentColor": "#8fd1ff",
+        "imagePath": "/f1/teams/custom/cadillac.png",
+        "logoPath": "/f1/teams/custom/cadillac.png",
+        "sublabel": "Cadillac Formula 1 Team"
+      },
+      "value": "0",
+      "secondaryValue": "",
+      "accentColor": "#8fd1ff"
+    }
+  ]
+}

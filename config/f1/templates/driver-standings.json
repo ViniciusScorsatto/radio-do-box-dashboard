@@ -1,0 +1,7 @@
+{
+  "template": "driver-standings",
+  "label": "Mundial de Pilotos",
+  "compositionId": "F1DriverStandingsShort",
+  "themeVariant": "light",
+  "durationInFrames": 360
+}

@@ -1,0 +1,403 @@
+{
+  "sport": "f1",
+  "template": "qualifying-grid",
+  "compositionId": "F1QualifyingGridShort",
+  "season": 2026,
+  "competitionId": 1,
+  "competitionName": "Formula 1",
+  "competitionConfig": {
+    "competitionId": 1,
+    "label": "Formula 1",
+    "shortLabel": "F1",
+    "countryCode": "INT"
+  },
+  "themeConfig": {
+    "variant": "blue",
+    "background": "linear-gradient(180deg, #12246d 0%, #101f59 52%, #080f2f 100%)",
+    "accent": "#74a8ff",
+    "secondaryAccent": "#ffe06b",
+    "panelFill": "linear-gradient(180deg, rgba(8,18,49,0.96), rgba(4,10,27,0.98))",
+    "panelStroke": "rgba(141, 181, 255, 0.9)",
+    "text": "#f7f9ff",
+    "mutedText": "#d5def6"
+  },
+  "templateConfig": {
+    "template": "qualifying-grid",
+    "label": "Grid de Largada",
+    "compositionId": "F1QualifyingGridShort",
+    "themeVariant": "blue",
+    "durationInFrames": 360,
+    "headlinePrefix": "Grande Premio"
+  },
+  "title": "Classificação de Largada",
+  "subtitle": "Classificação de Largada",
+  "raceType": "3rd Qualifying",
+  "raceId": 2652,
+  "raceName": "Classificação de Largada",
+  "countryCode": "CAN",
+  "circuitName": "Circuit Gilles-Villeneuve",
+  "brandName": "Radio do Box",
+  "brandLogoPath": "/branding/radio-do-box/white.png",
+  "soundtrackPath": "/audio/f1/Rádio do Box - Intro jornal.mp3",
+  "soundtrackLabel": "Rádio do Box - Intro jornal",
+  "soundtrackVolume": 0.3,
+  "introTitle": "GP do Canadá",
+  "introSubtitle": "Classificacao de Largada",
+  "voiceoverText": "Fala Galera do Rádio do Box.. veja como ficou o grid de largada do Gp do Canadá..",
+  "voiceoverPath": "/voiceovers/f1/pt-br-304772a160a005ab.mp3",
+  "voiceoverLabel": "Fala Galera do Rádio do Box.. veja como ficou o grid de largada do Gp do Canadá..",
+  "outputName": "mundial-de-construtores-2026.mp4",
+  "durationInFrames": 360,
+  "dataSource": "api",
+  "warnings": [],
+  "podium": [
+    {
+      "position": 1,
+      "name": "George Russell",
+      "team": "Mercedes-AMG Petronas",
+      "badge": {
+        "label": "GR",
+        "accentColor": "#65e1c6",
+        "imagePath": "/f1/drivers/mercedes-amg-petronas-george-russell.png",
+        "logoPath": "/f1/teams/custom/mercedes.png",
+        "sublabel": "Mercedes-AMG Petronas"
+      },
+      "stat": "1:12.578",
+      "accentColor": "#65e1c6"
+    },
+    {
+      "position": 2,
+      "name": "Andrea Kimi Antonelli",
+      "team": "Mercedes-AMG Petronas",
+      "badge": {
+        "label": "AK",
+        "accentColor": "#65e1c6",
+        "imagePath": "/f1/drivers/mercedes-amg-petronas-andrea-kimi-antonelli.png",
+        "logoPath": "/f1/teams/custom/mercedes.png",
+        "sublabel": "Mercedes-AMG Petronas"
+      },
+      "stat": "1:12.646",
+      "accentColor": "#65e1c6"
+    },
+    {
+      "position": 3,
+      "name": "Lando Norris",
+      "team": "McLaren Racing",
+      "badge": {
+        "label": "LN",
+        "accentColor": "#ff9a3d",
+        "imagePath": "/f1/drivers/mclaren-racing-lando-norris.png",
+        "logoPath": "/f1/teams/custom/mclaren.png",
+        "sublabel": "McLaren Racing"
+      },
+      "stat": "1:12.729",
+      "accentColor": "#ff9a3d"
+    }
+  ],
+  "entries": [
+    {
+      "position": 4,
+      "name": "Oscar Piastri",
+      "team": "McLaren Racing",
+      "badge": {
+        "label": "OP",
+        "accentColor": "#ff9a3d",
+        "imagePath": "/f1/drivers/mclaren-racing-oscar-piastri.png",
+        "logoPath": "/f1/teams/custom/mclaren.png",
+        "sublabel": "McLaren Racing"
+      },
+      "value": "1:12.781",
+      "secondaryValue": "",
+      "driverNumber": "81",
+      "accentColor": "#ff9a3d"
+    },
+    {
+      "position": 5,
+      "name": "Lewis Hamilton",
+      "team": "Scuderia Ferrari",
+      "badge": {
+        "label": "LH",
+        "accentColor": "#ff5546",
+        "imagePath": "/f1/drivers/scuderia-ferrari-lewis-hamilton.png",
+        "logoPath": "/f1/teams/custom/ferrari.png",
+        "sublabel": "Scuderia Ferrari"
+      },
+      "value": "1:12.868",
+      "secondaryValue": "",
+      "driverNumber": "44",
+      "accentColor": "#ff5546"
+    },
+    {
+      "position": 6,
+      "name": "Max Verstappen",
+      "team": "Red Bull Racing",
+      "badge": {
+        "label": "MV",
+        "accentColor": "#5d74ff",
+        "imagePath": "/f1/drivers/red-bull-racing-max-verstappen.png",
+        "logoPath": "/f1/teams/custom/red-bull.png",
+        "sublabel": "Red Bull Racing"
+      },
+      "value": "1:12.907",
+      "secondaryValue": "",
+      "driverNumber": "3",
+      "accentColor": "#5d74ff"
+    },
+    {
+      "position": 7,
+      "name": "Isack Hadjar",
+      "team": "Red Bull Racing",
+      "badge": {
+        "label": "IH",
+        "accentColor": "#5d74ff",
+        "imagePath": "/f1/drivers/red-bull-racing-isack-hadjar.png",
+        "logoPath": "/f1/teams/custom/red-bull.png",
+        "sublabel": "Red Bull Racing"
+      },
+      "value": "1:12.935",
+      "secondaryValue": "",
+      "driverNumber": "6",
+      "accentColor": "#5d74ff"
+    },
+    {
+      "position": 8,
+      "name": "Charles Leclerc",
+      "team": "Scuderia Ferrari",
+      "badge": {
+        "label": "CL",
+        "accentColor": "#ff5546",
+        "imagePath": "/f1/drivers/scuderia-ferrari-charles-leclerc.png",
+        "logoPath": "/f1/teams/custom/ferrari.png",
+        "sublabel": "Scuderia Ferrari"
+      },
+      "value": "1:12.976",
+      "secondaryValue": "",
+      "driverNumber": "16",
+      "accentColor": "#ff5546"
+    },
+    {
+      "position": 9,
+      "name": "Arvid Lindblad",
+      "team": "Racing Bulls",
+      "badge": {
+        "label": "AL",
+        "accentColor": "#7b94ff",
+        "imagePath": "/f1/drivers/racing-bulls-arvid-lindblad.png",
+        "logoPath": "/f1/teams/custom/racing-bulls.png",
+        "sublabel": "Racing Bulls"
+      },
+      "value": "1:13.280",
+      "secondaryValue": "",
+      "driverNumber": "41",
+      "accentColor": "#7b94ff"
+    },
+    {
+      "position": 10,
+      "name": "Franco Colapinto",
+      "team": "Alpine F1 Team",
+      "badge": {
+        "label": "FC",
+        "accentColor": "#ff76db",
+        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
+        "logoPath": "/f1/teams/custom/alpine.png",
+        "sublabel": "Alpine F1 Team"
+      },
+      "value": "1:13.697",
+      "secondaryValue": "",
+      "driverNumber": "43",
+      "accentColor": "#ff76db"
+    },
+    {
+      "position": 11,
+      "name": "Nico Hulkenberg",
+      "team": "Audi Revolut F1 Team",
+      "badge": {
+        "label": "NH",
+        "accentColor": "#d4d7df",
+        "imagePath": "/f1/drivers/audi-revolut-f1-team-nico-hulkenberg.png",
+        "logoPath": "/f1/teams/custom/audi.png",
+        "sublabel": "Audi Revolut F1 Team"
+      },
+      "value": "1:13.886",
+      "secondaryValue": "",
+      "driverNumber": "27",
+      "accentColor": "#d4d7df"
+    },
+    {
+      "position": 12,
+      "name": "Liam Lawson",
+      "team": "Racing Bulls",
+      "badge": {
+        "label": "LL",
+        "accentColor": "#7b94ff",
+        "imagePath": "/f1/drivers/racing-bulls-liam-lawson.png",
+        "logoPath": "/f1/teams/custom/racing-bulls.png",
+        "sublabel": "Racing Bulls"
+      },
+      "value": "1:13.897",
+      "secondaryValue": "",
+      "driverNumber": "30",
+      "accentColor": "#7b94ff"
+    },
+    {
+      "position": 13,
+      "name": "Gabriel Bortoleto",
+      "team": "Audi Revolut F1 Team",
+      "badge": {
+        "label": "GB",
+        "accentColor": "#d4d7df",
+        "imagePath": "/f1/drivers/audi-revolut-f1-team-gabriel-bortoleto.png",
+        "logoPath": "/f1/teams/custom/audi.png",
+        "sublabel": "Audi Revolut F1 Team"
+      },
+      "value": "1:14.071",
+      "secondaryValue": "",
+      "driverNumber": "5",
+      "accentColor": "#d4d7df"
+    },
+    {
+      "position": 14,
+      "name": "Pierre Gasly",
+      "team": "Alpine F1 Team",
+      "badge": {
+        "label": "PG",
+        "accentColor": "#ff76db",
+        "imagePath": "/f1/drivers/alpine-f1-team-pierre-gasly.png",
+        "logoPath": "/f1/teams/custom/alpine.png",
+        "sublabel": "Alpine F1 Team"
+      },
+      "value": "1:14.187",
+      "secondaryValue": "",
+      "driverNumber": "10",
+      "accentColor": "#ff76db"
+    },
+    {
+      "position": 15,
+      "name": "Carlos Sainz Jr",
+      "team": "Williams F1 Team",
+      "badge": {
+        "label": "CS",
+        "accentColor": "#6fb4ff",
+        "imagePath": "/f1/drivers/williams-f1-team-carlos-sainz-jr.png",
+        "logoPath": "/f1/teams/custom/williams.png",
+        "sublabel": "Williams F1 Team"
+      },
+      "value": "1:14.273",
+      "secondaryValue": "",
+      "driverNumber": "55",
+      "accentColor": "#6fb4ff"
+    },
+    {
+      "position": 16,
+      "name": "Oliver Bearman",
+      "team": "Haas F1 Team",
+      "badge": {
+        "label": "OB",
+        "accentColor": "#f1f1f1",
+        "imagePath": "/f1/drivers/haas-f1-team-oliver-bearman.png",
+        "logoPath": "/f1/teams/custom/haas.png",
+        "sublabel": "Haas F1 Team"
+      },
+      "value": "1:14.416",
+      "secondaryValue": "",
+      "driverNumber": "87",
+      "accentColor": "#f1f1f1"
+    },
+    {
+      "position": 17,
+      "name": "Esteban Ocon",
+      "team": "Haas F1 Team",
+      "badge": {
+        "label": "EO",
+        "accentColor": "#f1f1f1",
+        "imagePath": "/f1/drivers/haas-f1-team-esteban-ocon.png",
+        "logoPath": "/f1/teams/custom/haas.png",
+        "sublabel": "Haas F1 Team"
+      },
+      "value": "1:14.845",
+      "secondaryValue": "",
+      "driverNumber": "31",
+      "accentColor": "#f1f1f1"
+    },
+    {
+      "position": 18,
+      "name": "Alexander Albon",
+      "team": "Williams F1 Team",
+      "badge": {
+        "label": "AA",
+        "accentColor": "#6fb4ff",
+        "imagePath": "/f1/drivers/williams-f1-team-alexander-albon.png",
+        "logoPath": "/f1/teams/custom/williams.png",
+        "sublabel": "Williams F1 Team"
+      },
+      "value": "1:14.851",
+      "secondaryValue": "",
+      "driverNumber": "23",
+      "accentColor": "#6fb4ff"
+    },
+    {
+      "position": 19,
+      "name": "Fernando Alonso",
+      "team": "Aston Martin F1 Team",
+      "badge": {
+        "label": "FA",
+        "accentColor": "#59b28c",
+        "imagePath": "/f1/drivers/aston-martin-f1-team-fernando-alonso.png",
+        "logoPath": "/f1/teams/custom/aston-martin.png",
+        "sublabel": "Aston Martin F1 Team"
+      },
+      "value": "1:15.196",
+      "secondaryValue": "",
+      "driverNumber": "14",
+      "accentColor": "#59b28c"
+    },
+    {
+      "position": 20,
+      "name": "Sergio Perez",
+      "team": "Cadillac Formula 1 Team",
+      "badge": {
+        "label": "SP",
+        "accentColor": "#8fd1ff",
+        "imagePath": "/f1/drivers/cadillac-formula-1-team-sergio-perez.png",
+        "logoPath": "/f1/teams/custom/cadillac.png",
+        "sublabel": "Cadillac Formula 1 Team"
+      },
+      "value": "1:15.429",
+      "secondaryValue": "",
+      "driverNumber": "11",
+      "accentColor": "#8fd1ff"
+    },
+    {
+      "position": 21,
+      "name": "Lance Stroll",
+      "team": "Aston Martin F1 Team",
+      "badge": {
+        "label": "LS",
+        "accentColor": "#59b28c",
+        "imagePath": "/f1/drivers/aston-martin-f1-team-lance-stroll.png",
+        "logoPath": "/f1/teams/custom/aston-martin.png",
+        "sublabel": "Aston Martin F1 Team"
+      },
+      "value": "1:16.195",
+      "secondaryValue": "",
+      "driverNumber": "18",
+      "accentColor": "#59b28c"
+    },
+    {
+      "position": 22,
+      "name": "Valtteri Bottas",
+      "team": "Cadillac Formula 1 Team",
+      "badge": {
+        "label": "VB",
+        "accentColor": "#8fd1ff",
+        "imagePath": "/f1/drivers/cadillac-formula-1-team-valtteri-bottas.png",
+        "logoPath": "/f1/teams/custom/cadillac.png",
+        "sublabel": "Cadillac Formula 1 Team"
+      },
+      "value": "1:16.272",
+      "secondaryValue": "",
+      "driverNumber": "77",
+      "accentColor": "#8fd1ff"
+    }
+  ]
+}

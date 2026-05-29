@@ -1,0 +1,7 @@
+{
+  "template": "teammate-battle",
+  "label": "Head-to-Head de Equipe",
+  "compositionId": "F1TeammateBattleShort",
+  "themeVariant": "blue",
+  "durationInFrames": 360
+}
