@@ -1,7 +1,7 @@
 {
   "sport": "f1",
-  "template": "driver-standings",
-  "compositionId": "F1DriverStandingsShort",
+  "template": "race-results",
+  "compositionId": "F1RaceResultsShort",
   "season": 2026,
   "competitionId": 1,
   "competitionName": "Formula 1",
@@ -12,57 +12,45 @@
     "countryCode": "INT"
   },
   "themeConfig": {
-    "variant": "light",
-    "background": "linear-gradient(180deg, #d7e4ff 0%, #c9d7ef 55%, #b2bfd5 100%)",
-    "accent": "#e1b244",
-    "secondaryAccent": "#ffffff",
-    "panelFill": "linear-gradient(180deg, rgba(255,255,255,0.78), rgba(219,226,237,0.84))",
-    "panelStroke": "rgba(255, 255, 255, 0.86)",
-    "text": "#16233b",
-    "mutedText": "#34415d"
+    "variant": "orange",
+    "background": "linear-gradient(180deg, #4c120b 0%, #2a0b10 44%, #12070d 100%)",
+    "accent": "#ff8a3d",
+    "secondaryAccent": "#ffe36d",
+    "panelFill": "linear-gradient(180deg, rgba(44,13,10,0.96), rgba(15,6,9,0.98))",
+    "panelStroke": "rgba(255, 161, 77, 0.92)",
+    "text": "#fff4e5",
+    "mutedText": "#f6d9bb"
   },
   "templateConfig": {
-    "template": "driver-standings",
-    "label": "Mundial de Pilotos",
-    "compositionId": "F1DriverStandingsShort",
-    "themeVariant": "light",
-    "durationInFrames": 360
+    "template": "race-results",
+    "label": "Resultado da Corrida",
+    "compositionId": "F1RaceResultsShort",
+    "themeVariant": "orange",
+    "durationInFrames": 360,
+    "headlinePrefix": "Grande Premio"
   },
-  "title": "Mundial de Pilotos",
-  "subtitle": "Formula 1 2026",
-  "raceType": "1st Practice",
-  "raceId": 2543,
-  "raceName": "GP do Canadá",
+  "title": "Formula 1 2026",
+  "subtitle": "Resultado da Corrida",
+  "raceType": "Race",
+  "raceId": 2546,
+  "raceName": "Formula 1 2026",
   "countryCode": "CAN",
   "circuitName": "Circuit Gilles-Villeneuve",
   "brandName": "Radio do Box",
-  "brandLogoPath": "/branding/radio-do-box/black.png",
+  "brandLogoPath": "/branding/radio-do-box/yellow.png",
+  "backgroundImagePath": "/f1/backgrounds/race-results-main.png",
   "soundtrackPath": "/audio/f1/country-rough-everet-almond.mp3",
   "soundtrackLabel": "Country Rough - Everet Almond",
   "soundtrackVolume": 0,
-  "introTitle": "Mundial de Pilotos",
-  "introSubtitle": "Formula 1 2026",
-  "voiceoverText": "Fala, galera do box. Mundial de pilotos atualizado da Formula 1 2026.",
+  "introTitle": "Formula 1 2026",
+  "introSubtitle": "Resultado da Corrida",
+  "voiceoverText": "Fala, galera do box. Resultado da corrida no Formula 1 2026.",
   "voiceoverEnabled": false,
-  "outputName": "f1-large-driver-standings-2026.mp4",
+  "outputName": "f1-large-race-results-2026.png",
   "durationInFrames": 360,
   "dataSource": "api",
   "warnings": [],
-  "leader": {
-    "position": 1,
-    "name": "Andrea Kimi Antonelli",
-    "team": "Mercedes-AMG Petronas",
-    "badge": {
-      "label": "AK",
-      "accentColor": "#65e1c6",
-      "imagePath": "/f1/drivers/mercedes-amg-petronas-andrea-kimi-antonelli.png",
-      "logoPath": "/f1/teams/custom/mercedes.png",
-      "sublabel": "Mercedes-AMG Petronas"
-    },
-    "stat": "131 pts",
-    "accentColor": "#65e1c6"
-  },
-  "entries": [
+  "podium": [
     {
       "position": 1,
       "name": "Andrea Kimi Antonelli",
@@ -74,45 +62,13 @@
         "logoPath": "/f1/teams/custom/mercedes.png",
         "sublabel": "Mercedes-AMG Petronas"
       },
-      "value": "131",
-      "secondaryValue": "4 vit",
-      "driverNumber": "12",
+      "value": "1:28:15.758",
+      "secondaryValue": "68 voltas",
+      "stat": "68 voltas",
       "accentColor": "#65e1c6"
     },
     {
       "position": 2,
-      "name": "George Russell",
-      "team": "Mercedes-AMG Petronas",
-      "badge": {
-        "label": "GR",
-        "accentColor": "#65e1c6",
-        "imagePath": "/f1/drivers/mercedes-amg-petronas-george-russell.png",
-        "logoPath": "/f1/teams/custom/mercedes.png",
-        "sublabel": "Mercedes-AMG Petronas"
-      },
-      "value": "88",
-      "secondaryValue": "1 vit • +43",
-      "driverNumber": "63",
-      "accentColor": "#65e1c6"
-    },
-    {
-      "position": 3,
-      "name": "Charles Leclerc",
-      "team": "Scuderia Ferrari",
-      "badge": {
-        "label": "CL",
-        "accentColor": "#ff5546",
-        "imagePath": "/f1/drivers/scuderia-ferrari-charles-leclerc.png",
-        "logoPath": "/f1/teams/custom/ferrari.png",
-        "sublabel": "Scuderia Ferrari"
-      },
-      "value": "75",
-      "secondaryValue": "+56",
-      "driverNumber": "16",
-      "accentColor": "#ff5546"
-    },
-    {
-      "position": 4,
       "name": "Lewis Hamilton",
       "team": "Scuderia Ferrari",
       "badge": {
@@ -122,45 +78,13 @@
         "logoPath": "/f1/teams/custom/ferrari.png",
         "sublabel": "Scuderia Ferrari"
       },
-      "value": "72",
-      "secondaryValue": "+59",
-      "driverNumber": "44",
+      "value": "+10.768",
+      "secondaryValue": "68 voltas",
+      "stat": "68 voltas",
       "accentColor": "#ff5546"
     },
     {
-      "position": 5,
-      "name": "Lando Norris",
-      "team": "McLaren Racing",
-      "badge": {
-        "label": "LN",
-        "accentColor": "#ff9a3d",
-        "imagePath": "/f1/drivers/mclaren-racing-lando-norris.png",
-        "logoPath": "/f1/teams/custom/mclaren.png",
-        "sublabel": "McLaren Racing"
-      },
-      "value": "58",
-      "secondaryValue": "+73",
-      "driverNumber": "1",
-      "accentColor": "#ff9a3d"
-    },
-    {
-      "position": 6,
-      "name": "Oscar Piastri",
-      "team": "McLaren Racing",
-      "badge": {
-        "label": "OP",
-        "accentColor": "#ff9a3d",
-        "imagePath": "/f1/drivers/mclaren-racing-oscar-piastri.png",
-        "logoPath": "/f1/teams/custom/mclaren.png",
-        "sublabel": "McLaren Racing"
-      },
-      "value": "48",
-      "secondaryValue": "+83",
-      "driverNumber": "81",
-      "accentColor": "#ff9a3d"
-    },
-    {
-      "position": 7,
+      "position": 3,
       "name": "Max Verstappen",
       "team": "Red Bull Racing",
       "badge": {
@@ -170,10 +94,76 @@
         "logoPath": "/f1/teams/custom/red-bull.png",
         "sublabel": "Red Bull Racing"
       },
-      "value": "43",
-      "secondaryValue": "+88",
-      "driverNumber": "3",
+      "value": "+11.276",
+      "secondaryValue": "68 voltas",
+      "stat": "68 voltas",
       "accentColor": "#5d74ff"
+    }
+  ],
+  "entries": [
+    {
+      "position": 4,
+      "name": "Charles Leclerc",
+      "team": "Scuderia Ferrari",
+      "badge": {
+        "label": "CL",
+        "accentColor": "#ff5546",
+        "imagePath": "/f1/drivers/scuderia-ferrari-charles-leclerc.png",
+        "logoPath": "/f1/teams/custom/ferrari.png",
+        "sublabel": "Scuderia Ferrari"
+      },
+      "value": "+44.151",
+      "secondaryValue": "68 voltas",
+      "driverNumber": "16",
+      "accentColor": "#ff5546"
+    },
+    {
+      "position": 5,
+      "name": "Isack Hadjar",
+      "team": "Red Bull Racing",
+      "badge": {
+        "label": "IH",
+        "accentColor": "#5d74ff",
+        "imagePath": "/f1/drivers/red-bull-racing-isack-hadjar.png",
+        "logoPath": "/f1/teams/custom/red-bull.png",
+        "sublabel": "Red Bull Racing"
+      },
+      "value": "+1 volta",
+      "secondaryValue": "67 voltas",
+      "driverNumber": "6",
+      "accentColor": "#5d74ff"
+    },
+    {
+      "position": 6,
+      "name": "Franco Colapinto",
+      "team": "Alpine F1 Team",
+      "badge": {
+        "label": "FC",
+        "accentColor": "#ff76db",
+        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
+        "logoPath": "/f1/teams/custom/alpine.png",
+        "sublabel": "Alpine F1 Team"
+      },
+      "value": "+1 volta",
+      "secondaryValue": "67 voltas",
+      "driverNumber": "43",
+      "accentColor": "#ff76db"
+    },
+    {
+      "position": 7,
+      "name": "Liam Lawson",
+      "team": "Racing Bulls",
+      "badge": {
+        "label": "LL",
+        "accentColor": "#7b94ff",
+        "imagePath": "/f1/drivers/racing-bulls-liam-lawson.png",
+        "logoPath": "/f1/teams/custom/racing-bulls.png",
+        "sublabel": "Racing Bulls"
+      },
+      "value": "+1 volta",
+      "secondaryValue": "67 voltas",
+      "driverNumber": "30",
+      "accentColor": "#7b94ff"
     },
     {
       "position": 8,
@@ -186,77 +176,13 @@
         "logoPath": "/f1/teams/custom/alpine.png",
         "sublabel": "Alpine F1 Team"
       },
-      "value": "20",
-      "secondaryValue": "+111",
+      "value": "+1 volta",
+      "secondaryValue": "67 voltas",
       "driverNumber": "10",
       "accentColor": "#ff76db"
     },
     {
       "position": 9,
-      "name": "Oliver Bearman",
-      "team": "Haas F1 Team",
-      "badge": {
-        "label": "OB",
-        "accentColor": "#f1f1f1",
-        "imagePath": "/f1/drivers/haas-f1-team-oliver-bearman.png",
-        "logoPath": "/f1/teams/custom/haas.png",
-        "sublabel": "Haas F1 Team"
-      },
-      "value": "18",
-      "secondaryValue": "+113",
-      "driverNumber": "87",
-      "accentColor": "#f1f1f1"
-    },
-    {
-      "position": 10,
-      "name": "Liam Lawson",
-      "team": "Racing Bulls",
-      "badge": {
-        "label": "LL",
-        "accentColor": "#7b94ff",
-        "imagePath": "/f1/drivers/racing-bulls-liam-lawson.png",
-        "logoPath": "/f1/teams/custom/racing-bulls.png",
-        "sublabel": "Racing Bulls"
-      },
-      "value": "16",
-      "secondaryValue": "+115",
-      "driverNumber": "30",
-      "accentColor": "#7b94ff"
-    },
-    {
-      "position": 11,
-      "name": "Franco Colapinto",
-      "team": "Alpine F1 Team",
-      "badge": {
-        "label": "FC",
-        "accentColor": "#ff76db",
-        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
-        "logoPath": "/f1/teams/custom/alpine.png",
-        "sublabel": "Alpine F1 Team"
-      },
-      "value": "15",
-      "secondaryValue": "+116",
-      "driverNumber": "43",
-      "accentColor": "#ff76db"
-    },
-    {
-      "position": 12,
-      "name": "Isack Hadjar",
-      "team": "Red Bull Racing",
-      "badge": {
-        "label": "IH",
-        "accentColor": "#5d74ff",
-        "imagePath": "/f1/drivers/red-bull-racing-isack-hadjar.png",
-        "logoPath": "/f1/teams/custom/red-bull.png",
-        "sublabel": "Red Bull Racing"
-      },
-      "value": "14",
-      "secondaryValue": "+117",
-      "driverNumber": "6",
-      "accentColor": "#5d74ff"
-    },
-    {
-      "position": 13,
       "name": "Carlos Sainz Jr",
       "team": "Williams F1 Team",
       "badge": {
@@ -266,77 +192,45 @@
         "logoPath": "/f1/teams/custom/williams.png",
         "sublabel": "Williams F1 Team"
       },
-      "value": "6",
-      "secondaryValue": "+125",
+      "value": "+1 volta",
+      "secondaryValue": "67 voltas",
       "driverNumber": "55",
       "accentColor": "#6fb4ff"
     },
     {
-      "position": 14,
-      "name": "Arvid Lindblad",
-      "team": "Racing Bulls",
-      "badge": {
-        "label": "AL",
-        "accentColor": "#7b94ff",
-        "imagePath": "/f1/drivers/racing-bulls-arvid-lindblad.png",
-        "logoPath": "/f1/teams/custom/racing-bulls.png",
-        "sublabel": "Racing Bulls"
-      },
-      "value": "5",
-      "secondaryValue": "+126",
-      "driverNumber": "41",
-      "accentColor": "#7b94ff"
-    },
-    {
-      "position": 15,
-      "name": "Gabriel Bortoleto",
-      "team": "Audi Revolut F1 Team",
-      "badge": {
-        "label": "GB",
-        "accentColor": "#d4d7df",
-        "imagePath": "/f1/drivers/audi-revolut-f1-team-gabriel-bortoleto.png",
-        "logoPath": "/f1/teams/custom/audi.png",
-        "sublabel": "Audi Revolut F1 Team"
-      },
-      "value": "2",
-      "secondaryValue": "+129",
-      "driverNumber": "5",
-      "accentColor": "#d4d7df"
-    },
-    {
-      "position": 16,
-      "name": "Esteban Ocon",
+      "position": 10,
+      "name": "Oliver Bearman",
       "team": "Haas F1 Team",
       "badge": {
-        "label": "EO",
+        "label": "OB",
         "accentColor": "#f1f1f1",
-        "imagePath": "/f1/drivers/haas-f1-team-esteban-ocon.png",
+        "imagePath": "/f1/drivers/haas-f1-team-oliver-bearman.png",
         "logoPath": "/f1/teams/custom/haas.png",
         "sublabel": "Haas F1 Team"
       },
-      "value": "1",
-      "secondaryValue": "+130",
-      "driverNumber": "31",
+      "value": "+1 volta",
+      "secondaryValue": "67 voltas",
+      "driverNumber": "87",
       "accentColor": "#f1f1f1"
     },
     {
-      "position": 17,
-      "name": "Alexander Albon",
-      "team": "Williams F1 Team",
+      "position": 11,
+      "name": "Oscar Piastri",
+      "team": "McLaren Racing",
       "badge": {
-        "label": "AA",
-        "accentColor": "#6fb4ff",
-        "imagePath": "/f1/drivers/williams-f1-team-alexander-albon.png",
-        "logoPath": "/f1/teams/custom/williams.png",
-        "sublabel": "Williams F1 Team"
+        "label": "OP",
+        "accentColor": "#ff9a3d",
+        "imagePath": "/f1/drivers/mclaren-racing-oscar-piastri.png",
+        "logoPath": "/f1/teams/custom/mclaren.png",
+        "sublabel": "McLaren Racing"
       },
-      "value": "1",
-      "secondaryValue": "+130",
-      "driverNumber": "23",
-      "accentColor": "#6fb4ff"
+      "value": "+2 voltas",
+      "secondaryValue": "66 voltas",
+      "driverNumber": "81",
+      "accentColor": "#ff9a3d"
     },
     {
-      "position": 18,
+      "position": 12,
       "name": "Nico Hulkenberg",
       "team": "Audi Revolut F1 Team",
       "badge": {
@@ -346,45 +240,45 @@
         "logoPath": "/f1/teams/custom/audi.png",
         "sublabel": "Audi Revolut F1 Team"
       },
-      "value": "0",
-      "secondaryValue": "+131",
+      "value": "+2 voltas",
+      "secondaryValue": "66 voltas",
       "driverNumber": "27",
       "accentColor": "#d4d7df"
     },
     {
-      "position": 19,
-      "name": "Valtteri Bottas",
-      "team": "Cadillac Formula 1 Team",
+      "position": 13,
+      "name": "Gabriel Bortoleto",
+      "team": "Audi Revolut F1 Team",
       "badge": {
-        "label": "VB",
-        "accentColor": "#8fd1ff",
-        "imagePath": "/f1/drivers/cadillac-formula-1-team-valtteri-bottas.png",
-        "logoPath": "/f1/teams/custom/cadillac.png",
-        "sublabel": "Cadillac Formula 1 Team"
+        "label": "GB",
+        "accentColor": "#d4d7df",
+        "imagePath": "/f1/drivers/audi-revolut-f1-team-gabriel-bortoleto.png",
+        "logoPath": "/f1/teams/custom/audi.png",
+        "sublabel": "Audi Revolut F1 Team"
       },
-      "value": "0",
-      "secondaryValue": "+131",
-      "driverNumber": "77",
-      "accentColor": "#8fd1ff"
+      "value": "+2 voltas",
+      "secondaryValue": "66 voltas",
+      "driverNumber": "5",
+      "accentColor": "#d4d7df"
     },
     {
-      "position": 20,
-      "name": "Sergio Perez",
-      "team": "Cadillac Formula 1 Team",
+      "position": 14,
+      "name": "Esteban Ocon",
+      "team": "Haas F1 Team",
       "badge": {
-        "label": "SP",
-        "accentColor": "#8fd1ff",
-        "imagePath": "/f1/drivers/cadillac-formula-1-team-sergio-perez.png",
-        "logoPath": "/f1/teams/custom/cadillac.png",
-        "sublabel": "Cadillac Formula 1 Team"
+        "label": "EO",
+        "accentColor": "#f1f1f1",
+        "imagePath": "/f1/drivers/haas-f1-team-esteban-ocon.png",
+        "logoPath": "/f1/teams/custom/haas.png",
+        "sublabel": "Haas F1 Team"
       },
-      "value": "0",
-      "secondaryValue": "+131",
-      "driverNumber": "11",
-      "accentColor": "#8fd1ff"
+      "value": "+2 voltas",
+      "secondaryValue": "66 voltas",
+      "driverNumber": "31",
+      "accentColor": "#f1f1f1"
     },
     {
-      "position": 21,
+      "position": 15,
       "name": "Lance Stroll",
       "team": "Aston Martin F1 Team",
       "badge": {
@@ -394,13 +288,77 @@
         "logoPath": "/f1/teams/custom/aston-martin.png",
         "sublabel": "Aston Martin F1 Team"
       },
-      "value": "0",
-      "secondaryValue": "+131",
+      "value": "+4 voltas",
+      "secondaryValue": "64 voltas",
       "driverNumber": "18",
       "accentColor": "#59b28c"
     },
     {
-      "position": 22,
+      "position": 16,
+      "name": "Valtteri Bottas",
+      "team": "Cadillac Formula 1 Team",
+      "badge": {
+        "label": "VB",
+        "accentColor": "#8fd1ff",
+        "imagePath": "/f1/drivers/cadillac-formula-1-team-valtteri-bottas.png",
+        "logoPath": "/f1/teams/custom/cadillac.png",
+        "sublabel": "Cadillac Formula 1 Team"
+      },
+      "value": "+4 voltas",
+      "secondaryValue": "64 voltas",
+      "driverNumber": "77",
+      "accentColor": "#8fd1ff"
+    },
+    {
+      "position": 17,
+      "name": "Sergio Perez",
+      "team": "Cadillac Formula 1 Team",
+      "badge": {
+        "label": "SP",
+        "accentColor": "#8fd1ff",
+        "imagePath": "/f1/drivers/cadillac-formula-1-team-sergio-perez.png",
+        "logoPath": "/f1/teams/custom/cadillac.png",
+        "sublabel": "Cadillac Formula 1 Team"
+      },
+      "value": "DNF",
+      "secondaryValue": "42 voltas",
+      "driverNumber": "11",
+      "accentColor": "#8fd1ff"
+    },
+    {
+      "position": 18,
+      "name": "Lando Norris",
+      "team": "McLaren Racing",
+      "badge": {
+        "label": "LN",
+        "accentColor": "#ff9a3d",
+        "imagePath": "/f1/drivers/mclaren-racing-lando-norris.png",
+        "logoPath": "/f1/teams/custom/mclaren.png",
+        "sublabel": "McLaren Racing"
+      },
+      "value": "DNF",
+      "secondaryValue": "41 voltas",
+      "driverNumber": "1",
+      "accentColor": "#ff9a3d"
+    },
+    {
+      "position": 19,
+      "name": "George Russell",
+      "team": "Mercedes-AMG Petronas",
+      "badge": {
+        "label": "GR",
+        "accentColor": "#65e1c6",
+        "imagePath": "/f1/drivers/mercedes-amg-petronas-george-russell.png",
+        "logoPath": "/f1/teams/custom/mercedes.png",
+        "sublabel": "Mercedes-AMG Petronas"
+      },
+      "value": "DNF",
+      "secondaryValue": "31 voltas",
+      "driverNumber": "63",
+      "accentColor": "#65e1c6"
+    },
+    {
+      "position": 20,
       "name": "Fernando Alonso",
       "team": "Aston Martin F1 Team",
       "badge": {
@@ -410,10 +368,55 @@
         "logoPath": "/f1/teams/custom/aston-martin.png",
         "sublabel": "Aston Martin F1 Team"
       },
-      "value": "0",
-      "secondaryValue": "+131",
+      "value": "DNF",
+      "secondaryValue": "28 voltas",
       "driverNumber": "14",
       "accentColor": "#59b28c"
+    },
+    {
+      "position": 21,
+      "name": "Alexander Albon",
+      "team": "Williams F1 Team",
+      "badge": {
+        "label": "AA",
+        "accentColor": "#6fb4ff",
+        "imagePath": "/f1/drivers/williams-f1-team-alexander-albon.png",
+        "logoPath": "/f1/teams/custom/williams.png",
+        "sublabel": "Williams F1 Team"
+      },
+      "value": "DNF",
+      "secondaryValue": "13 voltas",
+      "driverNumber": "23",
+      "accentColor": "#6fb4ff"
+    },
+    {
+      "position": 22,
+      "name": "Arvid Lindblad",
+      "team": "Racing Bulls",
+      "badge": {
+        "label": "AL",
+        "accentColor": "#7b94ff",
+        "imagePath": "/f1/drivers/racing-bulls-arvid-lindblad.png",
+        "logoPath": "/f1/teams/custom/racing-bulls.png",
+        "sublabel": "Racing Bulls"
+      },
+      "value": "DNF",
+      "secondaryValue": "1 volta",
+      "driverNumber": "41",
+      "accentColor": "#7b94ff"
     }
-  ]
+  ],
+  "fastestLap": {
+    "name": "Andrea Kimi Antonelli",
+    "team": "Mercedes-AMG Petronas",
+    "value": "1:14.210",
+    "badge": {
+      "label": "AK",
+      "accentColor": "#65e1c6",
+      "imagePath": "/f1/drivers/mercedes-amg-petronas-andrea-kimi-antonelli.png",
+      "logoPath": "/f1/teams/custom/mercedes.png",
+      "sublabel": "Mercedes-AMG Petronas"
+    },
+    "accentColor": "#65e1c6"
+  }
 }

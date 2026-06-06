@@ -7,8 +7,8 @@
     "sync:data": "node scripts/sync-f1.mjs",
     "dashboard": "node --env-file=.env scripts/dashboard-server.mjs",
     "dev": "node scripts/dev.mjs",
-    "studio": "remotion studio",
-    "build": "remotion bundle",
+    "studio": "remotion studio src/index.ts",
+    "build": "remotion bundle src/index.ts",
     "render": "SPORT=f1 node --env-file=.env scripts/render-current-job.mjs"
   },
   "dependencies": {

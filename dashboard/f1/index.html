@@ -199,6 +199,66 @@
             <button type="button" id="prepare-button">Prepare Preview Job</button>
             <button type="button" id="render-button" class="secondary">Render MP4</button>
           </div>
+
+          <section class="youtube-content-panel">
+            <div class="panel-header">
+              <div>
+                <h2>Shorts Metadata</h2>
+                <p>Gere textos a partir do job atual preparado pela API.</p>
+              </div>
+              <span class="chip subtle">OpenAI</span>
+            </div>
+            <div class="youtube-content-form">
+              <label>
+                Foco opcional
+                <input
+                  type="text"
+                  id="youtube-primary-audience"
+                  placeholder="Ex: puxar para fãs da Mercedes ou briga pelo título"
+                />
+              </label>
+              <label>
+                Direcionamento opcional
+                <textarea
+                  id="youtube-story-brief"
+                  class="short-textarea"
+                  placeholder="Opcional. Se ficar vazio, o sistema usa automaticamente o template e os dados do job preparado pela API."
+                ></textarea>
+              </label>
+              <button type="button" id="generate-youtube-content-button">Gerar automaticamente pelo vídeo atual</button>
+            </div>
+            <div id="youtube-content-status" class="youtube-content-status"></div>
+            <div id="youtube-content-output" class="youtube-content-output" hidden>
+              <div class="copy-field title-copy-field">
+                <div class="copy-field-header">
+                  <span>Título</span>
+                  <button type="button" class="copy-button" data-copy-target="youtube-title-output">Copiar</button>
+                </div>
+                <textarea id="youtube-title-output" class="title-textarea" readonly></textarea>
+              </div>
+              <div class="copy-field descriptions-copy-field">
+                <div class="copy-field-header">
+                  <span>Descrições</span>
+                  <button type="button" class="copy-button" id="copy-active-description-button">Copiar</button>
+                </div>
+                <div class="description-tabs" role="tablist" aria-label="Descrições por plataforma">
+                  <button type="button" class="description-tab active" data-description-tab="youtube">YouTube</button>
+                  <button type="button" class="description-tab" data-description-tab="tiktok">TikTok</button>
+                  <button type="button" class="description-tab" data-description-tab="instagram">Instagram</button>
+                </div>
+                <textarea id="youtube-description-output" class="medium-textarea platform-description-output active" data-description-panel="youtube" readonly></textarea>
+                <textarea id="tiktok-description-output" class="medium-textarea platform-description-output" data-description-panel="tiktok" readonly hidden></textarea>
+                <textarea id="instagram-description-output" class="medium-textarea platform-description-output" data-description-panel="instagram" readonly hidden></textarea>
+              </div>
+              <div class="copy-field tags-copy-field">
+                <div class="copy-field-header">
+                  <span>Tags YouTube</span>
+                  <button type="button" class="copy-button" data-copy-target="youtube-tags-output">Copiar</button>
+                </div>
+                <textarea id="youtube-tags-output" class="tags-textarea" readonly></textarea>
+              </div>
+            </div>
+          </section>
         </form>
 
         <aside class="preview-rail">

@@ -27,7 +27,20 @@
         </p>
       </section>
 
-      <section class="production-grid">
+      <section class="large-stills-workspace">
+        <section class="panel preview-panel f1-preview-panel large-still-preview-panel">
+          <div class="panel-header">
+            <h2>Still Preview</h2>
+            <span class="chip subtle">16:9 PNG</span>
+          </div>
+          <div class="still-preview-frame large-still-preview-frame">
+            <img id="still-preview-image" alt="F1 large still preview" hidden />
+            <div id="still-preview-empty" class="still-preview-empty">
+              Render a PNG still to preview it here.
+            </div>
+          </div>
+        </section>
+
         <form id="still-form" class="panel form-panel compact-form-panel">
           <div class="panel-header">
             <h2>Still Setup</h2>
@@ -125,20 +138,6 @@
           </div>
         </form>
 
-        <aside class="preview-rail">
-          <section class="panel preview-panel f1-preview-panel">
-            <div class="panel-header">
-              <h2>Still Preview</h2>
-              <span class="chip subtle">16:9 PNG</span>
-            </div>
-            <div class="still-preview-frame">
-              <img id="still-preview-image" alt="F1 large still preview" hidden />
-              <div id="still-preview-empty" class="still-preview-empty">
-                Render a PNG still to preview it here.
-              </div>
-            </div>
-          </section>
-        </aside>
       </section>
 
       <details class="panel log-panel compact-details">

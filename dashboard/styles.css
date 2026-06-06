@@ -381,6 +381,18 @@ textarea {
   line-height: 1.5;
 }
 
+.short-textarea {
+  min-height: 108px;
+}
+
+.medium-textarea {
+  min-height: 210px;
+}
+
+.tags-textarea {
+  min-height: 112px;
+}
+
 .volume-control {
   display: grid;
   grid-template-columns: 1fr 92px;
@@ -957,6 +969,187 @@ button:disabled {
   margin-top: 0;
 }
 
+.youtube-content-panel {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(145, 176, 255, 0.12);
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(77, 179, 255, 0.045), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.026);
+}
+
+.youtube-content-panel .panel-header {
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.youtube-content-panel .panel-header p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.youtube-content-form {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.8fr) minmax(340px, 1.25fr) minmax(220px, 0.62fr);
+  align-items: stretch;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(8, 17, 33, 0.56);
+  border: 1px solid rgba(145, 176, 255, 0.08);
+}
+
+.youtube-content-output {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.78fr) minmax(420px, 1.22fr);
+  grid-template-areas:
+    "title descriptions"
+    "tags descriptions";
+  gap: 14px;
+  align-items: stretch;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(8, 17, 33, 0.46);
+  border: 1px solid rgba(145, 176, 255, 0.08);
+}
+
+.title-copy-field {
+  grid-area: title;
+}
+
+.descriptions-copy-field {
+  grid-area: descriptions;
+}
+
+.tags-copy-field {
+  grid-area: tags;
+}
+
+.youtube-content-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.youtube-content-form button {
+  align-self: end;
+  min-height: 44px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  white-space: normal;
+  line-height: 1.15;
+}
+
+.youtube-content-panel input,
+.youtube-content-panel textarea {
+  border-radius: 12px;
+}
+
+.youtube-content-panel .short-textarea {
+  min-height: 58px;
+}
+
+.youtube-content-panel input {
+  min-height: 44px;
+}
+
+.copy-field {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+}
+
+.copy-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.copy-button {
+  min-height: 32px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.title-copy-field textarea {
+  height: 62px;
+  min-height: 62px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.35;
+  resize: none;
+}
+
+.descriptions-copy-field {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.descriptions-copy-field textarea,
+.tags-copy-field textarea {
+  min-height: 0;
+  height: 100%;
+}
+
+.descriptions-copy-field textarea {
+  height: 208px;
+}
+
+.tags-copy-field textarea {
+  height: 126px;
+}
+
+.description-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.description-tab {
+  min-height: 36px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.description-tab.active {
+  background: rgba(77, 179, 255, 0.16);
+  border-color: rgba(77, 179, 255, 0.36);
+  color: var(--text);
+}
+
+.youtube-content-status {
+  min-height: 22px;
+  margin: 12px 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.youtube-content-status.error {
+  color: #ffb4b4;
+}
+
 .preview-rail {
   position: sticky;
   top: 18px;
@@ -1048,6 +1241,30 @@ button:disabled {
   background: #050914;
 }
 
+.large-stills-workspace {
+  display: grid;
+  gap: 18px;
+}
+
+.large-still-preview-panel {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.large-still-preview-panel .panel-header {
+  margin-bottom: 12px;
+}
+
+.large-still-preview-frame {
+  max-height: calc(100vh - 230px);
+  min-height: 420px;
+}
+
+.large-still-preview-frame img {
+  object-fit: contain;
+}
+
 .still-preview-empty {
   position: absolute;
   inset: 0;
@@ -1082,6 +1299,26 @@ code {
   font-family: "SFMono-Regular", Consolas, monospace;
 }
 
+@media (max-width: 1240px) {
+  .youtube-content-form {
+    grid-template-columns: minmax(200px, 0.8fr) minmax(320px, 1.2fr);
+  }
+
+  .youtube-content-form button {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1120px) {
+  .youtube-content-output {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "title"
+      "descriptions"
+      "tags";
+  }
+}
+
 @media (max-width: 960px) {
   .shell {
     width: min(100vw - 24px, 1680px);
@@ -1092,7 +1329,9 @@ code {
   .grid,
   .production-grid,
   .sports-grid,
-  .two-up {
+  .two-up,
+  .youtube-content-form,
+  .youtube-content-output {
     grid-template-columns: 1fr;
   }
 
@@ -1133,6 +1372,11 @@ code {
   }
 
   .preview-frame-shell {
+    max-height: none;
+  }
+
+  .large-still-preview-frame {
+    min-height: 0;
     max-height: none;
   }
 }

@@ -1151,8 +1151,163 @@ const buildSampleJob = async ({
   };
 };
 
-const normalizeRankingEntries = async (rows, template) =>
-  Promise.all(
+const formatLapCountPt = (laps) => {
+  const numericLaps = Number(laps);
+  if (!Number.isFinite(numericLaps) || numericLaps <= 0) {
+    return '';
+  }
+
+  return `${numericLaps} ${numericLaps === 1 ? 'volta' : 'voltas'}`;
+};
+
+const normalizeRaceGapLabel = (value) => {
+  const rawValue = String(value ?? '').trim();
+  if (!rawValue || rawValue.toLowerCase() === 'null') {
+    return '';
+  }
+
+  const lapsMatch = rawValue.match(/^\+?\s*(\d+)\s*laps?$/i);
+  if (lapsMatch) {
+    const laps = Number(lapsMatch[1]);
+    return `+${laps} ${laps === 1 ? 'volta' : 'voltas'}`;
+  }
+
+  const numericGapMatch = rawValue.match(/^\+?\s*(\d+(?:[.,]\d+)?)$/);
+  if (numericGapMatch) {
+    return `+${numericGapMatch[1].replace(',', '.')}`;
+  }
+
+  return rawValue;
+};
+
+const looksLikeRaceDuration = (value) => /^\d+:\d{2}:\d{2}(?:[.,]\d+)?$/.test(String(value ?? '').trim());
+
+const parseRaceDurationMs = (value) => {
+  const match = String(value ?? '').trim().match(/^(\d+):(\d{2}):(\d{2})(?:[.,](\d+))?$/);
+  if (!match) {
+    return null;
+  }
+
+  const [, hours, minutes, seconds, fraction = '0'] = match;
+  const fractionMs = Number(fraction.padEnd(3, '0').slice(0, 3));
+  return (
+    Number(hours) * 60 * 60 * 1000 +
+    Number(minutes) * 60 * 1000 +
+    Number(seconds) * 1000 +
+    fractionMs
+  );
+};
+
+const parseLapTimeMs = (value) => {
+  const rawValue = String(value ?? '').trim();
+  const longMatch = rawValue.match(/^(\d+):(\d{2}):(\d{2})(?:[.,](\d+))?$/);
+  if (longMatch) {
+    return parseRaceDurationMs(rawValue);
+  }
+
+  const shortMatch = rawValue.match(/^(\d+):(\d{2})(?:[.,](\d+))?$/);
+  if (!shortMatch) {
+    return null;
+  }
+
+  const [, minutes, seconds, fraction = '0'] = shortMatch;
+  const fractionMs = Number(fraction.padEnd(3, '0').slice(0, 3));
+  return Number(minutes) * 60 * 1000 + Number(seconds) * 1000 + fractionMs;
+};
+
+const raceBestLapTime = (row, {includeTime = false} = {}) =>
+  row?.best_lap_time ??
+  row?.bestLapTime ??
+  row?.best_lap ??
+  row?.bestLap ??
+  (includeTime ? row?.time : undefined) ??
+  '';
+
+const buildFastestLapData = async (rows, {includeTime = false} = {}) => {
+  const candidates = rows
+    .map((row) => ({
+      row,
+      value: String(raceBestLapTime(row, {includeTime}) ?? '').trim(),
+      ms: parseLapTimeMs(raceBestLapTime(row, {includeTime})),
+    }))
+    .filter((candidate) => candidate.value && candidate.ms !== null)
+    .sort((a, b) => a.ms - b.ms);
+
+  const fastest = candidates[0];
+  if (!fastest) {
+    return undefined;
+  }
+
+  const driver = fastest.row.driver ?? fastest.row.competitor ?? {};
+  const team = fastest.row.team ?? fastest.row.teams?.[0] ?? {};
+  const name = driver.name ?? team.name ?? '';
+  const teamName = team.name ?? fastest.row.team?.name ?? fastest.row.constructor?.name ?? '';
+  if (!name) {
+    return undefined;
+  }
+
+  return {
+    name,
+    team: teamName,
+    value: fastest.value,
+    badge: await badgeFor({
+      name,
+      team: teamName || name,
+      driverImageUrl: driver.image,
+      teamLogoUrl: team.logo,
+      useDriverPortrait: true,
+    }),
+    accentColor: resolveTeamColor(teamName || name),
+  };
+};
+
+const formatRaceGapMs = (gapMs) => {
+  if (!Number.isFinite(gapMs) || gapMs <= 0) {
+    return '';
+  }
+
+  const totalSeconds = gapMs / 1000;
+  if (totalSeconds < 60) {
+    return `+${totalSeconds.toFixed(3)}`;
+  }
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds - minutes * 60;
+  return `+${minutes}:${seconds.toFixed(3).padStart(6, '0')}`;
+};
+
+const raceResultValueForRow = (row, position, winnerRaceDurationMs) => {
+  const gap = normalizeRaceGapLabel(row.gap);
+  if (gap) {
+    return gap;
+  }
+
+  const status = normalizeRaceGapLabel(row.status);
+  if (status && !/finished|classified/i.test(status)) {
+    return status;
+  }
+
+  const time = String(row.time ?? '').trim();
+  if (position === 1) {
+    return normalizeRaceGapLabel(time || row.status);
+  }
+  const raceDurationMs = parseRaceDurationMs(time);
+  if (raceDurationMs !== null && winnerRaceDurationMs !== null) {
+    return formatRaceGapMs(raceDurationMs - winnerRaceDurationMs);
+  }
+  if (time && !looksLikeRaceDuration(time)) {
+    return normalizeRaceGapLabel(time);
+  }
+
+  return '';
+};
+
+const normalizeRankingEntries = async (rows, template) => {
+  const winnerRaceDurationMs = template === 'race-results'
+    ? parseRaceDurationMs(rows.find((row) => Number(row.position ?? row.rank) === 1)?.time ?? rows[0]?.time)
+    : null;
+
+  return Promise.all(
     rows.map(async (row, index) => {
       const driver = row.driver ?? row.competitor ?? {};
       const team = row.team ?? row.teams?.[0] ?? {};
@@ -1165,8 +1320,8 @@ const normalizeRankingEntries = async (rows, template) =>
       let secondaryValue = '';
 
       if (template === 'race-results') {
-        value = row.time ?? row.gap ?? row.status ?? '';
-        secondaryValue = row.laps ? `${row.laps} voltas` : row.status ?? '';
+        value = raceResultValueForRow(row, position, winnerRaceDurationMs);
+        secondaryValue = formatLapCountPt(row.laps) || row.status || '';
       } else if (template === 'qualifying-grid') {
         const qualifyingLapTime =
           row.time ??
@@ -1216,6 +1371,7 @@ const normalizeRankingEntries = async (rows, template) =>
       };
     })
   ).then((entries) => entries.filter((entry) => entry.name));
+};
 
 const invalidResultStatusPattern = /dns|dnf|dsq|ret|withdrawn|excluded|not started|no start|did not start|retired/i;
 const dnfResultStatusPattern = /dnf|ret\b|retired|withdrawn/i;
@@ -2413,6 +2569,20 @@ const buildApiJob = async ({
     apiHost
   );
   let rankingRows = Array.isArray(rankingPayload.response) ? rankingPayload.response : [];
+  let fastestLapRows = [];
+
+  if (template === 'race-results') {
+    try {
+      const fastestLapPayload = await fetchJson(
+        `https://${apiHost}/rankings/fastestlaps?race=${meta.raceId}`,
+        apiKey,
+        apiHost
+      );
+      fastestLapRows = Array.isArray(fastestLapPayload.response) ? fastestLapPayload.response : [];
+    } catch {
+      fastestLapRows = [];
+    }
+  }
 
   if (template === 'qualifying-grid') {
     const sessionByExactType = (type) =>
@@ -2509,11 +2679,17 @@ const buildApiJob = async ({
     const displayRaceName = labelOverride?.trim() || meta.raceName;
     const templateSubtitle =
       template === 'race-results' ? 'Resultado da Corrida' : 'Classificação de Largada';
+    const fastestLap = template === 'race-results'
+      ? (await buildFastestLapData(fastestLapRows, {includeTime: true})) ??
+        (await buildFastestLapData(rankingRows))
+      : undefined;
     const podium = entries.slice(0, 3).map((entry) => ({
       position: entry.position,
       name: entry.name,
       team: entry.team ?? '',
       badge: entry.badge,
+      value: entry.value,
+      secondaryValue: entry.secondaryValue,
       stat: entry.secondaryValue || entry.value,
       accentColor: entry.accentColor,
     }));
@@ -2531,6 +2707,7 @@ const buildApiJob = async ({
       }),
       podium,
       entries: template === 'race-results' ? entries.slice(3) : entries.slice(3),
+      ...(fastestLap ? {fastestLap} : {}),
     };
   }
 

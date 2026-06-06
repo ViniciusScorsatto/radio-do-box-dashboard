@@ -76,6 +76,8 @@ export type F1PodiumEntry = {
   name: string;
   team: string;
   badge: TeamBadge;
+  value?: string;
+  secondaryValue?: string;
   stat?: string;
   accentColor?: string;
 };
@@ -133,6 +135,13 @@ export type F1RaceResultsJob = F1BaseVideoJob & {
   compositionId: 'F1RaceResultsShort';
   podium: F1PodiumEntry[];
   entries: F1RankingEntry[];
+  fastestLap?: {
+    name: string;
+    team?: string;
+    value: string;
+    badge?: TeamBadge;
+    accentColor?: string;
+  };
 };
 
 export type F1RacePaceJob = F1BaseVideoJob & {

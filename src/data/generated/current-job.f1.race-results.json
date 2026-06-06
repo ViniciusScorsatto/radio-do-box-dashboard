@@ -29,26 +29,24 @@
     "durationInFrames": 360,
     "headlinePrefix": "Grande Premio"
   },
-  "title": "GP do Canadá",
+  "title": "Formula 1 2026",
   "subtitle": "Resultado da Corrida",
   "raceType": "Race",
   "raceId": 2546,
-  "raceName": "GP do Canadá",
+  "raceName": "Formula 1 2026",
   "countryCode": "CAN",
   "circuitName": "Circuit Gilles-Villeneuve",
   "brandName": "Radio do Box",
   "brandLogoPath": "/branding/radio-do-box/yellow.png",
   "backgroundImagePath": "/f1/backgrounds/race-results-main.png",
-  "soundtrackPath": "/audio/f1/Grid No Grid (1).mp3",
-  "soundtrackLabel": "Grid No Grid (1)",
-  "soundtrackVolume": 0.2,
-  "introTitle": "GP do Canadá",
+  "soundtrackPath": "/audio/f1/country-rough-everet-almond.mp3",
+  "soundtrackLabel": "Country Rough - Everet Almond",
+  "soundtrackVolume": 0,
+  "introTitle": "Formula 1 2026",
   "introSubtitle": "Resultado da Corrida",
-  "voiceoverText": "Corrida Maluca no Canadá acaba com mais uma vitória de Antonelli.. O piloto Italiano vai abrindo vantagem",
-  "voiceoverEnabled": true,
-  "voiceoverPath": "/voiceovers/f1/pt-br-90928bd42360a1fe.mp3",
-  "voiceoverLabel": "Corrida Maluca no Canadá acaba com mais uma vitória de Antonelli.. O piloto Italiano vai abrindo vantagem",
-  "outputName": "resultado.mp4",
+  "voiceoverText": "Fala, galera do box. Resultado da corrida no Formula 1 2026.",
+  "voiceoverEnabled": false,
+  "outputName": "f1-large-race-results-2026.png",
   "durationInFrames": 360,
   "dataSource": "api",
   "warnings": [],
@@ -64,6 +62,8 @@
         "logoPath": "/f1/teams/custom/mercedes.png",
         "sublabel": "Mercedes-AMG Petronas"
       },
+      "value": "1:28:15.758",
+      "secondaryValue": "68 voltas",
       "stat": "68 voltas",
       "accentColor": "#65e1c6"
     },
@@ -78,6 +78,8 @@
         "logoPath": "/f1/teams/custom/ferrari.png",
         "sublabel": "Scuderia Ferrari"
       },
+      "value": "+10.768",
+      "secondaryValue": "68 voltas",
       "stat": "68 voltas",
       "accentColor": "#ff5546"
     },
@@ -92,6 +94,8 @@
         "logoPath": "/f1/teams/custom/red-bull.png",
         "sublabel": "Red Bull Racing"
       },
+      "value": "+11.276",
+      "secondaryValue": "68 voltas",
       "stat": "68 voltas",
       "accentColor": "#5d74ff"
     }
@@ -124,7 +128,7 @@
         "logoPath": "/f1/teams/custom/red-bull.png",
         "sublabel": "Red Bull Racing"
       },
-      "value": "",
+      "value": "+1 volta",
       "secondaryValue": "67 voltas",
       "driverNumber": "6",
       "accentColor": "#5d74ff"
@@ -140,7 +144,7 @@
         "logoPath": "/f1/teams/custom/alpine.png",
         "sublabel": "Alpine F1 Team"
       },
-      "value": "",
+      "value": "+1 volta",
       "secondaryValue": "67 voltas",
       "driverNumber": "43",
       "accentColor": "#ff76db"
@@ -156,7 +160,7 @@
         "logoPath": "/f1/teams/custom/racing-bulls.png",
         "sublabel": "Racing Bulls"
       },
-      "value": "",
+      "value": "+1 volta",
       "secondaryValue": "67 voltas",
       "driverNumber": "30",
       "accentColor": "#7b94ff"
@@ -172,7 +176,7 @@
         "logoPath": "/f1/teams/custom/alpine.png",
         "sublabel": "Alpine F1 Team"
       },
-      "value": "",
+      "value": "+1 volta",
       "secondaryValue": "67 voltas",
       "driverNumber": "10",
       "accentColor": "#ff76db"
@@ -188,7 +192,7 @@
         "logoPath": "/f1/teams/custom/williams.png",
         "sublabel": "Williams F1 Team"
       },
-      "value": "",
+      "value": "+1 volta",
       "secondaryValue": "67 voltas",
       "driverNumber": "55",
       "accentColor": "#6fb4ff"
@@ -204,7 +208,7 @@
         "logoPath": "/f1/teams/custom/haas.png",
         "sublabel": "Haas F1 Team"
       },
-      "value": "",
+      "value": "+1 volta",
       "secondaryValue": "67 voltas",
       "driverNumber": "87",
       "accentColor": "#f1f1f1"
@@ -220,7 +224,7 @@
         "logoPath": "/f1/teams/custom/mclaren.png",
         "sublabel": "McLaren Racing"
       },
-      "value": "",
+      "value": "+2 voltas",
       "secondaryValue": "66 voltas",
       "driverNumber": "81",
       "accentColor": "#ff9a3d"
@@ -236,7 +240,7 @@
         "logoPath": "/f1/teams/custom/audi.png",
         "sublabel": "Audi Revolut F1 Team"
       },
-      "value": "",
+      "value": "+2 voltas",
       "secondaryValue": "66 voltas",
       "driverNumber": "27",
       "accentColor": "#d4d7df"
@@ -252,7 +256,7 @@
         "logoPath": "/f1/teams/custom/audi.png",
         "sublabel": "Audi Revolut F1 Team"
       },
-      "value": "",
+      "value": "+2 voltas",
       "secondaryValue": "66 voltas",
       "driverNumber": "5",
       "accentColor": "#d4d7df"
@@ -268,7 +272,7 @@
         "logoPath": "/f1/teams/custom/haas.png",
         "sublabel": "Haas F1 Team"
       },
-      "value": "",
+      "value": "+2 voltas",
       "secondaryValue": "66 voltas",
       "driverNumber": "31",
       "accentColor": "#f1f1f1"
@@ -284,7 +288,7 @@
         "logoPath": "/f1/teams/custom/aston-martin.png",
         "sublabel": "Aston Martin F1 Team"
       },
-      "value": "",
+      "value": "+4 voltas",
       "secondaryValue": "64 voltas",
       "driverNumber": "18",
       "accentColor": "#59b28c"
@@ -300,7 +304,7 @@
         "logoPath": "/f1/teams/custom/cadillac.png",
         "sublabel": "Cadillac Formula 1 Team"
       },
-      "value": "",
+      "value": "+4 voltas",
       "secondaryValue": "64 voltas",
       "driverNumber": "77",
       "accentColor": "#8fd1ff"
@@ -397,9 +401,22 @@
         "sublabel": "Racing Bulls"
       },
       "value": "DNF",
-      "secondaryValue": "1 voltas",
+      "secondaryValue": "1 volta",
       "driverNumber": "41",
       "accentColor": "#7b94ff"
     }
-  ]
+  ],
+  "fastestLap": {
+    "name": "Andrea Kimi Antonelli",
+    "team": "Mercedes-AMG Petronas",
+    "value": "1:14.210",
+    "badge": {
+      "label": "AK",
+      "accentColor": "#65e1c6",
+      "imagePath": "/f1/drivers/mercedes-amg-petronas-andrea-kimi-antonelli.png",
+      "logoPath": "/f1/teams/custom/mercedes.png",
+      "sublabel": "Mercedes-AMG Petronas"
+    },
+    "accentColor": "#65e1c6"
+  }
 }

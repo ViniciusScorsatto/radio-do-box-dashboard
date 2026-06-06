@@ -26,6 +26,17 @@ const studioUrlInput = document.getElementById('studio-url');
 const applyPreviewButton = document.getElementById('apply-preview-button');
 const openPreviewLink = document.getElementById('open-preview-link');
 const previewFrame = document.getElementById('preview-frame');
+const youtubePrimaryAudienceInput = document.getElementById('youtube-primary-audience');
+const youtubeStoryBriefInput = document.getElementById('youtube-story-brief');
+const generateYoutubeContentButton = document.getElementById('generate-youtube-content-button');
+const youtubeContentStatus = document.getElementById('youtube-content-status');
+const youtubeContentOutput = document.getElementById('youtube-content-output');
+const youtubeTitleOutput = document.getElementById('youtube-title-output');
+const youtubeDescriptionOutput = document.getElementById('youtube-description-output');
+const tiktokDescriptionOutput = document.getElementById('tiktok-description-output');
+const instagramDescriptionOutput = document.getElementById('instagram-description-output');
+const youtubeTagsOutput = document.getElementById('youtube-tags-output');
+const copyActiveDescriptionButton = document.getElementById('copy-active-description-button');
 
 const apiBase = '/api/f1';
 const STUDIO_URL_KEY = 'f1-dashboard-studio-url';
@@ -50,6 +61,10 @@ const defaultRaceTypeByTemplate = {
 const setBusy = (busy) => {
   prepareButton.disabled = busy;
   renderButton.disabled = busy;
+};
+
+const setYoutubeBusy = (busy) => {
+  generateYoutubeContentButton.disabled = busy;
 };
 
 const log = (message, replace = false) => {
@@ -199,6 +214,16 @@ const selectedRaceLabel = () => {
 const currentIntroContext = () => ({
   raceName: selectedRaceLabel(),
   season: form.elements.season.value || new Date().getFullYear(),
+  teamName: teamSelect.options[teamSelect.selectedIndex]?.textContent?.split('(')[0]?.trim() || '',
+});
+
+const selectedTemplateLabel = () => getSelectedOptionLabel(templateSelect) || templateSelect.value;
+
+const currentYoutubeContext = () => ({
+  ...formDataToObject(),
+  templateLabel: selectedTemplateLabel(),
+  raceName: selectedRaceLabel(),
+  competitionLabel: getSelectedOptionLabel(competitionSelect) || form.elements.competitionName.value,
   teamName: teamSelect.options[teamSelect.selectedIndex]?.textContent?.split('(')[0]?.trim() || '',
 });
 
@@ -633,8 +658,99 @@ const submitJob = async (endpoint, actionLabel) => {
   }
 };
 
+const setYoutubeStatus = (message, isError = false) => {
+  youtubeContentStatus.textContent = message;
+  youtubeContentStatus.classList.toggle('error', isError);
+};
+
+const renderYoutubeContent = (content) => {
+  youtubeTitleOutput.value = content.title ?? '';
+  youtubeDescriptionOutput.value = content.description ?? '';
+  tiktokDescriptionOutput.value = content.tiktokDescription ?? '';
+  instagramDescriptionOutput.value = content.instagramDescription ?? '';
+  youtubeTagsOutput.value = Array.isArray(content.tags)
+    ? content.tags.join(', ')
+    : String(content.tags ?? '');
+  youtubeContentOutput.hidden = false;
+};
+
+const generateYoutubeContent = async () => {
+  try {
+    setYoutubeBusy(true);
+    setYoutubeStatus('Lendo o job atual e gerando conteúdo editorial...');
+    const payload = {
+      audienceHint: youtubePrimaryAudienceInput.value,
+      editorialHint: youtubeStoryBriefInput.value,
+      dashboardContext: currentYoutubeContext(),
+    };
+
+    const response = await fetch(`${apiBase}/youtube-content`, {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || 'Falha ao gerar conteúdo para YouTube.');
+    }
+
+    renderYoutubeContent(data.content);
+    setYoutubeStatus(`Conteúdo gerado com ${data.model}.`);
+    log('Conteúdo de YouTube Shorts gerado.');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    setYoutubeStatus(message, true);
+    log(message);
+  } finally {
+    setYoutubeBusy(false);
+  }
+};
+
+const activeDescriptionOutput = () =>
+  document.querySelector('.platform-description-output.active') ?? youtubeDescriptionOutput;
+
+const setDescriptionTab = (tabName) => {
+  document.querySelectorAll('[data-description-tab]').forEach((tab) => {
+    tab.classList.toggle('active', tab.dataset.descriptionTab === tabName);
+  });
+  document.querySelectorAll('[data-description-panel]').forEach((panel) => {
+    const active = panel.dataset.descriptionPanel === tabName;
+    panel.hidden = !active;
+    panel.classList.toggle('active', active);
+  });
+};
+
+const copyFieldValue = async (button) => {
+  const target = button === copyActiveDescriptionButton
+    ? activeDescriptionOutput()
+    : document.getElementById(button.dataset.copyTarget);
+  const value = target?.value ?? '';
+  if (!value.trim()) {
+    setYoutubeStatus('Nada para copiar ainda.', true);
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(value);
+    setYoutubeStatus('Copiado.');
+  } catch {
+    target.focus();
+    target.select();
+    document.execCommand('copy');
+    setYoutubeStatus('Copiado.');
+  }
+};
+
 prepareButton.addEventListener('click', () => submitJob('/jobs/prepare', 'Preparando job'));
 renderButton.addEventListener('click', () => submitJob('/jobs/render', 'Renderizando video'));
 applyPreviewButton.addEventListener('click', updatePreview);
+generateYoutubeContentButton.addEventListener('click', generateYoutubeContent);
+document.querySelectorAll('[data-copy-target]').forEach((button) => {
+  button.addEventListener('click', () => copyFieldValue(button));
+});
+copyActiveDescriptionButton.addEventListener('click', () => copyFieldValue(copyActiveDescriptionButton));
+document.querySelectorAll('[data-description-tab]').forEach((tab) => {
+  tab.addEventListener('click', () => setDescriptionTab(tab.dataset.descriptionTab));
+});
 
 loadOptions();

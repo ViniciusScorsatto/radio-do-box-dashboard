@@ -61,6 +61,24 @@ const valueOrDash = (value?: string) => {
   return normalized && normalized.toLowerCase() !== 'null' ? normalized : '-';
 };
 
+const looksLikeRaceDuration = (value?: string) =>
+  /^\d+:\d{2}:\d{2}(?:[.,]\d+)?$/.test(String(value ?? '').trim());
+
+const formatRaceResultDiff = (row: F1RankingEntry) => {
+  const value = valueOrDash(row.value);
+  if (row.position !== 1 && looksLikeRaceDuration(value)) {
+    return 'mesma volta';
+  }
+
+  const lapsMatch = value.match(/^\+?\s*(\d+)\s*laps?$/i);
+  if (lapsMatch) {
+    const laps = Number(lapsMatch[1]);
+    return `+${laps} ${laps === 1 ? 'volta' : 'voltas'}`;
+  }
+
+  return value;
+};
+
 const resolveConstructorLogo = (entry: F1RankingEntry | F1PodiumEntry) => {
   const key = normalizeKey(entry.team || entry.name || entry.badge.sublabel || entry.badge.label);
   return constructorLogoOverrides[key] ?? entry.badge.imagePath ?? entry.badge.logoPath;
@@ -245,7 +263,15 @@ const TopBar = ({
 
 const RaceResultsBoard = ({job, theme}: {job: F1RaceResultsJob; theme: F1ThemeConfig}) => {
   const podium = job.podium.slice(0, 3);
-  const tableRows = job.entries.slice(0, 22);
+  const podiumRows = podium.map((entry) => ({
+    ...entry,
+    value: entry.value ?? entry.stat,
+    secondaryValue: entry.secondaryValue,
+  }));
+  const tableRows = [...podiumRows, ...job.entries].slice(0, 22).map((entry) => ({
+    ...entry,
+    value: formatRaceResultDiff(entry),
+  }));
   const winner = podium.find((entry) => entry.position === 1) ?? podium[0];
   const chasePack = podium.filter((entry) => entry.position !== winner?.position).slice(0, 2);
 
@@ -262,54 +288,135 @@ const RaceResultsBoard = ({job, theme}: {job: F1RaceResultsJob; theme: F1ThemeCo
         gap: 34,
       }}
     >
-      <div style={{display: 'grid', gridTemplateRows: '104px minmax(0, 1fr) 182px', gap: 18}}>
-        <div
-          style={{
-            padding: '20px 26px',
-            borderLeft: `10px solid ${RADIO_RED}`,
-            background: 'linear-gradient(90deg, rgba(8,12,22,0.92), rgba(20,14,16,0.72))',
-            boxShadow: '0 20px 46px rgba(0,0,0,0.30)',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 26,
-              lineHeight: 1,
-              fontWeight: 900,
-              color: '#ffffff',
-              textTransform: 'uppercase',
-            }}
-          >
-            Top 3
-          </div>
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 20,
-              lineHeight: 1,
-              fontWeight: 800,
-              color: '#c8d4e8',
-              textTransform: 'uppercase',
-            }}
-          >
-            Classificacao final da corrida
-          </div>
-        </div>
+      <div style={{display: 'grid', gridTemplateRows: 'minmax(0, 1fr) 188px 92px', gap: 14}}>
         {winner ? <WinnerFeature entry={winner} theme={theme} /> : null}
         <div style={{display: 'grid', gridTemplateRows: '1fr 1fr', gap: 14}}>
           {chasePack.map((entry) => (
             <PodiumMini key={`${entry.position}-${entry.name}`} entry={entry} theme={theme} />
           ))}
         </div>
+        {job.fastestLap ? <FastestLapCard fastestLap={job.fastestLap} theme={theme} /> : null}
       </div>
       <BroadcastTable
         rows={tableRows}
         theme={theme}
         title="Resultado Completo"
-        valueLabel="Tempo"
+        valueLabel="Dif."
         columns={2}
         compact
       />
+    </div>
+  );
+};
+
+const FastestLapCard = ({
+  fastestLap,
+  theme,
+}: {
+  fastestLap: NonNullable<F1RaceResultsJob['fastestLap']>;
+  theme: F1ThemeConfig;
+}) => {
+  const portraitPath = fastestLap.badge?.imagePath ?? fastestLap.badge?.logoPath;
+
+  return (
+    <div
+      style={{
+        minHeight: 0,
+        height: '100%',
+        display: 'grid',
+        gridTemplateColumns: '58px minmax(0, 1fr) auto',
+        alignItems: 'center',
+        gap: 12,
+        padding: '12px 16px',
+        border: `2px solid ${theme.secondaryAccent}88`,
+        background:
+          'linear-gradient(135deg, rgba(10,14,24,0.96), rgba(28,20,14,0.92))',
+        boxShadow: `0 18px 42px ${theme.secondaryAccent}22`,
+      }}
+    >
+      <div
+        style={{
+          display: 'grid',
+          placeItems: 'center',
+          width: 48,
+          height: 48,
+          borderRadius: 999,
+          background: `${fastestLap.accentColor ?? theme.accent}22`,
+          border: `2px solid ${(fastestLap.accentColor ?? theme.accent)}88`,
+          overflow: 'hidden',
+        }}
+      >
+        {portraitPath ? (
+          <Img
+            src={staticFile(portraitPath.replace(/^\//, ''))}
+            style={{
+              width: fastestLap.badge?.imagePath ? '100%' : '74%',
+              height: fastestLap.badge?.imagePath ? '100%' : '74%',
+              objectFit: fastestLap.badge?.imagePath ? 'cover' : 'contain',
+              objectPosition: fastestLap.badge?.imagePath ? 'center top' : 'center center',
+            }}
+          />
+        ) : (
+          <span style={{fontFamily: DISPLAY_FONT, color: '#fff'}}>VR</span>
+        )}
+      </div>
+      <div style={{minWidth: 0}}>
+        <div
+          style={{
+            color: theme.secondaryAccent,
+            fontSize: 10,
+            lineHeight: 1,
+            fontWeight: 900,
+            letterSpacing: 1.8,
+            textTransform: 'uppercase',
+          }}
+        >
+          Volta mais rápida
+        </div>
+        <div
+          style={{
+            marginTop: 6,
+            color: '#fff',
+            fontFamily: DISPLAY_FONT,
+            fontSize: 20,
+            lineHeight: 1,
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {fastestLap.name}
+        </div>
+        {fastestLap.team ? (
+          <div
+            style={{
+              marginTop: 4,
+              color: '#aebbd0',
+              fontSize: 10,
+              lineHeight: 1,
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {fastestLap.team}
+          </div>
+        ) : null}
+      </div>
+      <div
+        style={{
+          color: theme.secondaryAccent,
+          fontFamily: DISPLAY_FONT,
+          fontSize: 26,
+          lineHeight: 1,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {fastestLap.value}
+      </div>
     </div>
   );
 };
@@ -895,7 +1002,7 @@ const CompactColumnHeader = ({valueLabel}: {valueLabel: string}) => (
   <div
     style={{
       display: 'grid',
-      gridTemplateColumns: '58px 60px minmax(0, 1fr) 112px',
+      gridTemplateColumns: '46px 52px minmax(0, 1fr) 96px',
       padding: '0 12px 8px 0',
       color: '#8796aa',
       fontSize: 10,
@@ -929,7 +1036,7 @@ const TableRow = ({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: compact ? '58px 60px minmax(0, 1fr) 112px' : '80px 76px minmax(0, 1fr) 142px',
+        gridTemplateColumns: compact ? '46px 52px minmax(0, 1fr) 96px' : '80px 76px minmax(0, 1fr) 142px',
         alignItems: 'center',
         minHeight: compact ? 51 : isConstructor ? 74 : 64,
         padding: compact ? '5px 12px 5px 0' : '7px 24px 7px 0',
@@ -956,15 +1063,15 @@ const TableRow = ({
           <Img
             src={staticFile(logoPath.replace(/^\//, ''))}
             style={{
-              width: compact ? 42 : isConstructor ? 54 : 48,
-              height: compact ? 42 : isConstructor ? 44 : 48,
+              width: compact ? 38 : isConstructor ? 54 : 48,
+              height: compact ? 38 : isConstructor ? 44 : 48,
               objectFit: isConstructor ? 'contain' : 'cover',
               objectPosition: 'center top',
               borderRadius: isConstructor ? 0 : 999,
             }}
           />
         ) : (
-          <BadgeDisk badge={row.badge} size={compact ? 40 : 44} theme={theme} />
+          <BadgeDisk badge={row.badge} size={compact ? 38 : 44} theme={theme} />
         )}
       </div>
       <div style={{minWidth: 0, paddingLeft: compact ? 8 : 12}}>
@@ -972,7 +1079,7 @@ const TableRow = ({
           style={{
             color: '#ffffff',
             fontFamily: DISPLAY_FONT,
-            fontSize: compact ? 21 : isConstructor ? 30 : 27,
+            fontSize: compact ? 18 : isConstructor ? 30 : 27,
             lineHeight: 1,
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
@@ -1010,7 +1117,7 @@ const TableRow = ({
           style={{
             color: row.position <= 3 ? GOLD : theme.secondaryAccent,
             fontFamily: DISPLAY_FONT,
-            fontSize: compact ? 23 : 31,
+            fontSize: compact ? 16 : 31,
             lineHeight: 1,
             whiteSpace: 'nowrap',
           }}
