@@ -18,6 +18,7 @@ import type {
   F1VideoJob,
   F1WeekendScheduleJob,
 } from '../lib/types';
+import {sameBaseF1Template} from '../lib/f1-template-helpers';
 
 const sampleRaceResultsJob: F1RaceResultsJob = {
   sport: 'f1',
@@ -213,7 +214,7 @@ const sampleTeammateBattleJob: F1TeammateBattleJob = {
   },
   driver2: {
     code: 'ANT',
-    name: 'Andrea Kimi Antonelli',
+    name: 'Kimi Antonelli',
     team: 'Mercedes-AMG Petronas',
     badge: {
       label: 'AK',
@@ -509,12 +510,12 @@ const selectCurrentF1Job = <T extends F1VideoJob>(
   templateJobJson: unknown,
   sampleJob: T
 ) => {
-  if (currentF1Job.template === template) {
+  if (sameBaseF1Template(currentF1Job.template, template)) {
     return currentF1Job as T;
   }
 
   const templateJob = templateJobJson as F1VideoJob;
-  return templateJob.template === template ? (templateJobJson as T) : sampleJob;
+  return sameBaseF1Template(templateJob.template, template) ? (templateJobJson as T) : sampleJob;
 };
 
 const raceResultsJob =

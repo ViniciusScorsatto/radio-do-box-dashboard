@@ -2,6 +2,7 @@ import {AbsoluteFill} from 'remotion';
 import {F1Frame, RadioDoBoxMark} from '../components/F1Shared';
 import {F1ProductionBed} from '../components/F1ProductionBed';
 import type {F1RankingEntry, F1ThemeConfig} from '../lib/types';
+import {normalizeF1DriverDisplayName} from '../lib/f1-display-names';
 
 type F1RacePaceCompositionProps = {
   title: string;
@@ -142,7 +143,7 @@ export const F1RacePaceComposition = ({
                         lineHeight: 1,
                       }}
                     >
-                      {entry.name}
+                      {normalizeF1DriverDisplayName(entry.name)}
                     </div>
                     <div
                       style={{

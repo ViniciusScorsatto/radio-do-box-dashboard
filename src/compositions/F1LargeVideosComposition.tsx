@@ -9,6 +9,7 @@ import type {
   F1ThemeConfig,
   TeamBadge,
 } from '../lib/types';
+import {normalizeF1DriverDisplayName} from '../lib/f1-display-names';
 
 type F1LargeVideosJob = F1RaceResultsJob | F1DriverStandingsJob | F1ConstructorStandingsJob;
 
@@ -545,7 +546,7 @@ const WinnerFeature = ({entry, theme}: {entry: F1PodiumEntry; theme: F1ThemeConf
             textTransform: 'uppercase',
           }}
         >
-          {entry.name}
+          {normalizeF1DriverDisplayName(entry.name)}
         </div>
         <div
           style={{
@@ -652,7 +653,7 @@ const PodiumMini = ({entry, theme}: {entry: F1PodiumEntry; theme: F1ThemeConfig}
           textOverflow: 'ellipsis',
         }}
       >
-        {entry.name}
+        {normalizeF1DriverDisplayName(entry.name)}
       </div>
       <div
         style={{
@@ -719,7 +720,7 @@ const LeaderPanel = ({
   const entry = leader
     ? {
         position: leader.position,
-        name: leader.name,
+        name: isConstructor ? leader.name : normalizeF1DriverDisplayName(leader.name),
         team: leader.team,
         badge: leader.badge,
         value: leader.stat?.replace(/\s*pts$/i, ''),
@@ -819,7 +820,7 @@ const LeaderPanel = ({
           textTransform: 'uppercase',
         }}
       >
-        {entry.name}
+        {isConstructor ? entry.name : normalizeF1DriverDisplayName(entry.name)}
       </div>
       {entry.team ? (
         <div

@@ -1,8 +1,12 @@
 import {AbsoluteFill, Img, staticFile, useCurrentFrame} from 'remotion';
 import {F1ProductionBed} from '../components/F1ProductionBed';
+import {RADIO_IMPACT_FONT, RADIO_READ_FONT, RadioDoBoxFonts} from '../components/RadioDoBoxFonts';
 import type {F1PodiumEntry, F1RankingEntry, F1ThemeConfig, TeamBadge} from '../lib/types';
+import {isNewShortTemplate} from '../lib/f1-template-helpers';
+import {f1DriverSurname, normalizeF1DriverDisplayName} from '../lib/f1-display-names';
 
 type F1StandingsCompositionProps = {
+  template?: 'driver-standings' | 'constructor-standings' | 'novo-driver-standings' | 'novo-constructor-standings';
   title: string;
   subtitle: string;
   countryCode?: string;
@@ -25,6 +29,7 @@ type BaseF1StandingsCompositionProps = F1StandingsCompositionProps & {
 };
 
 const PAGE_SWITCH_FRAME = 180;
+const NEW_HOOK_DURATION_FRAMES = 45;
 const DISPLAY_FONT = '"Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif';
 const DRIVER_STANDINGS_BACKGROUND_PATH = '/f1/backgrounds/mundial-de-pilotos.png';
 const constructorTeamLogoOverrides: Record<string, string> = {
@@ -93,6 +98,7 @@ const resolveBadgeVisual = (
 };
 
 const BaseF1StandingsComposition = ({
+  template,
   title,
   subtitle,
   themeConfig,
@@ -109,6 +115,8 @@ const BaseF1StandingsComposition = ({
   maxRows,
 }: BaseF1StandingsCompositionProps) => {
   const frame = useCurrentFrame();
+  const isNewTemplate = isNewShortTemplate(template);
+  const showNewHook = isNewTemplate && frame < NEW_HOOK_DURATION_FRAMES;
   const rows = entries.length > 0 ? entries.slice(0, maxRows) : [];
   const headerSubtitle = sanitizeStandingsSubtitle(title, subtitle);
   const pageOneRows = rows.slice(1, 11);
@@ -130,6 +138,7 @@ const BaseF1StandingsComposition = ({
 
   return (
     <AbsoluteFill>
+      {isNewTemplate ? <RadioDoBoxFonts /> : null}
       <div
         style={{
           position: 'absolute',
@@ -138,11 +147,22 @@ const BaseF1StandingsComposition = ({
           color: '#0f1630',
           background:
             'linear-gradient(180deg, #fdfdff 0%, #f4f6fb 32%, #e7ecf5 68%, #dde4f0 100%)',
-          fontFamily: DISPLAY_FONT,
+          fontFamily: isNewTemplate ? RADIO_READ_FONT : DISPLAY_FONT,
         }}
       >
         <StandingsBackdrop accent={themeConfig.accent} />
-        <StandingsHeader title={title} subtitle={headerSubtitle} />
+        {showNewHook ? (
+          <NewStandingsHook
+            title={title}
+            subtitle={headerSubtitle}
+            leader={effectiveLeader}
+            rows={rows}
+            accent={themeConfig.accent}
+            isConstructorStandings={forceConstructorLogos}
+          />
+        ) : (
+          <StandingsHeader title={title} subtitle={headerSubtitle} />
+        )}
 
         {!showSecondPage ? (
         <StandingsPage
@@ -151,8 +171,9 @@ const BaseF1StandingsComposition = ({
             leader={effectiveLeader}
             logoPath={brandLogoPath}
             isConstructorStandings={forceConstructorLogos}
-            leaderTop={forceConstructorLogos ? 268 : 230}
-            rowsTop={forceConstructorLogos ? 468 : 430}
+            leaderTop={showNewHook ? 286 : forceConstructorLogos ? 268 : 230}
+            rowsTop={showNewHook ? 492 : forceConstructorLogos ? 468 : 430}
+            useEditorialFonts={isNewTemplate}
           />
         ) : (
           <StandingsPage
@@ -160,19 +181,22 @@ const BaseF1StandingsComposition = ({
             logoPath={brandLogoPath}
             secondPage
             isConstructorStandings={forceConstructorLogos}
+            useEditorialFonts={isNewTemplate}
           />
         )}
       </div>
-      <F1ProductionBed
-        theme={themeConfig}
-        brandName={brandName}
-        brandLogoPath={brandLogoPath}
-        soundtrackPath={soundtrackPath}
-        soundtrackVolume={soundtrackVolume}
-        voiceoverPath={voiceoverPath}
-        introTitle={introTitle}
-        introSubtitle={introSubtitle}
-      />
+      {isNewTemplate ? null : (
+        <F1ProductionBed
+          theme={themeConfig}
+          brandName={brandName}
+          brandLogoPath={brandLogoPath}
+          soundtrackPath={soundtrackPath}
+          soundtrackVolume={soundtrackVolume}
+          voiceoverPath={voiceoverPath}
+          introTitle={introTitle}
+          introSubtitle={introSubtitle}
+        />
+      )}
     </AbsoluteFill>
   );
 };
@@ -244,6 +268,155 @@ const StandingsBackdrop = ({accent}: {accent: string}) => (
     />
   </>
 );
+
+const NewStandingsHook = ({
+  title,
+  subtitle,
+  leader,
+  rows,
+  accent,
+  isConstructorStandings,
+}: {
+  title: string;
+  subtitle: string;
+  leader?: F1PodiumEntry;
+  rows: F1RankingEntry[];
+  accent: string;
+  isConstructorStandings: boolean;
+}) => {
+  const p1 = leader ?? rows[0];
+  const p2 = rows.find((entry) => entry.position === 2) ?? rows[1];
+  const p1Points = Number(String(p1?.stat ?? p1?.value ?? '').replace(/[^\d.-]/g, ''));
+  const p2Points = Number(String(p2?.value ?? '').replace(/[^\d.-]/g, ''));
+  const hasGap = Number.isFinite(p1Points) && Number.isFinite(p2Points);
+  const gap = hasGap ? Math.max(0, p1Points - p2Points) : null;
+  const leaderName = isConstructorStandings
+    ? getConstructorShortName(p1?.name ?? title)
+    : compactStandingName(p1?.name ?? title);
+  const rivalName = isConstructorStandings
+    ? getConstructorShortName(p2?.name ?? '')
+    : compactStandingName(p2?.name ?? '');
+  const leaderStoryName = isConstructorStandings ? leaderName : f1DriverSurname(p1?.name ?? title);
+  const rivalStoryName = isConstructorStandings ? rivalName : f1DriverSurname(p2?.name ?? '');
+  const headline = gap !== null && rivalName
+    ? `${gap} pts de vantagem`
+    : `${leaderName} lidera`;
+  const context = rivalStoryName
+    ? `${leaderStoryName} na frente de ${rivalStoryName}`
+    : subtitle || title;
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 34,
+        left: 44,
+        right: 44,
+        minHeight: 204,
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) auto',
+        gap: 20,
+        alignItems: 'center',
+        borderRadius: 36,
+        padding: '24px 30px',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(238,244,253,0.98))',
+        border: `4px solid ${accent}`,
+        boxShadow: `0 0 44px ${accent}30`,
+        overflow: 'hidden',
+        fontFamily: RADIO_READ_FONT,
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            `linear-gradient(100deg, ${accent}28 0 34%, rgba(255,255,255,0) 62%)`,
+        }}
+      />
+      <div style={{position: 'relative', minWidth: 0}}>
+        <div
+          style={{
+            fontSize: 28,
+            lineHeight: 1,
+            fontWeight: 900,
+            color: '#5a6b90',
+            textTransform: 'uppercase',
+            fontFamily: RADIO_IMPACT_FONT,
+            marginBottom: 12,
+          }}
+        >
+          {isConstructorStandings ? 'Briga dos construtores' : 'Briga pelo título'}
+        </div>
+        <div
+          style={{
+            fontSize: 70,
+            lineHeight: 0.9,
+            fontWeight: 900,
+            color: '#0a1024',
+            textTransform: 'uppercase',
+            fontFamily: RADIO_IMPACT_FONT,
+          }}
+        >
+          {headline}
+        </div>
+        <div
+          style={{
+            marginTop: 14,
+            fontSize: 28,
+            lineHeight: 1,
+            fontWeight: 600,
+            color: accent,
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {context}
+        </div>
+      </div>
+      <div
+        style={{
+          position: 'relative',
+          minWidth: 160,
+          padding: '18px 20px',
+          borderRadius: 26,
+          background: '#10172e',
+          color: '#ffffff',
+          textAlign: 'center',
+          boxShadow: '0 0 24px rgba(16,23,46,0.22)',
+        }}
+      >
+        <div style={{fontSize: 20, lineHeight: 1, fontWeight: 700, textTransform: 'uppercase', fontFamily: RADIO_IMPACT_FONT}}>
+          Líder
+        </div>
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 34,
+            lineHeight: 0.95,
+            fontWeight: 700,
+            color: '#ffd66f',
+            textTransform: 'uppercase',
+            fontFamily: RADIO_READ_FONT,
+          }}
+        >
+          {leaderName}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const compactStandingName = (name: string) => {
+  const parts = normalizeF1DriverDisplayName(name).split(/\s+/).filter(Boolean);
+  if (parts.length <= 2) {
+    return parts.join(' ');
+  }
+
+  return `${parts[0]} ${parts[parts.length - 1]}`;
+};
 
 const StandingsHeader = ({
   title,
@@ -338,6 +511,7 @@ const StandingsPage = ({
   isConstructorStandings = false,
   leaderTop = 230,
   rowsTop = 430,
+  useEditorialFonts = false,
 }: {
   rows: F1RankingEntry[];
   emphasizeTopThree?: boolean;
@@ -347,6 +521,7 @@ const StandingsPage = ({
   isConstructorStandings?: boolean;
   leaderTop?: number;
   rowsTop?: number;
+  useEditorialFonts?: boolean;
 }) => (
   <>
     {!secondPage && emphasizeTopThree && leader ? (
@@ -361,7 +536,11 @@ const StandingsPage = ({
           gap: 14,
         }}
       >
-        <StandingsLeaderCard leader={leader} forceConstructorLogos={isConstructorStandings} />
+        <StandingsLeaderCard
+          leader={leader}
+          forceConstructorLogos={isConstructorStandings}
+          useEditorialFonts={useEditorialFonts}
+        />
       </div>
     ) : null}
 
@@ -381,6 +560,7 @@ const StandingsPage = ({
           key={`${entry.position}-${entry.name}`}
           entry={entry}
           forceConstructorLogos={isConstructorStandings}
+          useEditorialFonts={useEditorialFonts}
         />
       ))}
     </div>
@@ -404,16 +584,20 @@ const StandingsPage = ({
 const StandingsLeaderCard = ({
   leader,
   forceConstructorLogos = false,
+  useEditorialFonts = false,
 }: {
   leader: F1PodiumEntry;
   forceConstructorLogos?: boolean;
+  useEditorialFonts?: boolean;
 }) => {
   const {imagePath, isLogo} = resolveBadgeVisual(leader.badge, {
     forceConstructorLogos,
     teamName: leader.team || leader.name,
   });
   const logoOffsetX = forceConstructorLogos ? 24 : 0;
-  const displayLeaderName = forceConstructorLogos ? getConstructorShortName(leader.name) : leader.name;
+  const displayLeaderName = forceConstructorLogos
+    ? getConstructorShortName(leader.name)
+    : normalizeF1DriverDisplayName(leader.name);
   const displayLeaderDetail = forceConstructorLogos
     ? leader.badge.sublabel || leader.team || leader.name
     : leader.team;
@@ -467,7 +651,8 @@ const StandingsLeaderCard = ({
           fontSize: 106,
           lineHeight: 0.8,
           color: 'rgba(255, 214, 111, 0.52)',
-          fontWeight: 900,
+          fontWeight: useEditorialFonts ? 900 : 900,
+          fontFamily: useEditorialFonts ? RADIO_IMPACT_FONT : undefined,
           textShadow: '0 0 24px rgba(255, 214, 111, 0.18)',
           zIndex: 1,
         }}
@@ -515,7 +700,7 @@ const StandingsLeaderCard = ({
         style={{
           fontSize: 46,
           lineHeight: 0.94,
-          fontWeight: 900,
+          fontWeight: useEditorialFonts ? 600 : 900,
           color: '#10172e',
           textTransform: 'uppercase',
         }}
@@ -526,7 +711,8 @@ const StandingsLeaderCard = ({
         style={{
           fontSize: 26,
           lineHeight: 1,
-          fontWeight: 900,
+          fontWeight: useEditorialFonts ? 600 : 900,
+          fontFamily: useEditorialFonts ? RADIO_READ_FONT : undefined,
           color: leader.accentColor ?? '#2c406d',
           textTransform: 'uppercase',
         }}
@@ -544,7 +730,7 @@ const StandingsLeaderCard = ({
           style={{
             fontSize: 18,
             lineHeight: 1,
-            fontWeight: 900,
+            fontWeight: useEditorialFonts ? 500 : 900,
             color: '#5f6f92',
             textTransform: 'uppercase',
           }}
@@ -568,6 +754,7 @@ const StandingsLeaderCard = ({
           fontSize: 72,
           lineHeight: 0.9,
           fontWeight: 900,
+          fontFamily: useEditorialFonts ? RADIO_IMPACT_FONT : undefined,
           color: '#0e1530',
           textShadow: '0 0 18px rgba(255, 204, 104, 0.18)',
         }}
@@ -578,7 +765,7 @@ const StandingsLeaderCard = ({
         style={{
           fontSize: 24,
           lineHeight: 1,
-          fontWeight: 900,
+          fontWeight: useEditorialFonts ? 500 : 900,
           color: '#5f6f92',
           textTransform: 'uppercase',
         }}
@@ -593,9 +780,11 @@ const StandingsLeaderCard = ({
 const StandingsRow = ({
   entry,
   forceConstructorLogos = false,
+  useEditorialFonts = false,
 }: {
   entry: F1RankingEntry;
   forceConstructorLogos?: boolean;
+  useEditorialFonts?: boolean;
 }) => {
   const isTopThree = entry.position <= 3;
   const chipStyle = getAccentChipStyle(entry.accentColor);
@@ -603,7 +792,9 @@ const StandingsRow = ({
     forceConstructorLogos,
     teamName: entry.name || entry.team || entry.badge.sublabel,
   });
-  const displayName = forceConstructorLogos ? getConstructorShortName(entry.name) : entry.name;
+  const displayName = forceConstructorLogos
+    ? getConstructorShortName(entry.name)
+    : normalizeF1DriverDisplayName(entry.name);
   const displayTeamDetail = forceConstructorLogos
     ? entry.badge.sublabel || entry.name || 'Formula 1'
     : entry.team || entry.badge.sublabel || 'Formula 1';
@@ -652,7 +843,8 @@ const StandingsRow = ({
           color: medalText,
           fontSize: 32,
           lineHeight: 1,
-          fontWeight: 900,
+          fontWeight: useEditorialFonts ? 700 : 900,
+          fontFamily: useEditorialFonts ? RADIO_READ_FONT : undefined,
           boxShadow: isTopThree ? '0 0 20px rgba(255, 187, 70, 0.25)' : 'none',
         }}
       >
@@ -728,7 +920,8 @@ const StandingsRow = ({
                 color: chipStyle.color,
                 fontSize: 14,
                 lineHeight: 1,
-                fontWeight: 900,
+                fontWeight: useEditorialFonts ? 700 : 900,
+                fontFamily: useEditorialFonts ? RADIO_READ_FONT : undefined,
                 boxShadow: chipStyle.boxShadow,
                 border: chipStyle.border,
               }}
@@ -740,7 +933,7 @@ const StandingsRow = ({
             style={{
             fontSize: 32,
             lineHeight: 0.96,
-            fontWeight: 900,
+            fontWeight: useEditorialFonts ? 600 : 900,
             color: '#0e1733',
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
@@ -748,6 +941,7 @@ const StandingsRow = ({
             textOverflow: 'ellipsis',
             minWidth: 0,
             flex: 1,
+            fontFamily: useEditorialFonts ? RADIO_READ_FONT : undefined,
           }}
           >
             {displayName}
@@ -764,7 +958,7 @@ const StandingsRow = ({
             style={{
               fontSize: 18,
               lineHeight: 1,
-              fontWeight: 900,
+              fontWeight: useEditorialFonts ? 600 : 900,
               color: chipStyle.color,
               textTransform: 'uppercase',
               whiteSpace: 'nowrap',
@@ -777,6 +971,7 @@ const StandingsRow = ({
               boxShadow: chipStyle.boxShadow,
               border: chipStyle.border,
               minWidth: 0,
+              fontFamily: useEditorialFonts ? RADIO_READ_FONT : undefined,
             }}
           >
             {displayTeamDetail}
@@ -797,7 +992,8 @@ const StandingsRow = ({
           style={{
             fontSize: 38,
             lineHeight: 0.9,
-            fontWeight: 900,
+            fontWeight: useEditorialFonts ? 700 : 900,
+            fontFamily: useEditorialFonts ? RADIO_READ_FONT : undefined,
             color: '#111931',
           }}
         >
@@ -808,7 +1004,8 @@ const StandingsRow = ({
             style={{
               fontSize: 16,
               lineHeight: 1,
-              fontWeight: 900,
+              fontWeight: useEditorialFonts ? 500 : 900,
+              fontFamily: useEditorialFonts ? RADIO_READ_FONT : undefined,
               color: '#ffffff',
               textTransform: 'uppercase',
               padding: '4px 10px 3px',
@@ -824,7 +1021,8 @@ const StandingsRow = ({
           style={{
             fontSize: 17,
             lineHeight: 1,
-            fontWeight: 900,
+            fontWeight: useEditorialFonts ? 500 : 900,
+            fontFamily: useEditorialFonts ? RADIO_READ_FONT : undefined,
             color: '#6b7b9d',
             textTransform: 'uppercase',
           }}

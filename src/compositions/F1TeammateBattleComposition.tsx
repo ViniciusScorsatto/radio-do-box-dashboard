@@ -6,6 +6,7 @@ import type {
   F1TeammateBattleScoreBlock,
   F1ThemeConfig,
 } from '../lib/types';
+import {normalizeF1DriverDisplayName} from '../lib/f1-display-names';
 
 type F1TeammateBattleCompositionProps = {
   title: string;
@@ -69,7 +70,10 @@ const DriverHero = ({
   side: 'left' | 'right';
   driver: F1TeammateBattleJob['driver1'];
   accent: string;
-}) => (
+}) => {
+  const displayName = normalizeF1DriverDisplayName(driver.name);
+
+  return (
   <div
     style={{
       position: 'relative',
@@ -124,7 +128,7 @@ const DriverHero = ({
           textShadow: '0 4px 16px rgba(0,0,0,0.85)',
         }}
       >
-        {driver.name.split(' ').slice(0, -1).join(' ') || driver.name}
+        {displayName.split(' ').slice(0, -1).join(' ') || displayName}
       </div>
       <div
         style={{
@@ -134,11 +138,12 @@ const DriverHero = ({
           textShadow: `0 0 16px ${accent}70`,
         }}
       >
-        {driver.name.split(' ').slice(-1)[0]}
+        {displayName.split(' ').slice(-1)[0]}
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const StatBattleRow = ({
   block,

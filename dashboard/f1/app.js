@@ -41,6 +41,10 @@ const copyActiveDescriptionButton = document.getElementById('copy-active-descrip
 const apiBase = '/api/f1';
 const STUDIO_URL_KEY = 'f1-dashboard-studio-url';
 const templateCompositionMap = {
+  'novo-race-results': 'F1RaceResultsShort',
+  'novo-qualifying-grid': 'F1QualifyingGridShort',
+  'novo-driver-standings': 'F1DriverStandingsShort',
+  'novo-constructor-standings': 'F1ConstructorStandingsShort',
   'race-results': 'F1RaceResultsShort',
   'race-pace': 'F1RacePaceShort',
   'teammate-battle': 'F1TeammateBattleShort',
@@ -51,12 +55,15 @@ const templateCompositionMap = {
   'weekend-schedule': 'F1WeekendScheduleShort',
 };
 const defaultRaceTypeByTemplate = {
+  'novo-race-results': 'Race',
+  'novo-qualifying-grid': '3rd Qualifying',
   'race-results': 'Race',
   'race-pace': 'Race',
   'teammate-battle': 'Race',
   'circuit-insights': 'Race',
   'qualifying-grid': '3rd Qualifying',
 };
+const baseF1Template = (template) => String(template || '').replace(/^novo-/, '');
 
 const setBusy = (busy) => {
   prepareButton.disabled = busy;
@@ -99,12 +106,12 @@ const formDataToObject = () => Object.fromEntries(new FormData(form).entries());
 const getSelectedOptionLabel = (selectElement) =>
   selectElement?.selectedOptions?.[0]?.textContent?.trim() ?? '';
 const requiresRacePicker = () =>
-  templateSelect.value === 'race-results' ||
-  templateSelect.value === 'race-pace' ||
-  templateSelect.value === 'teammate-battle' ||
-  templateSelect.value === 'circuit-insights' ||
-  templateSelect.value === 'qualifying-grid';
-const requiresTeamBattleFields = () => templateSelect.value === 'teammate-battle';
+  baseF1Template(templateSelect.value) === 'race-results' ||
+  baseF1Template(templateSelect.value) === 'race-pace' ||
+  baseF1Template(templateSelect.value) === 'teammate-battle' ||
+  baseF1Template(templateSelect.value) === 'circuit-insights' ||
+  baseF1Template(templateSelect.value) === 'qualifying-grid';
+const requiresTeamBattleFields = () => baseF1Template(templateSelect.value) === 'teammate-battle';
 const raceTypeForTemplate = (template) => defaultRaceTypeByTemplate[template] ?? 'Race';
 
 const normalizeSoundtrackVolume = (value) => {
@@ -150,6 +157,10 @@ const updateDashboardMeta = () => {
 };
 
 const templateHints = {
+  'novo-race-results': 'Novo padrão: abre com vencedor/consequência e usa a tabela como apoio.',
+  'novo-qualifying-grid': 'Novo padrão: abre com pole + ameaça da primeira fila antes do grid.',
+  'novo-driver-standings': 'Novo padrão: abre com líder/diferença do mundial antes da tabela.',
+  'novo-constructor-standings': 'Novo padrão: abre com equipe líder/mudança principal antes da tabela.',
   'race-results': 'Usa a ultima corrida concluida e monta podium + lista de continuacao.',
   'race-pace': 'Calcula o ritmo medio por volta (top 10) da corrida selecionada.',
   'teammate-battle':
@@ -236,7 +247,7 @@ const defaultTeamBattleContextSubtitle = () => {
 };
 
 const applyIntroPlaceholders = () => {
-  const copy = f1SpeechCopy[templateSelect.value];
+  const copy = f1SpeechCopy[baseF1Template(templateSelect.value)];
   const ctx = currentIntroContext();
   if (!copy) {
     return;
@@ -272,11 +283,11 @@ const renderCurrentJob = (job) => {
   const templateLabel = getSelectedOptionLabel(templateSelect) || job.template;
   templateChip.textContent = templateLabel;
   const detailLine =
-    job.template === 'weekend-schedule'
+    baseF1Template(job.template) === 'weekend-schedule'
       ? `${job.sessions.length} sessoes`
-      : job.template === 'circuit-insights'
+      : baseF1Template(job.template) === 'circuit-insights'
         ? `${job.stats?.length ?? 0} stats • ${job.keyPoints?.length ?? 0} pontos-chave`
-        : job.template === 'teammate-battle'
+        : baseF1Template(job.template) === 'teammate-battle'
           ? `${job.teamName} • ${job.driver1.code} x ${job.driver2.code}`
         : `${job.entries.length}${job.podium ? ` + ${job.podium.length} no topo` : ''}`;
 
@@ -324,7 +335,7 @@ const setRenderDownload = (job, render) => {
 
 const applyTemplateHints = () => {
   const helper = document.getElementById('template-hint');
-  helper.textContent = templateHints[templateSelect.value] ?? '';
+  helper.textContent = templateHints[templateSelect.value] ?? templateHints[baseF1Template(templateSelect.value)] ?? '';
   updateDashboardMeta();
 };
 
@@ -368,9 +379,9 @@ const applyRacePickerVisibility = () => {
   raceDataSection.hidden =
     !visible && !requiresTeamBattleFields();
   const forceRaceType =
-    templateSelect.value === 'race-pace' ||
-    templateSelect.value === 'teammate-battle' ||
-    templateSelect.value === 'circuit-insights';
+    baseF1Template(templateSelect.value) === 'race-pace' ||
+    baseF1Template(templateSelect.value) === 'teammate-battle' ||
+    baseF1Template(templateSelect.value) === 'circuit-insights';
   raceTypeSelect.disabled = forceRaceType;
   if (forceRaceType) {
     raceTypeSelect.value = 'Race';

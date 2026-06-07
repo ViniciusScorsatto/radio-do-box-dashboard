@@ -1,0 +1,7 @@
+{
+  "template": "novo-constructor-standings",
+  "label": "Novo - Mundial de Construtores",
+  "compositionId": "F1ConstructorStandingsShort",
+  "themeVariant": "orange",
+  "durationInFrames": 360
+}

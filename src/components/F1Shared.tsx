@@ -7,6 +7,7 @@ import type {
   F1ThemeConfig,
   TeamBadge,
 } from '../lib/types';
+import {normalizeF1DriverDisplayName} from '../lib/f1-display-names';
 
 export const F1Frame = ({
   theme,
@@ -409,7 +410,7 @@ export const F1PodiumStrip = ({
                 textTransform: 'uppercase',
               }}
             >
-              {entry.name}
+              {normalizeF1DriverDisplayName(entry.name)}
             </div>
             <div
               style={{
@@ -508,7 +509,7 @@ export const F1RankingList = ({
               textOverflow: 'ellipsis',
             }}
           >
-            {entry.name}
+            {normalizeF1DriverDisplayName(entry.name)}
           </div>
           {entry.team ? (
             <div

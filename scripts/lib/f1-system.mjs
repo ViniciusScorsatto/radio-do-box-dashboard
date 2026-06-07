@@ -17,6 +17,10 @@ const f1CircuitImagesDir = path.join(f1AssetsDir, 'circuits');
 const f1VoiceoversDir = path.join(projectRoot, 'public', 'voiceovers', 'f1');
 
 const templateFileNames = [
+  'novo-race-results.json',
+  'novo-qualifying-grid.json',
+  'novo-driver-standings.json',
+  'novo-constructor-standings.json',
   'race-results.json',
   'race-pace.json',
   'teammate-battle.json',
@@ -26,6 +30,10 @@ const templateFileNames = [
   'constructor-standings.json',
   'weekend-schedule.json',
 ];
+
+const newShortTemplatePrefix = 'novo-';
+const isNewShortTemplate = (template = '') => String(template).startsWith(newShortTemplatePrefix);
+const baseF1Template = (template = '') => String(template).replace(/^novo-/, '');
 
 const brandLogos = {
   blue: '/branding/radio-do-box/white.png',
@@ -140,6 +148,15 @@ const sanitize = (value) =>
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+
+const normalizeF1DriverDisplayName = (name = '') => {
+  const trimmed = String(name ?? '').trim().replace(/\s+/g, ' ');
+  if (/^(?:andrea\s+kimi|kimi\s+andrea)\s+antonelli$/i.test(trimmed)) {
+    return 'Kimi Antonelli';
+  }
+
+  return trimmed;
+};
 
 const ensureGeneratedDir = async () => {
   await fs.mkdir(generatedDir, {recursive: true});
@@ -640,6 +657,7 @@ const createBaseJob = ({
 });
 
 const getF1IntroDefaults = (job) => {
+  const baseTemplate = baseF1Template(job.template);
   const raceName = job.raceName || job.title || 'Formula 1';
   const titleByTemplate = {
     'race-results': raceName,
@@ -673,9 +691,9 @@ const getF1IntroDefaults = (job) => {
   };
 
   return {
-    introTitle: titleByTemplate[job.template] || raceName,
-    introSubtitle: subtitleByTemplate[job.template] || job.subtitle,
-    voiceoverText: voiceoverByTemplate[job.template] || `Fala, galera do box. ${job.subtitle || raceName}.`,
+    introTitle: titleByTemplate[baseTemplate] || raceName,
+    introSubtitle: subtitleByTemplate[baseTemplate] || job.subtitle,
+    voiceoverText: voiceoverByTemplate[baseTemplate] || `Fala, galera do box. ${job.subtitle || raceName}.`,
   };
 };
 
@@ -735,12 +753,13 @@ const sampleWeekendSessions = [
 ];
 
 const sanitizeF1LabelOverride = (template, labelOverride) => {
+  const baseTemplate = baseF1Template(template);
   const raw = labelOverride?.trim();
   if (!raw) {
     return '';
   }
 
-  if (template === 'driver-standings' || template === 'constructor-standings') {
+  if (baseTemplate === 'driver-standings' || baseTemplate === 'constructor-standings') {
     const staleTemplateLabels = new Set([
       'media limpa da corrida',
       'média limpa da corrida',
@@ -755,7 +774,7 @@ const sanitizeF1LabelOverride = (template, labelOverride) => {
     }
   }
 
-  if (template === 'qualifying-grid') {
+  if (baseTemplate === 'qualifying-grid') {
     const staleTemplateLabels = new Set([
       'resultado da corrida',
       'ritmo de corrida',
@@ -786,6 +805,7 @@ const buildSampleJob = async ({
   outputName,
   warning,
 }) => {
+  const baseTemplate = baseF1Template(template);
   const competitionConfigs = await loadCompetitionPresets();
   const gpNameTranslations = await loadGpNameTranslations();
   const competitionConfig =
@@ -812,7 +832,7 @@ const buildSampleJob = async ({
     warnings: baseWarnings,
   };
 
-  if (template === 'race-results') {
+  if (baseTemplate === 'race-results') {
     const podium = await Promise.all([
       {position: 1, name: 'George Russell', team: 'Mercedes', stat: '1:33:14.445', accentColor: '#65e1c6'},
       {position: 2, name: 'Kimi Antonelli', team: 'Mercedes', stat: '+1.4s', accentColor: '#65e1c6'},
@@ -859,7 +879,7 @@ const buildSampleJob = async ({
     };
   }
 
-  if (template === 'qualifying-grid') {
+  if (baseTemplate === 'qualifying-grid') {
     const podium = await Promise.all([
       {position: 1, name: 'George Russell', team: 'Mercedes', stat: '1:15.102', accentColor: '#65e1c6'},
       {position: 2, name: 'Kimi Antonelli', team: 'Mercedes', stat: '+0.083', accentColor: '#65e1c6'},
@@ -904,7 +924,7 @@ const buildSampleJob = async ({
     };
   }
 
-  if (template === 'race-pace') {
+  if (baseTemplate === 'race-pace') {
     const entries = await Promise.all(
       [
         ['George Russell', 'Mercedes', '1:39.157', '--'],
@@ -946,10 +966,10 @@ const buildSampleJob = async ({
     };
   }
 
-  if (template === 'teammate-battle') {
+  if (baseTemplate === 'teammate-battle') {
     const teamName = Number(teamId) === 2 ? 'Scuderia Ferrari' : 'Mercedes-AMG Petronas';
     const driver1Name = teamName.includes('Ferrari') ? 'Lewis Hamilton' : 'George Russell';
-    const driver2Name = teamName.includes('Ferrari') ? 'Charles Leclerc' : 'Andrea Kimi Antonelli';
+    const driver2Name = teamName.includes('Ferrari') ? 'Charles Leclerc' : 'Kimi Antonelli';
     const driver1Code = deriveSurnameCode(driver1Name);
     const driver2Code = deriveSurnameCode(driver2Name);
 
@@ -992,7 +1012,7 @@ const buildSampleJob = async ({
     };
   }
 
-  if (template === 'circuit-insights') {
+  if (baseTemplate === 'circuit-insights') {
     return {
       ...createBaseJob({
         ...common,
@@ -1024,7 +1044,7 @@ const buildSampleJob = async ({
     };
   }
 
-  if (template === 'driver-standings') {
+  if (baseTemplate === 'driver-standings') {
     const entries = [
       ['George Russell', 'Mercedes', '51', '2 vitorias'],
       ['Kimi Antonelli', 'Mercedes', '47', '1 vitoria'],
@@ -1068,7 +1088,7 @@ const buildSampleJob = async ({
     };
   }
 
-  if (template === 'constructor-standings') {
+  if (baseTemplate === 'constructor-standings') {
     const entries = [
       ['Mercedes', '43', '2 vitorias'],
       ['Ferrari', '27', '2 podios'],
@@ -1112,7 +1132,7 @@ const buildSampleJob = async ({
     };
   }
 
-  if (template === 'weekend-schedule') {
+  if (baseTemplate === 'weekend-schedule') {
     return {
       ...createBaseJob({
         ...common,
@@ -1240,7 +1260,7 @@ const buildFastestLapData = async (rows, {includeTime = false} = {}) => {
 
   const driver = fastest.row.driver ?? fastest.row.competitor ?? {};
   const team = fastest.row.team ?? fastest.row.teams?.[0] ?? {};
-  const name = driver.name ?? team.name ?? '';
+  const name = normalizeF1DriverDisplayName(driver.name ?? team.name ?? '');
   const teamName = team.name ?? fastest.row.team?.name ?? fastest.row.constructor?.name ?? '';
   if (!name) {
     return undefined;
@@ -1303,7 +1323,8 @@ const raceResultValueForRow = (row, position, winnerRaceDurationMs) => {
 };
 
 const normalizeRankingEntries = async (rows, template) => {
-  const winnerRaceDurationMs = template === 'race-results'
+  const baseTemplate = baseF1Template(template);
+  const winnerRaceDurationMs = baseTemplate === 'race-results'
     ? parseRaceDurationMs(rows.find((row) => Number(row.position ?? row.rank) === 1)?.time ?? rows[0]?.time)
     : null;
 
@@ -1311,7 +1332,7 @@ const normalizeRankingEntries = async (rows, template) => {
     rows.map(async (row, index) => {
       const driver = row.driver ?? row.competitor ?? {};
       const team = row.team ?? row.teams?.[0] ?? {};
-      const name = driver.name ?? team.name ?? `Posicao ${index + 1}`;
+      const name = normalizeF1DriverDisplayName(driver.name ?? team.name ?? `Posicao ${index + 1}`);
       const teamName = team.name ?? row.team?.name ?? row.constructor?.name ?? '';
       const accentColor = resolveTeamColor(teamName || name);
       const position = Number(row.position ?? row.rank ?? index + 1);
@@ -1319,10 +1340,10 @@ const normalizeRankingEntries = async (rows, template) => {
       let value = '';
       let secondaryValue = '';
 
-      if (template === 'race-results') {
+      if (baseTemplate === 'race-results') {
         value = raceResultValueForRow(row, position, winnerRaceDurationMs);
         secondaryValue = formatLapCountPt(row.laps) || row.status || '';
-      } else if (template === 'qualifying-grid') {
+      } else if (baseTemplate === 'qualifying-grid') {
         const qualifyingLapTime =
           row.time ??
           row.best_lap_time ??
@@ -1335,7 +1356,7 @@ const normalizeRankingEntries = async (rows, template) => {
           '';
         value = qualifyingLapTime || row.gap || '';
         secondaryValue = row.gap ? `+${row.gap}` : row.status ?? '';
-      } else if (template === 'driver-standings') {
+      } else if (baseTemplate === 'driver-standings') {
         value = row.points !== undefined && row.points !== null ? String(row.points) : '0';
         const chips = [];
         if (row.wins) {
@@ -1353,18 +1374,18 @@ const normalizeRankingEntries = async (rows, template) => {
       return {
         position,
         name,
-        team: template === 'constructor-standings' ? '' : teamName,
+        team: baseTemplate === 'constructor-standings' ? '' : teamName,
         badge: await badgeFor({
           name,
           team: teamName || name,
-          driverImageUrl: template === 'constructor-standings' ? undefined : driver.image,
+          driverImageUrl: baseTemplate === 'constructor-standings' ? undefined : driver.image,
           teamLogoUrl: team.logo,
-          useDriverPortrait: template !== 'constructor-standings',
+          useDriverPortrait: baseTemplate !== 'constructor-standings',
         }),
         value,
         secondaryValue,
         driverNumber:
-          template === 'constructor-standings' || driver.number === undefined || driver.number === null
+          baseTemplate === 'constructor-standings' || driver.number === undefined || driver.number === null
             ? undefined
             : String(driver.number),
         accentColor,
@@ -1461,7 +1482,7 @@ const rankingDriverKey = (row) => {
     return `id:${driverId}`;
   }
 
-  const name = driver.name ?? row?.name ?? '';
+  const name = normalizeF1DriverDisplayName(driver.name ?? row?.name ?? '');
   return name ? `name:${normalizeEntityName(name)}` : '';
 };
 
@@ -1549,12 +1570,13 @@ const extractRowTeam = (row) => {
 
 const extractRowDriver = (row) => {
   const driver = row?.driver ?? row?.competitor ?? row ?? {};
+  const name = normalizeF1DriverDisplayName(driver?.name ?? '');
   return {
     id: Number(driver?.id ?? driver?.driver_id ?? driver?.driverId ?? 0),
     code: normalizeDriverCode(
-      driver?.code ?? driver?.abbreviation ?? driver?.acronym ?? deriveSurnameCode(driver?.name ?? '')
+      driver?.code ?? driver?.abbreviation ?? driver?.acronym ?? deriveSurnameCode(name)
     ),
-    name: String(driver?.name ?? '').trim(),
+    name,
     image: driver?.image,
     number:
       driver?.number === undefined || driver?.number === null
@@ -1830,7 +1852,7 @@ const buildRacePaceEntries = async (rows = []) => {
     paceRows.slice(0, 10).map(async (row, index) => {
       const driver = row.driver ?? row.competitor ?? {};
       const team = row.team ?? row.teams?.[0] ?? {};
-      const name = driver.name ?? `Posição ${index + 1}`;
+      const name = normalizeF1DriverDisplayName(driver.name ?? `Posição ${index + 1}`);
       const teamName = team.name ?? '';
       const deltaPerLap = row.paceMs - leaderPace;
 
@@ -2280,7 +2302,7 @@ const findWinnerNameFromRaceRanking = (rows = []) => {
     return '';
   }
   const driver = winner.driver ?? winner.competitor ?? {};
-  return String(driver.name ?? '').trim();
+  return normalizeF1DriverDisplayName(driver.name ?? '');
 };
 
 const buildApiJob = async ({
@@ -2303,6 +2325,7 @@ const buildApiJob = async ({
   voiceoverText,
   outputName,
 }) => {
+  const baseTemplate = baseF1Template(template);
   const competitionConfigs = await loadCompetitionPresets();
   const gpNameTranslations = await loadGpNameTranslations();
   const competitionConfig =
@@ -2326,7 +2349,7 @@ const buildApiJob = async ({
     : [];
   const selectedRaceType = String(raceType ?? '').trim();
   const effectiveSelectedRaceType =
-    template === 'race-pace' || template === 'teammate-battle' || template === 'circuit-insights'
+    baseTemplate === 'race-pace' || baseTemplate === 'teammate-battle' || baseTemplate === 'circuit-insights'
       ? 'Race'
       : selectedRaceType;
   const groupedWeekends = groupRaceWeekend(races);
@@ -2334,11 +2357,11 @@ const buildApiJob = async ({
     !raceId && effectiveSelectedRaceType
       ? pickLatestSessionByType(races, effectiveSelectedRaceType, {
           completedOnly:
-            template === 'race-results' ||
-            template === 'race-pace' ||
-            template === 'teammate-battle' ||
-            template === 'circuit-insights' ||
-            template === 'qualifying-grid',
+            baseTemplate === 'race-results' ||
+            baseTemplate === 'race-pace' ||
+            baseTemplate === 'teammate-battle' ||
+            baseTemplate === 'circuit-insights' ||
+            baseTemplate === 'qualifying-grid',
         })
       : null;
   const targetWeekend = raceId
@@ -2347,11 +2370,11 @@ const buildApiJob = async ({
       ? groupedWeekends.find((group) =>
           group.some((race) => Number(race.id) === Number(latestBySelectedType.id))
         )
-      : template === 'weekend-schedule' || template === 'circuit-insights'
+      : baseTemplate === 'weekend-schedule' || baseTemplate === 'circuit-insights'
       ? pickNextWeekend(races)
-      : template === 'qualifying-grid'
+      : baseTemplate === 'qualifying-grid'
         ? pickLatestCompletedQualifyingWeekend(races)
-        : template === 'race-results' || template === 'race-pace' || template === 'teammate-battle'
+        : baseTemplate === 'race-results' || baseTemplate === 'race-pace' || baseTemplate === 'teammate-battle'
           ? pickLatestCompletedRaceWeekend(races)
       : pickLatestCompletedWeekend(races);
 
@@ -2364,11 +2387,11 @@ const buildApiJob = async ({
       ? targetWeekend.find((race) => Number(race.id) === Number(raceId))
       : latestBySelectedType
         ? targetWeekend.find((race) => Number(race.id) === Number(latestBySelectedType.id))
-      : template === 'qualifying-grid'
+      : baseTemplate === 'qualifying-grid'
         ? latestMatchingSession(targetWeekend, /qualifying/i)
-        : template === 'race-results' || template === 'race-pace' || template === 'teammate-battle'
+        : baseTemplate === 'race-results' || baseTemplate === 'race-pace' || baseTemplate === 'teammate-battle'
           ? latestMatchingSession(targetWeekend, /^race$/i) ?? latestMatchingSession(targetWeekend, /race/i)
-          : template === 'weekend-schedule' || template === 'circuit-insights'
+          : baseTemplate === 'weekend-schedule' || baseTemplate === 'circuit-insights'
             ? earliestMatchingSession(targetWeekend, /.*/) ?? targetWeekend[0]
             : targetWeekend[0];
   const meta = extractRaceMeta(
@@ -2400,7 +2423,7 @@ const buildApiJob = async ({
     brandLogoPath: pickBrandLogoPath(themeConfig.variant),
   };
 
-  if (template === 'weekend-schedule') {
+  if (baseTemplate === 'weekend-schedule') {
     const sessions = sortByPosition(
       targetWeekend.map((race, index) => ({
         position: index + 1,
@@ -2425,7 +2448,7 @@ const buildApiJob = async ({
     };
   }
 
-  if (template === 'circuit-insights') {
+  if (baseTemplate === 'circuit-insights') {
     const circuitPayload = meta.circuitName
       ? await fetchJson(
           `https://${apiHost}/circuits?search=${encodeURIComponent(meta.circuitName)}`,
@@ -2518,7 +2541,7 @@ const buildApiJob = async ({
     };
   }
 
-  if (template === 'teammate-battle') {
+  if (baseTemplate === 'teammate-battle') {
     const referenceRaceSession =
       latestMatchingSession(targetWeekend, /^race$/i) ??
       latestMatchingSession(targetWeekend, /race/i) ??
@@ -2551,17 +2574,17 @@ const buildApiJob = async ({
   }
 
   const rankingsEndpoint =
-    template === 'qualifying-grid'
+    baseTemplate === 'qualifying-grid'
       ? 'startinggrid'
-      : template === 'race-results' || template === 'race-pace'
+      : baseTemplate === 'race-results' || baseTemplate === 'race-pace'
         ? 'races'
-        : template === 'driver-standings'
+        : baseTemplate === 'driver-standings'
           ? 'drivers'
           : 'teams';
 
   const rankingPayload = await fetchJson(
     `https://${apiHost}/rankings/${rankingsEndpoint}?${
-      template === 'driver-standings' || template === 'constructor-standings'
+      baseTemplate === 'driver-standings' || baseTemplate === 'constructor-standings'
         ? `season=${season}`
         : `race=${meta.raceId}`
     }`,
@@ -2571,7 +2594,7 @@ const buildApiJob = async ({
   let rankingRows = Array.isArray(rankingPayload.response) ? rankingPayload.response : [];
   let fastestLapRows = [];
 
-  if (template === 'race-results') {
+  if (baseTemplate === 'race-results') {
     try {
       const fastestLapPayload = await fetchJson(
         `https://${apiHost}/rankings/fastestlaps?race=${meta.raceId}`,
@@ -2584,7 +2607,7 @@ const buildApiJob = async ({
     }
   }
 
-  if (template === 'qualifying-grid') {
+  if (baseTemplate === 'qualifying-grid') {
     const sessionByExactType = (type) =>
       targetWeekend.find(
         (race) => String(race.type ?? '').trim().toLowerCase() === type.toLowerCase()
@@ -2648,7 +2671,7 @@ const buildApiJob = async ({
     }
   }
 
-  if (template === 'race-pace') {
+  if (baseTemplate === 'race-pace') {
     const paceEntries = await buildRacePaceEntries(rankingRows);
     if (paceEntries.length === 0) {
       throw new Error('No comparable race pace rows returned for race-pace.');
@@ -2675,11 +2698,11 @@ const buildApiJob = async ({
     throw new Error(`No live rows returned for F1 template ${template}.`);
   }
 
-  if (template === 'race-results' || template === 'qualifying-grid') {
+  if (baseTemplate === 'race-results' || baseTemplate === 'qualifying-grid') {
     const displayRaceName = labelOverride?.trim() || meta.raceName;
     const templateSubtitle =
-      template === 'race-results' ? 'Resultado da Corrida' : 'Classificação de Largada';
-    const fastestLap = template === 'race-results'
+      baseTemplate === 'race-results' ? 'Resultado da Corrida' : 'Classificação de Largada';
+    const fastestLap = baseTemplate === 'race-results'
       ? (await buildFastestLapData(fastestLapRows, {includeTime: true})) ??
         (await buildFastestLapData(rankingRows))
       : undefined;
@@ -2700,18 +2723,18 @@ const buildApiJob = async ({
         subtitle: templateSubtitle,
         raceName: displayRaceName,
         backgroundImagePath:
-          template === 'race-results' ? pickResultsBackground(referenceRace?.type) : undefined,
+          baseTemplate === 'race-results' ? pickResultsBackground(referenceRace?.type) : undefined,
         outputName:
           outputName?.trim() ||
           `${sanitize(meta.raceName)}-${template}-${season}.mp4`,
       }),
       podium,
-      entries: template === 'race-results' ? entries.slice(3) : entries.slice(3),
+      entries: baseTemplate === 'race-results' ? entries.slice(3) : entries.slice(3),
       ...(fastestLap ? {fastestLap} : {}),
     };
   }
 
-  if (template === 'driver-standings') {
+  if (baseTemplate === 'driver-standings') {
     return {
       ...createBaseJob({
         ...common,
@@ -2779,6 +2802,7 @@ export const loadF1RaceOptions = async ({
   template = 'race-results',
   raceType = '',
 }) => {
+  const baseTemplate = baseF1Template(template);
   if (!apiKey) {
     throw new Error('Missing Formula 1 API key.');
   }
@@ -2794,7 +2818,7 @@ export const loadF1RaceOptions = async ({
       })
     : [];
   const selectedRaceType =
-    template === 'race-pace' || template === 'teammate-battle' || template === 'circuit-insights'
+    baseTemplate === 'race-pace' || baseTemplate === 'teammate-battle' || baseTemplate === 'circuit-insights'
       ? 'Race'
       : String(raceType ?? '').trim();
 
@@ -2884,6 +2908,7 @@ export const prepareF1Job = async ({
   soundtrackVolume,
   outputName,
 }) => {
+  const baseTemplate = baseF1Template(template);
   await ensureGeneratedDir();
 
   let job;
@@ -2920,7 +2945,7 @@ export const prepareF1Job = async ({
       throw error;
     }
     const reason = error instanceof Error ? error.message : String(error);
-    if (template === 'teammate-battle') {
+    if (baseTemplate === 'teammate-battle') {
       const cleanReason = summarizeFailureReason(reason);
       throw new F1PreparationError(
         'Não foi possível preparar o Head-to-Head para essa equipe/GP.',

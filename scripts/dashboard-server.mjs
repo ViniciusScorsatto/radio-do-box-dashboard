@@ -339,7 +339,7 @@ const normalizeGeneratedYoutubeContent = (content) => {
 
 const compactEntry = (entry) => ({
   position: entry?.position ?? null,
-  name: entry?.name ?? '',
+  name: normalizeF1DriverDisplayName(entry?.name ?? ''),
   team: entry?.team || entry?.badge?.sublabel || '',
   value: entry?.value ?? entry?.stat ?? '',
   secondaryValue: entry?.secondaryValue ?? '',
@@ -347,26 +347,42 @@ const compactEntry = (entry) => ({
 
 const compactEntries = (entries, limit = 8) =>
   Array.isArray(entries) ? entries.slice(0, limit).map(compactEntry) : [];
+const baseF1Template = (template = '') => String(template).replace(/^novo-/, '');
+const normalizeF1DriverDisplayName = (name = '') => {
+  const trimmed = String(name ?? '').trim().replace(/\s+/g, ' ');
+  if (/^(?:andrea\s+kimi|kimi\s+andrea)\s+antonelli$/i.test(trimmed)) {
+    return 'Kimi Antonelli';
+  }
+
+  return trimmed;
+};
+const f1DriverSurname = (name = '') => {
+  const normalized = normalizeF1DriverDisplayName(name);
+  const parts = normalized.split(/\s+/).filter(Boolean);
+  return parts.length > 0 ? parts[parts.length - 1] : normalized;
+};
 
 const inferPrimaryAudienceFromJob = (job) => {
-  const leaderName = job?.leader?.name;
+  const baseTemplate = baseF1Template(job?.template);
+  const leaderName = normalizeF1DriverDisplayName(job?.leader?.name);
   const leaderTeam = job?.leader?.team || job?.leader?.badge?.sublabel;
   const winner = job?.podium?.[0];
+  const winnerName = normalizeF1DriverDisplayName(winner?.name);
   const winnerTeam = winner?.team || winner?.badge?.sublabel;
 
-  if (job?.template === 'driver-standings' && leaderName) {
+  if (baseTemplate === 'driver-standings' && leaderName) {
     return `fas de ${leaderName} e publico da briga pelo campeonato`;
   }
-  if (job?.template === 'constructor-standings' && leaderName) {
+  if (baseTemplate === 'constructor-standings' && leaderName) {
     return `fas da ${leaderName} e publico da disputa de construtores`;
   }
-  if (job?.template === 'race-results' && winner?.name) {
-    return `fas de ${winner.name}, ${winnerTeam || 'Formula 1'} e publico da briga pelo campeonato`;
+  if (baseTemplate === 'race-results' && winnerName) {
+    return `fas de ${winnerName}, ${winnerTeam || 'Formula 1'} e publico da briga pelo campeonato`;
   }
-  if (job?.template === 'qualifying-grid' && job?.podium?.[0]?.name) {
-    return `fas de ${job.podium[0].name} e publico interessado no grid de largada`;
+  if (baseTemplate === 'qualifying-grid' && job?.podium?.[0]?.name) {
+    return `fas de ${normalizeF1DriverDisplayName(job.podium[0].name)} e publico interessado no grid de largada`;
   }
-  if (job?.template === 'teammate-battle' && job?.teamName) {
+  if (baseTemplate === 'teammate-battle' && job?.teamName) {
     return `fas da ${job.teamName} e publico de comparacao entre companheiros`;
   }
   if (leaderTeam) {
@@ -389,18 +405,18 @@ const buildAutomaticStoryBrief = (job) => {
     parts.push(`Narração planejada: ${job.voiceoverText}`);
   }
   if (job.leader) {
-    parts.push(`Lider/destaque: ${job.leader.name}${job.leader.team ? ` (${job.leader.team})` : ''} com ${job.leader.stat || job.leader.value || 'vantagem no material'}.`);
+    parts.push(`Lider/destaque: ${normalizeF1DriverDisplayName(job.leader.name)}${job.leader.team ? ` (${job.leader.team})` : ''} com ${job.leader.stat || job.leader.value || 'vantagem no material'}.`);
   }
   if (Array.isArray(job.podium) && job.podium.length > 0) {
     const podium = job.podium
-      .map((entry) => `P${entry.position} ${entry.name}${entry.team ? ` (${entry.team})` : ''}${entry.stat ? ` - ${entry.stat}` : ''}`)
+      .map((entry) => `P${entry.position} ${f1DriverSurname(entry.name)}${entry.team ? ` (${entry.team})` : ''}${entry.stat ? ` - ${entry.stat}` : ''}`)
       .join('; ');
     parts.push(`Podio/topo: ${podium}.`);
   }
   if (Array.isArray(job.entries) && job.entries.length > 0) {
     const entries = job.entries
       .slice(0, 8)
-      .map((entry) => `P${entry.position} ${entry.name}${entry.team ? ` (${entry.team})` : ''}${entry.value ? ` - ${entry.value}` : ''}${entry.secondaryValue ? ` / ${entry.secondaryValue}` : ''}`)
+      .map((entry) => `P${entry.position} ${f1DriverSurname(entry.name)}${entry.team ? ` (${entry.team})` : ''}${entry.value ? ` - ${entry.value}` : ''}${entry.secondaryValue ? ` / ${entry.secondaryValue}` : ''}`)
       .join('; ');
     parts.push(`Lista principal: ${entries}.`);
   }
@@ -516,6 +532,7 @@ Use currentJob and storyBrief as the source of truth. If editorialHint exists, u
 
 const runRender = async (compositionId, outputName) => {
   const outputPath = path.join('out', outputName);
+  const absoluteOutputPath = path.join(projectRoot, outputPath);
   const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
   await fs.mkdir(path.join(projectRoot, 'out'), {recursive: true});
@@ -543,11 +560,17 @@ const runRender = async (compositionId, outputName) => {
 
     child.on('close', (code) => {
       if (code === 0) {
-        resolve({
-          outputPath,
-          stdout,
-          stderr,
-        });
+        trimMp4ToVideoDuration(absoluteOutputPath)
+          .then(() => validateMp4LastFrameNotBlack(absoluteOutputPath))
+          .then((lastFrame) =>
+            resolve({
+              outputPath,
+              stdout,
+              stderr,
+              lastFrame,
+            })
+          )
+          .catch(reject);
         return;
       }
 
@@ -555,6 +578,144 @@ const runRender = async (compositionId, outputName) => {
     });
   });
 };
+
+const trimMp4ToVideoDuration = async (outputPath) => {
+  const videoDuration = await getMp4VideoDuration(outputPath);
+  const tempPath = `${outputPath}.trimmed.mp4`;
+
+  await runProcess('ffmpeg', [
+    '-hide_banner',
+    '-loglevel',
+    'error',
+    '-y',
+    '-i',
+    outputPath,
+    '-t',
+    videoDuration.toFixed(3),
+    '-map',
+    '0',
+    '-c',
+    'copy',
+    '-movflags',
+    '+faststart',
+    tempPath,
+  ]);
+
+  await fs.rename(tempPath, outputPath);
+};
+
+const getMp4VideoDuration = async (outputPath) => {
+  const {stdout} = await runProcess('ffprobe', [
+    '-v',
+    'error',
+    '-select_streams',
+    'v:0',
+    '-show_entries',
+    'stream=duration',
+    '-of',
+    'default=noprint_wrappers=1:nokey=1',
+    outputPath,
+  ]);
+  const duration = Number(stdout.trim());
+  if (!Number.isFinite(duration) || duration <= 0) {
+    throw new Error(`Could not read video duration for ${path.basename(outputPath)}.`);
+  }
+
+  return duration;
+};
+
+const runProcess = (command, args) =>
+  new Promise((resolve, reject) => {
+    const child = spawn(command, args, {cwd: projectRoot});
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve({stdout, stderr});
+        return;
+      }
+
+      reject(new Error(stderr || stdout || `${command} failed with exit code ${code}`));
+    });
+  });
+
+const validateMp4LastFrameNotBlack = async (outputPath) => {
+  const sample = await sampleMp4LastFrame(outputPath);
+  if (sample.averageBrightness <= 3 && sample.litPixelRatio <= 0.005) {
+    throw new Error(
+      `Render blocked: the last frame appears to be black (${path.basename(outputPath)}).`
+    );
+  }
+
+  return sample;
+};
+
+const sampleMp4LastFrame = (outputPath) =>
+  new Promise((resolve, reject) => {
+    const child = spawn(
+      'ffmpeg',
+      [
+        '-hide_banner',
+        '-loglevel',
+        'error',
+        '-sseof',
+        '-0.25',
+        '-i',
+        outputPath,
+        '-frames:v',
+        '1',
+        '-vf',
+        'scale=32:32,format=rgb24',
+        '-f',
+        'rawvideo',
+        'pipe:1',
+      ],
+      {cwd: projectRoot}
+    );
+
+    const chunks = [];
+    let stderr = '';
+
+    child.stdout.on('data', (chunk) => chunks.push(chunk));
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(stderr || `Could not inspect final frame with ffmpeg (${code}).`));
+        return;
+      }
+
+      const buffer = Buffer.concat(chunks);
+      if (buffer.length === 0) {
+        reject(new Error('Could not inspect final frame: ffmpeg returned no pixels.'));
+        return;
+      }
+
+      let total = 0;
+      let litChannels = 0;
+      for (const value of buffer) {
+        total += value;
+        if (value > 12) {
+          litChannels += 1;
+        }
+      }
+
+      resolve({
+        averageBrightness: Number((total / buffer.length).toFixed(2)),
+        litPixelRatio: Number((litChannels / buffer.length).toFixed(4)),
+      });
+    });
+  });
 
 const runStill = async (compositionId, outputName) => {
   const outputPath = path.join('out', outputName);

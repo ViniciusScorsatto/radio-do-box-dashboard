@@ -8,6 +8,7 @@ import {F1TeammateBattleComposition} from './compositions/F1TeammateBattleCompos
 import {F1ConstructorStandingsComposition, F1DriverStandingsComposition} from './compositions/F1StandingsComposition';
 import currentF1JobJson from './data/generated/current-job.f1.json';
 import {currentF1Jobs, sampleF1Jobs} from './data/f1';
+import {baseF1Template} from './lib/f1-template-helpers';
 import type {F1VideoJob} from './lib/types';
 
 const currentF1Job = currentF1JobJson as Partial<F1VideoJob>;
@@ -36,7 +37,7 @@ const f1IntroOverrideByTemplate: Partial<
 };
 
 const f1MediaProps = (job: F1VideoJob, sample: F1VideoJob) => {
-  const introOverride = f1IntroOverrideByTemplate[job.template];
+  const introOverride = f1IntroOverrideByTemplate[baseF1Template(job.template)];
 
   return {
     brandName: job.brandName ?? sample.brandName ?? 'Radio do Box',
@@ -138,6 +139,7 @@ const teammateBattleProps = {
 };
 
 const driverStandingsProps = {
+  template: driverStandingsJob.template ?? sampleF1Jobs.driverStandings.template,
   title: driverStandingsJob.title ?? sampleF1Jobs.driverStandings.title,
   subtitle: driverStandingsJob.subtitle ?? sampleF1Jobs.driverStandings.subtitle,
   countryCode: driverStandingsJob.countryCode ?? sampleF1Jobs.driverStandings.countryCode,
@@ -150,6 +152,7 @@ const driverStandingsProps = {
 };
 
 const constructorStandingsProps = {
+  template: constructorStandingsJob.template ?? sampleF1Jobs.constructorStandings.template,
   title: constructorStandingsJob.title ?? sampleF1Jobs.constructorStandings.title,
   subtitle: constructorStandingsJob.subtitle ?? sampleF1Jobs.constructorStandings.subtitle,
   countryCode: constructorStandingsJob.countryCode ?? sampleF1Jobs.constructorStandings.countryCode,

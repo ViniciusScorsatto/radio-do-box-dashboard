@@ -1,0 +1,7 @@
+{
+  "template": "novo-driver-standings",
+  "label": "Novo - Mundial de Pilotos",
+  "compositionId": "F1DriverStandingsShort",
+  "themeVariant": "light",
+  "durationInFrames": 360
+}

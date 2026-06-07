@@ -1,6 +1,6 @@
 export type Sport = 'f1';
 
-export type F1VideoTemplate =
+export type F1BaseVideoTemplate =
   | 'race-results'
   | 'race-pace'
   | 'teammate-battle'
@@ -9,6 +9,14 @@ export type F1VideoTemplate =
   | 'driver-standings'
   | 'constructor-standings'
   | 'weekend-schedule';
+
+export type F1NewVideoTemplate =
+  | 'novo-race-results'
+  | 'novo-qualifying-grid'
+  | 'novo-driver-standings'
+  | 'novo-constructor-standings';
+
+export type F1VideoTemplate = F1BaseVideoTemplate | F1NewVideoTemplate;
 export type VideoTemplate = F1VideoTemplate;
 
 export type TeamBadge = {
@@ -131,7 +139,7 @@ type F1BaseVideoJob = BaseVideoJob & {
 };
 
 export type F1RaceResultsJob = F1BaseVideoJob & {
-  template: 'race-results';
+  template: 'race-results' | 'novo-race-results';
   compositionId: 'F1RaceResultsShort';
   podium: F1PodiumEntry[];
   entries: F1RankingEntry[];
@@ -222,21 +230,21 @@ export type F1TeammateBattleJob = F1BaseVideoJob & {
 };
 
 export type F1QualifyingGridJob = F1BaseVideoJob & {
-  template: 'qualifying-grid';
+  template: 'qualifying-grid' | 'novo-qualifying-grid';
   compositionId: 'F1QualifyingGridShort';
   podium: F1PodiumEntry[];
   entries: F1RankingEntry[];
 };
 
 export type F1DriverStandingsJob = F1BaseVideoJob & {
-  template: 'driver-standings';
+  template: 'driver-standings' | 'novo-driver-standings';
   compositionId: 'F1DriverStandingsShort';
   leader?: F1PodiumEntry;
   entries: F1RankingEntry[];
 };
 
 export type F1ConstructorStandingsJob = F1BaseVideoJob & {
-  template: 'constructor-standings';
+  template: 'constructor-standings' | 'novo-constructor-standings';
   compositionId: 'F1ConstructorStandingsShort';
   leader?: F1PodiumEntry;
   entries: F1RankingEntry[];
