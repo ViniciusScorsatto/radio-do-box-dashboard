@@ -79,6 +79,20 @@ const formatRaceResultDiff = (row: F1RankingEntry) => {
   return value;
 };
 
+const normalizeRaceResultRows = (rows: F1RankingEntry[]) => {
+  const seen = new Set<string>();
+
+  return rows.filter((row) => {
+    const key = row.position ? `position-${row.position}` : normalizeKey(row.name);
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+};
+
 const resolveConstructorLogo = (entry: F1RankingEntry | F1PodiumEntry) => {
   const key = normalizeKey(entry.team || entry.name || entry.badge.sublabel || entry.badge.label);
   return constructorLogoOverrides[key] ?? entry.badge.imagePath ?? entry.badge.logoPath;
@@ -268,10 +282,12 @@ const RaceResultsBoard = ({job, theme}: {job: F1RaceResultsJob; theme: F1ThemeCo
     value: entry.value ?? entry.stat,
     secondaryValue: entry.secondaryValue,
   }));
-  const tableRows = [...podiumRows, ...job.entries].slice(0, 22).map((entry) => ({
-    ...entry,
-    value: formatRaceResultDiff(entry),
-  }));
+  const tableRows = normalizeRaceResultRows([...podiumRows, ...job.entries])
+    .slice(0, 24)
+    .map((entry) => ({
+      ...entry,
+      value: formatRaceResultDiff(entry),
+    }));
   const winner = podium.find((entry) => entry.position === 1) ?? podium[0];
   const chasePack = podium.filter((entry) => entry.position !== winner?.position).slice(0, 2);
 

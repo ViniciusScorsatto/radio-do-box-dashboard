@@ -22,6 +22,8 @@ type F1GridCompositionProps = {
 };
 
 const PAGE_SWITCH_FRAME = 180;
+const RACE_RESULTS_PAGE_ONE_COUNT = 8;
+const RACE_RESULTS_DENSE_THRESHOLD = 12;
 const DISPLAY_FONT = '"Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif';
 const RESULTS_BACKGROUND_PATH = '/f1/backgrounds/fundo-corrida.png';
 const podiumNumberColors: Record<number, string> = {
@@ -48,8 +50,8 @@ export const F1GridComposition = ({
   const frame = useCurrentFrame();
   const isRaceResults = template === 'race-results' || (!template && subtitle.toLowerCase().includes('resultado'));
   const headerSubtitle = isRaceResults ? 'Resultado da Corrida' : 'Classificação de Largada';
-  const raceRowsPageOne = entries.slice(0, 8);
-  const raceRowsPageTwo = entries.slice(8, 19);
+  const raceRowsPageOne = entries.slice(0, RACE_RESULTS_PAGE_ONE_COUNT);
+  const raceRowsPageTwo = entries.slice(RACE_RESULTS_PAGE_ONE_COUNT);
   const qualifyingRowsPageOne = entries.slice(0, 7);
   const qualifyingRowsPageTwo = entries.slice(7, 19);
 
@@ -268,26 +270,30 @@ const ResultsPageTwo = ({
   rows: F1RankingEntry[];
   brandLogoPath?: string;
   topOffset?: number;
-}) => (
-  <>
-    <div
-      style={{
-        position: 'absolute',
-        left: 38,
-        right: 38,
-        top: topOffset,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 6,
-      }}
-    >
-      {rows.map((entry) => (
-        <ResultRow key={`${entry.position}-${entry.name}`} entry={entry} size="medium" />
-      ))}
-    </div>
-    {rows.length <= 10 ? <ResultsBrandMark logoPath={brandLogoPath} /> : null}
-  </>
-);
+}) => {
+  const rowSize = rows.length > RACE_RESULTS_DENSE_THRESHOLD ? 'compact' : 'medium';
+
+  return (
+    <>
+      <div
+        style={{
+          position: 'absolute',
+          left: 38,
+          right: 38,
+          top: topOffset,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: rowSize === 'compact' ? 5 : 6,
+        }}
+      >
+        {rows.map((entry) => (
+          <ResultRow key={`${entry.position}-${entry.name}`} entry={entry} size={rowSize} />
+        ))}
+      </div>
+      {rows.length <= 10 ? <ResultsBrandMark logoPath={brandLogoPath} /> : null}
+    </>
+  );
+};
 
 const ResultsBrandMark = ({logoPath}: {logoPath?: string}) => {
   if (!logoPath) {
@@ -436,16 +442,16 @@ const ResultRow = ({
           ? '82px 122px minmax(0, 1fr) 184px'
           : size === 'medium'
             ? '80px 120px minmax(0, 1fr) 186px'
-            : '74px 96px minmax(0, 1fr) 146px',
+            : '66px 82px minmax(0, 1fr) 150px',
       alignItems: 'center',
-      minHeight: size === 'large' ? 116 : size === 'medium' ? 90 : 98,
+      minHeight: size === 'large' ? 116 : size === 'medium' ? 90 : 74,
       padding:
         size === 'large'
           ? '10px 18px 10px 14px'
           : size === 'medium'
             ? '6px 18px 6px 12px'
-            : '10px 16px 10px 12px',
-      borderRadius: 28,
+            : '5px 14px 5px 10px',
+      borderRadius: size === 'compact' ? 22 : 28,
       background:
         'linear-gradient(180deg, rgba(10,12,28,0.98), rgba(7,7,16,0.98) 52%, rgba(28,10,16,0.98) 100%)',
       border: `2px solid ${entry.accentColor ?? '#ffd978'}`,
@@ -464,12 +470,12 @@ const ResultRow = ({
     <div
       style={{
         position: 'relative',
-        width: size === 'large' ? 64 : 56,
-        height: size === 'large' ? 64 : size === 'medium' ? 58 : 56,
-        borderRadius: 20,
+        width: size === 'large' ? 64 : size === 'medium' ? 56 : 50,
+        height: size === 'large' ? 64 : size === 'medium' ? 58 : 50,
+        borderRadius: size === 'compact' ? 16 : 20,
         display: 'grid',
         placeItems: 'center',
-        fontSize: size === 'large' ? 32 : size === 'medium' ? 34 : 28,
+        fontSize: size === 'large' ? 32 : size === 'medium' ? 34 : 27,
         lineHeight: 1,
         fontWeight: 900,
         color: '#fff7ea',
@@ -495,7 +501,7 @@ const ResultRow = ({
           src={staticFile(entry.badge.imagePath.replace(/^\//, ''))}
           style={{
             width: size === 'large' ? 108 : size === 'medium' ? 108 : 82,
-            height: size === 'large' ? 118 : size === 'medium' ? 118 : 92,
+            height: size === 'large' ? 118 : size === 'medium' ? 118 : 76,
             objectFit: 'cover',
             objectPosition: 'center top',
             borderRadius: 20,
@@ -525,7 +531,7 @@ const ResultRow = ({
     >
         <div
           style={{
-          fontSize: size === 'large' ? 31 : size === 'medium' ? 35 : 24,
+            fontSize: size === 'large' ? 31 : size === 'medium' ? 35 : 26,
           lineHeight: 1,
           fontWeight: 900,
           color: '#fff7e8',
@@ -542,7 +548,7 @@ const ResultRow = ({
       </div>
         <div
           style={{
-          fontSize: size === 'large' ? 15 : size === 'medium' ? 16 : 13,
+          fontSize: size === 'large' ? 15 : size === 'medium' ? 16 : 12,
           lineHeight: 1,
           fontWeight: 800,
           color: '#ffd36d',
@@ -568,7 +574,7 @@ const ResultRow = ({
       {entry.value ? (
         <div
           style={{
-            fontSize: size === 'large' ? 29 : size === 'medium' ? 31 : 22,
+            fontSize: size === 'large' ? 29 : size === 'medium' ? 31 : 24,
             lineHeight: 1,
             fontWeight: 900,
             color: '#fff3d0',
