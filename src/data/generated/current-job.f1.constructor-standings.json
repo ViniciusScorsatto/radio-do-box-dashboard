@@ -29,22 +29,22 @@
     "durationInFrames": 360
   },
   "title": "Mundial de Construtores",
-  "subtitle": "Formula 1 2026",
+  "subtitle": "Classificação",
   "raceType": "Race",
   "raceId": 2622,
-  "raceName": "GP da United Arab Emirates",
+  "raceName": "GP de Abu Dhabi",
   "countryCode": "UNI",
   "circuitName": "Yas Marina Circuit",
   "brandName": "Radio do Box",
   "brandLogoPath": "/branding/radio-do-box/yellow.png",
-  "soundtrackPath": "/audio/f1/Gridlock Pulse (1).mp3",
-  "soundtrackLabel": "Gridlock Pulse (1)",
-  "soundtrackVolume": 0.2,
+  "soundtrackPath": "/audio/f1/country-rough-everet-almond.mp3",
+  "soundtrackLabel": "Country Rough - Everet Almond",
+  "soundtrackVolume": 0.3,
   "introTitle": "Mundial de Construtores",
   "introSubtitle": "Formula 1 2026",
   "voiceoverText": "Fala, galera do box. Mundial de construtores atualizado da Formula 1 2026.",
   "voiceoverEnabled": false,
-  "outputName": "f1-constructor-standings-2026.mp4",
+  "outputName": "palpites-emeline-classificacao-gp-do-japao-2026.mp4",
   "durationInFrames": 360,
   "dataSource": "api",
   "warnings": [],
@@ -59,7 +59,7 @@
       "logoPath": "/f1/teams/custom/mercedes.png",
       "sublabel": "Mercedes-AMG Petronas"
     },
-    "stat": "244 pts",
+    "stat": "262 pts",
     "accentColor": "#65e1c6"
   },
   "entries": [
@@ -74,7 +74,7 @@
         "logoPath": "/f1/teams/custom/mercedes.png",
         "sublabel": "Mercedes-AMG Petronas"
       },
-      "value": "244",
+      "value": "262",
       "secondaryValue": "",
       "accentColor": "#65e1c6"
     },
@@ -89,7 +89,7 @@
         "logoPath": "/f1/teams/custom/ferrari.png",
         "sublabel": "Scuderia Ferrari"
       },
-      "value": "165",
+      "value": "190",
       "secondaryValue": "",
       "accentColor": "#ff5546"
     },
@@ -104,7 +104,7 @@
         "logoPath": "/f1/teams/custom/mclaren.png",
         "sublabel": "McLaren Racing"
       },
-      "value": "118",
+      "value": "141",
       "secondaryValue": "",
       "accentColor": "#ff9a3d"
     },
@@ -119,7 +119,7 @@
         "logoPath": "/f1/teams/custom/red-bull.png",
         "sublabel": "Red Bull Racing"
       },
-      "value": "72",
+      "value": "89",
       "secondaryValue": "",
       "accentColor": "#5d74ff"
     },
@@ -134,7 +134,7 @@
         "logoPath": "/f1/teams/custom/alpine.png",
         "sublabel": "Alpine F1 Team"
       },
-      "value": "41",
+      "value": "60",
       "secondaryValue": "",
       "accentColor": "#ff76db"
     },
@@ -149,7 +149,7 @@
         "logoPath": "/f1/teams/custom/racing-bulls.png",
         "sublabel": "Racing Bulls"
       },
-      "value": "39",
+      "value": "38",
       "secondaryValue": "",
       "accentColor": "#7b94ff"
     },

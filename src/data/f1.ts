@@ -7,11 +7,13 @@ import currentQualifyingJobJson from './generated/current-job.f1.qualifying-grid
 import currentDriverStandingsJobJson from './generated/current-job.f1.driver-standings.json';
 import currentConstructorStandingsJobJson from './generated/current-job.f1.constructor-standings.json';
 import currentWeekendScheduleJobJson from './generated/current-job.f1.weekend-schedule.json';
+import currentRacePredictionsJobJson from './generated/current-job.f1.race-predictions.json';
 import type {
   F1CircuitInsightsJob,
   F1ConstructorStandingsJob,
   F1DriverStandingsJob,
   F1RacePaceJob,
+  F1RacePredictionsJob,
   F1QualifyingGridJob,
   F1RaceResultsJob,
   F1TeammateBattleJob,
@@ -491,6 +493,60 @@ const sampleCircuitInsightsJob: F1CircuitInsightsJob = {
   trackImagePath: undefined,
 };
 
+const sampleRacePredictionsJob: F1RacePredictionsJob = {
+  sport: 'f1',
+  template: 'race-predictions',
+  compositionId: 'F1RacePredictionsShort',
+  season: 2026,
+  competitionId: 1,
+  competitionName: 'Formula 1',
+  competitionConfig: {
+    competitionId: 1,
+    label: 'Formula 1',
+    shortLabel: 'F1',
+    countryCode: 'INT',
+  },
+  themeConfig: {
+    variant: 'orange',
+    background: 'linear-gradient(180deg, #150708 0%, #23080b 45%, #09090d 100%)',
+    accent: '#E10600',
+    secondaryAccent: '#FF8700',
+    panelFill: 'linear-gradient(180deg, rgba(31,10,11,0.96), rgba(8,8,12,0.98))',
+    panelStroke: 'rgba(225, 6, 0, 0.9)',
+    text: '#fff7f0',
+    mutedText: '#f0b9a7',
+  },
+  templateConfig: {
+    template: 'race-predictions',
+    label: 'Palpites Top 10',
+    compositionId: 'F1RacePredictionsShort',
+    themeVariant: 'orange',
+    durationInFrames: 360,
+  },
+  title: 'Palpites Corrida',
+  subtitle: 'Corrida',
+  raceType: 'Race',
+  raceId: 103,
+  raceName: 'GP do Japão',
+  countryCode: 'JPN',
+  circuitName: 'Suzuka',
+  brandName: 'Radio do Box',
+  brandLogoPath: '/branding/radio-do-box/yellow.png',
+  outputName: 'sample-f1-race-predictions.mp4',
+  durationInFrames: 360,
+  dataSource: 'sample',
+  predictionType: 'race',
+  predictionAuthor: 'vini',
+  authorName: 'Vini',
+  authorImagePath: '/branding/radio-do-box/hosts/vini.png',
+  entries: sampleRacePaceJob.entries.map((entry, index) => ({
+    ...entry,
+    position: index + 1,
+    value: `P${index + 1}`,
+    secondaryValue: entry.team,
+  })),
+};
+
 export const sampleF1Jobs = {
   raceResults: sampleRaceResultsJob,
   racePace: sampleRacePaceJob,
@@ -500,6 +556,7 @@ export const sampleF1Jobs = {
   constructorStandings: sampleConstructorStandingsJob,
   weekendSchedule: sampleScheduleJob,
   circuitInsights: sampleCircuitInsightsJob,
+  racePredictions: sampleRacePredictionsJob,
 };
 
 const currentF1Job = currentF1JobJson as F1VideoJob;
@@ -541,6 +598,9 @@ const weekendScheduleJob =
 const circuitInsightsJob =
   selectCurrentF1Job<F1CircuitInsightsJob>('circuit-insights', currentCircuitInsightsJobJson, sampleCircuitInsightsJob);
 
+const racePredictionsJob =
+  selectCurrentF1Job<F1RacePredictionsJob>('race-predictions', currentRacePredictionsJobJson, sampleRacePredictionsJob);
+
 export const currentF1Jobs = {
   raceResults: raceResultsJob,
   racePace: racePaceJob,
@@ -550,4 +610,5 @@ export const currentF1Jobs = {
   constructorStandings: constructorStandingsJob,
   weekendSchedule: weekendScheduleJob,
   circuitInsights: circuitInsightsJob,
+  racePredictions: racePredictionsJob,
 };

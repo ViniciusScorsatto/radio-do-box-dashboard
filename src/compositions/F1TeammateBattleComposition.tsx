@@ -1,6 +1,7 @@
 import {AbsoluteFill, Img, staticFile} from 'remotion';
 import {F1Frame, RadioDoBoxMark} from '../components/F1Shared';
 import {F1ProductionBed} from '../components/F1ProductionBed';
+import {F1_DATA_FONT, F1_DISPLAY_FONT} from '../components/F1Typography';
 import type {
   F1TeammateBattleJob,
   F1TeammateBattleScoreBlock,
@@ -37,7 +38,8 @@ type F1TeammateBattleCompositionProps = {
   introSubtitle?: string;
 };
 
-const DISPLAY_FONT = '"Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif';
+const DISPLAY_FONT = F1_DISPLAY_FONT;
+const DATA_FONT = F1_DATA_FONT;
 
 const compareScore = (block: F1TeammateBattleScoreBlock): 'left' | 'right' | 'tie' => {
   const higherIsBetter = block.higherIsBetter ?? true;

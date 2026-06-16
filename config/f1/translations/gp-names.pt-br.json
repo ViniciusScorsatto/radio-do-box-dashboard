@@ -21,6 +21,8 @@
   "brazil": {"name": "Brasil", "article": "do"},
   "qatar": {"name": "Catar", "article": "do"},
   "abu-dhabi": {"name": "Abu Dhabi", "article": "de"},
+  "united-arab-emirates": {"name": "Abu Dhabi", "article": "de"},
+  "uae": {"name": "Abu Dhabi", "article": "de"},
   "united-states": {"name": "Estados Unidos", "article": "dos"},
   "usa": {"name": "Estados Unidos", "article": "dos"},
   "miami": {"name": "Miami", "article": "de"},

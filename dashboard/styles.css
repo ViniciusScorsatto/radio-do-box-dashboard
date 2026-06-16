@@ -470,6 +470,20 @@ textarea {
   gap: 14px;
 }
 
+.compact-section-title {
+  margin-top: 14px;
+}
+
+.prediction-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+}
+
+.prediction-grid label {
+  min-width: 0;
+}
+
 .actions {
   display: flex;
   gap: 12px;

@@ -1,6 +1,7 @@
 import {AbsoluteFill, Img, staticFile} from 'remotion';
 import {F1Frame, RadioDoBoxMark} from '../components/F1Shared';
 import {F1ProductionBed} from '../components/F1ProductionBed';
+import {F1_DATA_FONT, F1_DISPLAY_FONT} from '../components/F1Typography';
 import type {F1CircuitInsightsStat, F1ThemeConfig} from '../lib/types';
 
 type F1CircuitInsightsCompositionProps = {
@@ -21,7 +22,8 @@ type F1CircuitInsightsCompositionProps = {
   introSubtitle?: string;
 };
 
-const DISPLAY_FONT = '"Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif';
+const DISPLAY_FONT = F1_DISPLAY_FONT;
+const DATA_FONT = F1_DATA_FONT;
 
 const isUsableCircuitImage = (imagePath?: string) => Boolean(imagePath);
 
@@ -56,7 +58,7 @@ export const F1CircuitInsightsComposition = ({
             padding: '34px 38px 34px',
             display: 'flex',
             flexDirection: 'column',
-            fontFamily: DISPLAY_FONT,
+            fontFamily: DATA_FONT,
           }}
         >
           <div
@@ -81,9 +83,11 @@ export const F1CircuitInsightsComposition = ({
                 border: `2px solid ${themeConfig.secondaryAccent}`,
                 color: themeConfig.secondaryAccent,
                 fontSize: 24,
+                fontFamily: DISPLAY_FONT,
+                fontWeight: 700,
                 lineHeight: 1,
                 textTransform: 'uppercase',
-                letterSpacing: 1,
+                letterSpacing: 0,
               }}
             >
               Guia do Circuito
@@ -93,6 +97,8 @@ export const F1CircuitInsightsComposition = ({
                 marginTop: 14,
                 color: themeConfig.text,
                 fontSize: 86,
+                fontFamily: DISPLAY_FONT,
+                fontWeight: 900,
                 lineHeight: 0.88,
                 textTransform: 'uppercase',
                 textShadow: `0 0 22px ${themeConfig.accent}55`,
@@ -107,6 +113,8 @@ export const F1CircuitInsightsComposition = ({
                     marginTop: 8,
                     color: themeConfig.mutedText,
                     fontSize: 30,
+                    fontFamily: DATA_FONT,
+                    fontWeight: 500,
                     lineHeight: 1,
                     textTransform: 'uppercase',
                   }}
@@ -339,7 +347,7 @@ const CircuitFallback = ({theme}: {theme: F1ThemeConfig}) => (
         strokeDasharray="78 28"
       />
       <circle cx="112" cy="260" r="20" fill={theme.accent} />
-      <text x="104" y="224" fill={theme.text} fontSize="34" fontFamily="Impact">
+      <text x="104" y="224" fill={theme.text} fontSize="34" fontFamily="Barlow Condensed">
         START
       </text>
     </svg>

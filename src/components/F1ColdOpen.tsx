@@ -1,4 +1,5 @@
 import {AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
+import {F1_DISPLAY_FONT} from './F1Typography';
 
 type F1ColdOpenProps = {
   accentColor: string;
@@ -9,7 +10,7 @@ type F1ColdOpenProps = {
   introSubtitle?: string;
 };
 
-const DISPLAY_FONT = '"Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif';
+const DISPLAY_FONT = F1_DISPLAY_FONT;
 
 const telemetryRows = [
   ['DRS', 'ABERTO', '+12 KM/H'],

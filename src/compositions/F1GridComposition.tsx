@@ -1,6 +1,7 @@
 import {AbsoluteFill, Img, staticFile, useCurrentFrame} from 'remotion';
 import {F1Frame, F1Header, RadioDoBoxMark} from '../components/F1Shared';
 import {F1ProductionBed} from '../components/F1ProductionBed';
+import {F1_DATA_FONT, F1_DISPLAY_FONT} from '../components/F1Typography';
 import type {F1PodiumEntry, F1RankingEntry, F1ThemeConfig} from '../lib/types';
 
 type F1GridCompositionProps = {
@@ -24,7 +25,8 @@ type F1GridCompositionProps = {
 const PAGE_SWITCH_FRAME = 180;
 const RACE_RESULTS_PAGE_ONE_COUNT = 8;
 const RACE_RESULTS_DENSE_THRESHOLD = 12;
-const DISPLAY_FONT = '"Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif';
+const DISPLAY_FONT = F1_DISPLAY_FONT;
+const DATA_FONT = F1_DATA_FONT;
 const RESULTS_BACKGROUND_PATH = '/f1/backgrounds/fundo-corrida.png';
 const podiumNumberColors: Record<number, string> = {
   1: 'rgba(255, 215, 76, 0.22)',
@@ -68,7 +70,7 @@ export const F1GridComposition = ({
             height: '100%',
             padding: '28px 34px 34px',
             overflow: 'hidden',
-            fontFamily: DISPLAY_FONT,
+            fontFamily: DATA_FONT,
           }}
         >
           {isRaceResults ? <ResultsBackdrop /> : null}
@@ -392,8 +394,8 @@ const PodiumCard = ({entry}: {entry: F1PodiumEntry}) => {
             color: '#fff7e8',
             textTransform: 'uppercase',
             textShadow: `0 0 18px ${(entry.accentColor ?? '#ffd978')}44`,
-            fontFamily: DISPLAY_FONT,
-            letterSpacing: 0.4,
+            fontFamily: DATA_FONT,
+            letterSpacing: 0,
           }}
         >
           {compactName(entry.name)}
@@ -402,7 +404,8 @@ const PodiumCard = ({entry}: {entry: F1PodiumEntry}) => {
           style={{
             fontSize: 18,
             lineHeight: 1.05,
-            fontWeight: 800,
+            fontWeight: 600,
+            fontFamily: DATA_FONT,
             color: '#ffcf76',
             textTransform: 'uppercase',
           }}
@@ -414,7 +417,8 @@ const PodiumCard = ({entry}: {entry: F1PodiumEntry}) => {
             style={{
               fontSize: 16,
               lineHeight: 1,
-              fontWeight: 900,
+              fontWeight: 700,
+              fontFamily: DATA_FONT,
               color: '#ffffff',
             }}
           >
@@ -540,8 +544,8 @@ const ResultRow = ({
           textOverflow: 'ellipsis',
           textTransform: 'uppercase',
           textShadow: `0 0 12px ${(entry.accentColor ?? '#ffd978')}28`,
-          fontFamily: DISPLAY_FONT,
-          letterSpacing: 0.4,
+          fontFamily: DATA_FONT,
+          letterSpacing: 0,
         }}
       >
         {entry.name}
@@ -550,7 +554,8 @@ const ResultRow = ({
           style={{
           fontSize: size === 'large' ? 15 : size === 'medium' ? 16 : 12,
           lineHeight: 1,
-          fontWeight: 800,
+          fontWeight: 600,
+          fontFamily: DATA_FONT,
           color: '#ffd36d',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
@@ -580,7 +585,7 @@ const ResultRow = ({
             color: '#fff3d0',
             textAlign: 'right',
             textShadow: '0 0 12px rgba(255,209,107,0.18)',
-            fontFamily: DISPLAY_FONT,
+            fontFamily: DATA_FONT,
           }}
         >
           {entry.value}
@@ -591,7 +596,8 @@ const ResultRow = ({
           style={{
             fontSize: size === 'large' ? 14 : size === 'medium' ? 16 : 13,
             lineHeight: 1,
-            fontWeight: 800,
+            fontWeight: 700,
+            fontFamily: DATA_FONT,
             color: '#ffcf76',
             textTransform: 'uppercase',
             textAlign: 'right',

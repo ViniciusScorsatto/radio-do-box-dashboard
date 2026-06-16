@@ -3,6 +3,10 @@ const templateSelect = document.getElementById('template');
 const competitionSelect = document.getElementById('competition');
 const raceSelectorFields = document.getElementById('race-selector-fields');
 const teammateBattleFields = document.getElementById('teammate-battle-fields');
+const racePredictionFields = document.getElementById('race-prediction-fields');
+const predictionAuthorSelect = document.getElementById('prediction-author-select');
+const predictionTypeSelect = document.getElementById('prediction-type-select');
+const predictionDriverFields = document.getElementById('prediction-driver-fields');
 const raceSelect = document.getElementById('race-id-select');
 const raceTypeSelect = document.getElementById('race-type-select');
 const teamSelect = document.getElementById('team-id-select');
@@ -49,6 +53,7 @@ const templateCompositionMap = {
   'driver-standings': 'F1DriverStandingsShort',
   'constructor-standings': 'F1ConstructorStandingsShort',
   'weekend-schedule': 'F1WeekendScheduleShort',
+  'race-predictions': 'F1RacePredictionsShort',
 };
 const defaultRaceTypeByTemplate = {
   'race-results': 'Race',
@@ -56,6 +61,7 @@ const defaultRaceTypeByTemplate = {
   'teammate-battle': 'Race',
   'circuit-insights': 'Race',
   'qualifying-grid': '3rd Qualifying',
+  'race-predictions': 'Race',
 };
 
 const setBusy = (busy) => {
@@ -103,9 +109,71 @@ const requiresRacePicker = () =>
   templateSelect.value === 'race-pace' ||
   templateSelect.value === 'teammate-battle' ||
   templateSelect.value === 'circuit-insights' ||
-  templateSelect.value === 'qualifying-grid';
+  templateSelect.value === 'qualifying-grid' ||
+  templateSelect.value === 'race-predictions';
 const requiresTeamBattleFields = () => templateSelect.value === 'teammate-battle';
+const requiresPredictionFields = () => templateSelect.value === 'race-predictions';
 const raceTypeForTemplate = (template) => defaultRaceTypeByTemplate[template] ?? 'Race';
+
+const ensurePredictionDriverFields = () => {
+  if (predictionDriverFields.children.length > 0) {
+    return;
+  }
+
+  predictionDriverFields.innerHTML = Array.from({length: 10}, (_, index) => {
+    const position = index + 1;
+    return `
+      <label>
+        P${position}
+        <select name="predictionDriver${position}" data-prediction-driver-index="${position}">
+          <option value="">Carregando pilotos…</option>
+        </select>
+      </label>
+    `;
+  }).join('');
+};
+
+const predictionDriverSelects = () =>
+  [...predictionDriverFields.querySelectorAll('select[data-prediction-driver-index]')];
+
+const normalizePredictionDriverName = (value) =>
+  String(value ?? '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+const validatePredictionDriverUniqueness = () => {
+  if (!requiresPredictionFields()) {
+    return true;
+  }
+
+  const seen = new Map();
+  for (const select of predictionDriverSelects()) {
+    select.setCustomValidity('');
+    const normalized = normalizePredictionDriverName(select.value);
+    if (!normalized) {
+      continue;
+    }
+
+    const duplicate = seen.get(normalized);
+    if (duplicate) {
+      const driverName = select.options[select.selectedIndex]?.textContent?.split('•')[0]?.trim() || select.value;
+      const message = `${driverName} já foi selecionado. Cada piloto só pode aparecer uma vez no Top 10.`;
+      duplicate.setCustomValidity(message);
+      select.setCustomValidity(message);
+      setErrorBanner(message);
+      log(message);
+      select.reportValidity();
+      select.focus();
+      return false;
+    }
+
+    seen.set(normalized, select);
+  }
+
+  return true;
+};
 
 const normalizeSoundtrackVolume = (value) => {
   const numericValue = Number(value);
@@ -160,6 +228,7 @@ const templateHints = {
   'driver-standings': 'Mostra o mundial atual de pilotos.',
   'constructor-standings': 'Mostra o mundial atual de construtores.',
   'weekend-schedule': 'Busca o proximo fim de semana de GP por padrao.',
+  'race-predictions': 'Monta um Top 10 manual de palpite para classificacao ou corrida.',
 };
 
 const f1SpeechCopy = {
@@ -203,6 +272,12 @@ const f1SpeechCopy = {
     subtitle: () => 'Horarios do GP',
     voice: (ctx) => `Fala, galera do box. Horarios do ${ctx.raceName}.`,
   },
+  'race-predictions': {
+    title: (ctx) => `Palpite para a ${ctx.predictionTypeLabel}`,
+    subtitle: (ctx) => `${ctx.predictionTypeLabel} • ${ctx.predictionAuthorName}`,
+    voice: (ctx) =>
+      `Fala, galera do box. Palpite ${ctx.predictionAuthorPronoun} ${ctx.predictionAuthorName} para o top 10 de ${ctx.predictionTypeLabel.toLowerCase()} no ${ctx.raceName}.`,
+  },
 };
 
 const selectedRaceLabel = () => {
@@ -215,7 +290,14 @@ const currentIntroContext = () => ({
   raceName: selectedRaceLabel(),
   season: form.elements.season.value || new Date().getFullYear(),
   teamName: teamSelect.options[teamSelect.selectedIndex]?.textContent?.split('(')[0]?.trim() || '',
+  predictionAuthorName:
+    predictionAuthorSelect.options[predictionAuthorSelect.selectedIndex]?.textContent?.trim() || 'Vini',
+  predictionAuthorPronoun: normalizePredictionAuthorValue(predictionAuthorSelect.value) === 'eme' ? 'da' : 'do',
+  predictionTypeLabel:
+    predictionTypeSelect.options[predictionTypeSelect.selectedIndex]?.textContent?.trim() || 'Corrida',
 });
+
+const normalizePredictionAuthorValue = (value) => (value === 'emeline' ? 'eme' : value || 'vini');
 
 const selectedTemplateLabel = () => getSelectedOptionLabel(templateSelect) || templateSelect.value;
 
@@ -276,6 +358,8 @@ const renderCurrentJob = (job) => {
       ? `${job.sessions.length} sessoes`
       : job.template === 'circuit-insights'
         ? `${job.stats?.length ?? 0} stats • ${job.keyPoints?.length ?? 0} pontos-chave`
+        : job.template === 'race-predictions'
+          ? `${job.authorName} • ${job.subtitle} • Top ${job.entries?.length ?? 0}`
         : job.template === 'teammate-battle'
           ? `${job.teamName} • ${job.driver1.code} x ${job.driver2.code}`
         : `${job.entries.length}${job.podium ? ` + ${job.podium.length} no topo` : ''}`;
@@ -366,11 +450,12 @@ const applyRacePickerVisibility = () => {
   const visible = requiresRacePicker();
   raceSelectorFields.hidden = !visible;
   raceDataSection.hidden =
-    !visible && !requiresTeamBattleFields();
+    !visible && !requiresTeamBattleFields() && !requiresPredictionFields();
   const forceRaceType =
     templateSelect.value === 'race-pace' ||
     templateSelect.value === 'teammate-battle' ||
-    templateSelect.value === 'circuit-insights';
+    templateSelect.value === 'circuit-insights' ||
+    templateSelect.value === 'race-predictions';
   raceTypeSelect.disabled = forceRaceType;
   if (forceRaceType) {
     raceTypeSelect.value = 'Race';
@@ -384,6 +469,14 @@ const applyRacePickerVisibility = () => {
 const applyTeamBattleVisibility = () => {
   const visible = requiresTeamBattleFields();
   teammateBattleFields.hidden = !visible;
+};
+
+const applyPredictionVisibility = () => {
+  const visible = requiresPredictionFields();
+  racePredictionFields.hidden = !visible;
+  if (visible) {
+    ensurePredictionDriverFields();
+  }
 };
 
 const loadRaceOptions = async (preferredRaceId) => {
@@ -430,6 +523,7 @@ const loadRaceOptions = async (preferredRaceId) => {
   } finally {
     raceSelect.disabled = false;
     await loadTeamOptions();
+    await loadPredictionDriverOptions();
     applyIntroPlaceholders();
   }
 };
@@ -487,6 +581,67 @@ const loadTeamOptions = async () => {
   }
 };
 
+const loadPredictionDriverOptions = async () => {
+  if (!requiresPredictionFields()) {
+    return;
+  }
+
+  ensurePredictionDriverFields();
+  const season = Number(form.elements.season.value || new Date().getFullYear());
+  const competitionId = Number(form.elements.competitionId.value || competitionSelect.value || 1);
+  const selects = predictionDriverSelects();
+  const currentValues = selects.map((select) => select.value);
+
+  selects.forEach((select) => {
+    select.disabled = true;
+    select.innerHTML = '<option value="">Carregando pilotos…</option>';
+  });
+
+  try {
+    const params = new URLSearchParams({
+      season: String(season),
+      competitionId: String(competitionId),
+    });
+    const response = await fetch(`${apiBase}/drivers?${params.toString()}`);
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || 'Falha ao carregar pilotos.');
+    }
+
+    const drivers = Array.isArray(data.drivers) ? data.drivers : [];
+    const options = drivers
+      .map((driver) => {
+        const team = driver.team ? ` • ${driver.team}` : '';
+        return `<option value="${escapeHtml(driver.name)}">${escapeHtml(`${driver.name}${team}`)}</option>`;
+      })
+      .join('');
+
+    selects.forEach((select, index) => {
+      select.innerHTML = `<option value="">Selecione P${index + 1}</option>${options}`;
+      const preferred = currentValues[index] || select.dataset.preferredValue || '';
+      if (preferred && drivers.some((driver) => driver.name === preferred)) {
+        select.value = preferred;
+      } else if (drivers[index]) {
+        select.value = drivers[index].name;
+      }
+      select.dataset.preferredValue = '';
+    });
+
+    if (data.fallbackReason) {
+      log(`Pilotos carregados com fallback: ${data.fallbackReason}`);
+    }
+  } catch (error) {
+    selects.forEach((select) => {
+      select.innerHTML = '<option value="">Pilotos indisponíveis</option>';
+    });
+    log(error instanceof Error ? error.message : String(error));
+  } finally {
+    selects.forEach((select) => {
+      select.disabled = false;
+    });
+  }
+};
+
 const loadOptions = async () => {
   const response = await fetch(`${apiBase}/options`);
   const data = await response.json();
@@ -517,7 +672,19 @@ const loadOptions = async () => {
     form.elements.raceId.value = currentJob.raceId ?? '';
     form.elements.teamId.value = currentJob.teamId ?? '';
     form.elements.contextSubtitle.value = currentJob.contextSubtitle ?? '';
-    form.elements.labelOverride.value = currentJob.subtitle;
+    form.elements.predictionAuthor.value = normalizePredictionAuthorValue(currentJob.predictionAuthor);
+    form.elements.predictionType.value = currentJob.predictionType ?? 'race';
+    ensurePredictionDriverFields();
+    if (currentJob.template === 'race-predictions') {
+      (currentJob.entries ?? []).slice(0, 10).forEach((entry, index) => {
+        const select = form.elements[`predictionDriver${index + 1}`];
+        if (select) {
+          select.dataset.preferredValue = entry.name;
+        }
+      });
+    }
+    form.elements.labelOverride.value =
+      currentJob.template === 'race-predictions' ? currentJob.raceName ?? '' : currentJob.subtitle;
     form.elements.brandName.value = currentJob.brandName;
     form.elements.outputName.value = isVideoOutputName(currentJob.outputName) ? currentJob.outputName : '';
     form.elements.introTitle.value = currentJob.introTitle ?? '';
@@ -536,6 +703,9 @@ const loadOptions = async () => {
     form.elements.raceId.value = '';
     form.elements.teamId.value = '';
     form.elements.contextSubtitle.value = '';
+    form.elements.predictionAuthor.value = 'vini';
+    form.elements.predictionType.value = 'race';
+    ensurePredictionDriverFields();
     form.elements.brandName.value = 'Radio do Box';
     form.elements.introTitle.value = '';
     form.elements.introSubtitle.value = '';
@@ -548,6 +718,7 @@ const loadOptions = async () => {
   applyTemplateHints();
   applyRacePickerVisibility();
   applyTeamBattleVisibility();
+  applyPredictionVisibility();
   await loadRaceOptions(currentJob?.raceId);
   applyIntroPlaceholders();
   renderCurrentJob(currentJob);
@@ -580,6 +751,7 @@ templateSelect.addEventListener('change', () => {
   applyTemplateHints();
   applyRacePickerVisibility();
   applyTeamBattleVisibility();
+  applyPredictionVisibility();
   void loadRaceOptions();
   updatePreview();
   updateDashboardMeta();
@@ -607,6 +779,16 @@ teamSelect.addEventListener('change', () => {
   updateDashboardMeta();
 });
 
+predictionAuthorSelect.addEventListener('change', () => {
+  applyIntroPlaceholders();
+  updateDashboardMeta();
+});
+
+predictionTypeSelect.addEventListener('change', () => {
+  applyIntroPlaceholders();
+  updateDashboardMeta();
+});
+
 form.elements.contextSubtitle?.addEventListener('input', updateDashboardMeta);
 soundtrackVolumeRange?.addEventListener('input', () => {
   setSoundtrackVolume(soundtrackVolumeRange.value);
@@ -616,6 +798,10 @@ form.elements.soundtrackVolume?.addEventListener('input', () => {
 });
 
 const submitJob = async (endpoint, actionLabel) => {
+  if (!validatePredictionDriverUniqueness()) {
+    return;
+  }
+
   try {
     setBusy(true);
     setErrorBanner('');

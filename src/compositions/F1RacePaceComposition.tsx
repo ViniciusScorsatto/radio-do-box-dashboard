@@ -1,6 +1,7 @@
 import {AbsoluteFill} from 'remotion';
 import {F1Frame, RadioDoBoxMark} from '../components/F1Shared';
 import {F1ProductionBed} from '../components/F1ProductionBed';
+import {F1_DATA_FONT, F1_DISPLAY_FONT} from '../components/F1Typography';
 import type {F1RankingEntry, F1ThemeConfig} from '../lib/types';
 
 type F1RacePaceCompositionProps = {
@@ -55,9 +56,10 @@ export const F1RacePaceComposition = ({
             <div
               style={{
                 fontSize: 20,
-                fontWeight: 800,
+                fontFamily: F1_DATA_FONT,
+                fontWeight: 500,
                 color: themeConfig.secondaryAccent,
-                letterSpacing: 1.2,
+                letterSpacing: 0,
                 textTransform: 'uppercase',
               }}
             >
@@ -67,10 +69,11 @@ export const F1RacePaceComposition = ({
               style={{
                 fontSize: 72,
                 fontWeight: 900,
+                fontFamily: F1_DISPLAY_FONT,
                 lineHeight: 0.9,
                 color: themeConfig.text,
                 textTransform: 'uppercase',
-                letterSpacing: -1.6,
+                letterSpacing: 0,
               }}
             >
               {title}
@@ -78,7 +81,8 @@ export const F1RacePaceComposition = ({
             <div
               style={{
                 fontSize: 30,
-                fontWeight: 800,
+                fontFamily: F1_DISPLAY_FONT,
+                fontWeight: 700,
                 color: themeConfig.mutedText,
                 textTransform: 'uppercase',
               }}
@@ -121,6 +125,7 @@ export const F1RacePaceComposition = ({
                       color: isLeader ? '#0c1224' : themeConfig.text,
                       fontSize: isLeader ? 42 : 34,
                       fontWeight: 900,
+                      fontFamily: F1_DISPLAY_FONT,
                       background: isLeader
                         ? `linear-gradient(180deg, ${themeConfig.secondaryAccent}, #f0b93d)`
                         : 'linear-gradient(180deg, rgba(28,45,98,0.92), rgba(18,28,66,0.92))',
@@ -133,7 +138,8 @@ export const F1RacePaceComposition = ({
                     <div
                       style={{
                         fontSize: isLeader ? 40 : 34,
-                        fontWeight: 900,
+                        fontFamily: F1_DATA_FONT,
+                        fontWeight: 600,
                         color: themeConfig.text,
                         whiteSpace: 'nowrap',
                         textOverflow: 'ellipsis',
@@ -148,7 +154,8 @@ export const F1RacePaceComposition = ({
                       style={{
                         marginTop: 3,
                         fontSize: 22,
-                        fontWeight: 800,
+                        fontFamily: F1_DATA_FONT,
+                        fontWeight: 500,
                         color: accent,
                         textTransform: 'uppercase',
                         whiteSpace: 'nowrap',
@@ -164,7 +171,8 @@ export const F1RacePaceComposition = ({
                     style={{
                       textAlign: 'right',
                       fontSize: isLeader ? 36 : 32,
-                      fontWeight: 900,
+                      fontFamily: F1_DATA_FONT,
+                      fontWeight: 700,
                       color: themeConfig.text,
                       letterSpacing: 0.4,
                     }}
@@ -176,7 +184,8 @@ export const F1RacePaceComposition = ({
                     style={{
                       textAlign: 'right',
                       fontSize: 24,
-                      fontWeight: 800,
+                      fontFamily: F1_DATA_FONT,
+                      fontWeight: 700,
                       color: entry.position === 1 ? themeConfig.secondaryAccent : themeConfig.mutedText,
                       letterSpacing: 0.2,
                     }}

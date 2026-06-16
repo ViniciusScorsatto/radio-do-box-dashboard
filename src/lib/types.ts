@@ -8,7 +8,8 @@ export type F1VideoTemplate =
   | 'qualifying-grid'
   | 'driver-standings'
   | 'constructor-standings'
-  | 'weekend-schedule';
+  | 'weekend-schedule'
+  | 'race-predictions';
 export type VideoTemplate = F1VideoTemplate;
 
 export type TeamBadge = {
@@ -50,7 +51,8 @@ export type F1TemplateConfig = {
     | 'F1QualifyingGridShort'
     | 'F1DriverStandingsShort'
     | 'F1ConstructorStandingsShort'
-    | 'F1WeekendScheduleShort';
+    | 'F1WeekendScheduleShort'
+    | 'F1RacePredictionsShort';
   themeVariant: F1ThemeVariant;
   durationInFrames: number;
   headlinePrefix?: string;
@@ -104,6 +106,9 @@ export type F1CircuitInsightsStat = {
   label: string;
   value: string;
 };
+
+export type F1RacePredictionType = 'qualifying' | 'race';
+export type F1PredictionAuthor = 'vini' | 'eme' | 'emeline';
 
 type F1BaseVideoJob = BaseVideoJob & {
   sport: 'f1';
@@ -257,6 +262,16 @@ export type F1CircuitInsightsJob = F1BaseVideoJob & {
   trackImagePath?: string;
 };
 
+export type F1RacePredictionsJob = F1BaseVideoJob & {
+  template: 'race-predictions';
+  compositionId: 'F1RacePredictionsShort';
+  predictionType: F1RacePredictionType;
+  predictionAuthor: F1PredictionAuthor;
+  authorName: string;
+  authorImagePath: string;
+  entries: F1RankingEntry[];
+};
+
 export type F1VideoJob =
   | F1RaceResultsJob
   | F1RacePaceJob
@@ -265,6 +280,7 @@ export type F1VideoJob =
   | F1QualifyingGridJob
   | F1DriverStandingsJob
   | F1ConstructorStandingsJob
-  | F1WeekendScheduleJob;
+  | F1WeekendScheduleJob
+  | F1RacePredictionsJob;
 
 export type VideoJob = F1VideoJob;

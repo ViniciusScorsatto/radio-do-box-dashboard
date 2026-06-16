@@ -1,5 +1,6 @@
 import {AbsoluteFill, Img, staticFile, useCurrentFrame} from 'remotion';
 import {F1ProductionBed} from '../components/F1ProductionBed';
+import {F1_DATA_FONT, F1_DISPLAY_FONT, F1FontFaces} from '../components/F1Typography';
 import type {F1PodiumEntry, F1RankingEntry, F1ThemeConfig, TeamBadge} from '../lib/types';
 
 type F1StandingsCompositionProps = {
@@ -25,7 +26,8 @@ type BaseF1StandingsCompositionProps = F1StandingsCompositionProps & {
 };
 
 const PAGE_SWITCH_FRAME = 180;
-const DISPLAY_FONT = '"Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif';
+const DISPLAY_FONT = F1_DISPLAY_FONT;
+const DATA_FONT = F1_DATA_FONT;
 const DRIVER_STANDINGS_BACKGROUND_PATH = '/f1/backgrounds/mundial-de-pilotos.png';
 const constructorTeamLogoOverrides: Record<string, string> = {
   'mercedes-amg-petronas': '/f1/teams/custom/mercedes.png',
@@ -138,9 +140,10 @@ const BaseF1StandingsComposition = ({
           color: '#0f1630',
           background:
             'linear-gradient(180deg, #fdfdff 0%, #f4f6fb 32%, #e7ecf5 68%, #dde4f0 100%)',
-          fontFamily: DISPLAY_FONT,
+          fontFamily: DATA_FONT,
         }}
       >
+        <F1FontFaces />
         <StandingsBackdrop accent={themeConfig.accent} />
         <StandingsHeader title={title} subtitle={headerSubtitle} />
 
@@ -270,6 +273,7 @@ const StandingsHeader = ({
           fontSize: 34,
           lineHeight: 1,
           fontWeight: 900,
+          fontFamily: DISPLAY_FONT,
           color: '#21345f',
           letterSpacing: 0.3,
           textTransform: 'uppercase',
@@ -282,6 +286,7 @@ const StandingsHeader = ({
           fontSize: 66,
           lineHeight: 0.92,
           fontWeight: 900,
+          fontFamily: DISPLAY_FONT,
           color: '#0a1024',
           textTransform: 'uppercase',
           maxWidth: 700,
@@ -294,7 +299,8 @@ const StandingsHeader = ({
           style={{
             fontSize: 28,
             lineHeight: 1,
-            fontWeight: 900,
+            fontWeight: 500,
+            fontFamily: DATA_FONT,
             color: '#55698f',
             textTransform: 'uppercase',
           }}
@@ -515,7 +521,8 @@ const StandingsLeaderCard = ({
         style={{
           fontSize: 46,
           lineHeight: 0.94,
-          fontWeight: 900,
+          fontWeight: 600,
+          fontFamily: DATA_FONT,
           color: '#10172e',
           textTransform: 'uppercase',
         }}
@@ -526,7 +533,8 @@ const StandingsLeaderCard = ({
         style={{
           fontSize: 26,
           lineHeight: 1,
-          fontWeight: 900,
+          fontWeight: 600,
+          fontFamily: DATA_FONT,
           color: leader.accentColor ?? '#2c406d',
           textTransform: 'uppercase',
         }}
@@ -728,7 +736,8 @@ const StandingsRow = ({
                 color: chipStyle.color,
                 fontSize: 14,
                 lineHeight: 1,
-                fontWeight: 900,
+                fontWeight: 700,
+                fontFamily: DATA_FONT,
                 boxShadow: chipStyle.boxShadow,
                 border: chipStyle.border,
               }}
@@ -740,7 +749,8 @@ const StandingsRow = ({
             style={{
             fontSize: 32,
             lineHeight: 0.96,
-            fontWeight: 900,
+            fontWeight: 600,
+            fontFamily: DATA_FONT,
             color: '#0e1733',
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
@@ -764,7 +774,8 @@ const StandingsRow = ({
             style={{
               fontSize: 18,
               lineHeight: 1,
-              fontWeight: 900,
+              fontWeight: 600,
+              fontFamily: DATA_FONT,
               color: chipStyle.color,
               textTransform: 'uppercase',
               whiteSpace: 'nowrap',
@@ -797,7 +808,8 @@ const StandingsRow = ({
           style={{
             fontSize: 38,
             lineHeight: 0.9,
-            fontWeight: 900,
+            fontWeight: 700,
+            fontFamily: DATA_FONT,
             color: '#111931',
           }}
         >
@@ -808,7 +820,8 @@ const StandingsRow = ({
             style={{
               fontSize: 16,
               lineHeight: 1,
-              fontWeight: 900,
+              fontWeight: 700,
+              fontFamily: DATA_FONT,
               color: '#ffffff',
               textTransform: 'uppercase',
               padding: '4px 10px 3px',
@@ -824,7 +837,8 @@ const StandingsRow = ({
           style={{
             fontSize: 17,
             lineHeight: 1,
-            fontWeight: 900,
+            fontWeight: 500,
+            fontFamily: DATA_FONT,
             color: '#6b7b9d',
             textTransform: 'uppercase',
           }}

@@ -29,22 +29,22 @@
     "durationInFrames": 360
   },
   "title": "Mundial de Pilotos",
-  "subtitle": "Formula 1 2026",
+  "subtitle": "Classificação",
   "raceType": "Race",
   "raceId": 2622,
-  "raceName": "GP da United Arab Emirates",
+  "raceName": "GP de Abu Dhabi",
   "countryCode": "UNI",
   "circuitName": "Yas Marina Circuit",
   "brandName": "Radio do Box",
   "brandLogoPath": "/branding/radio-do-box/black.png",
-  "soundtrackPath": "/audio/f1/Grid No Grid (1).mp3",
-  "soundtrackLabel": "Grid No Grid (1)",
-  "soundtrackVolume": 0.2,
+  "soundtrackPath": "/audio/f1/country-rough-everet-almond.mp3",
+  "soundtrackLabel": "Country Rough - Everet Almond",
+  "soundtrackVolume": 0.3,
   "introTitle": "Mundial de Pilotos",
   "introSubtitle": "Formula 1 2026",
   "voiceoverText": "Fala, galera do box. Mundial de pilotos atualizado da Formula 1 2026.",
   "voiceoverEnabled": false,
-  "outputName": "f1-driver-standings-2026.mp4",
+  "outputName": "palpites-emeline-classificacao-gp-do-japao-2026.mp4",
   "durationInFrames": 360,
   "dataSource": "api",
   "warnings": [],
@@ -90,8 +90,8 @@
         "logoPath": "/f1/teams/custom/ferrari.png",
         "sublabel": "Scuderia Ferrari"
       },
-      "value": "90",
-      "secondaryValue": "+66",
+      "value": "115",
+      "secondaryValue": "1 vit • +41",
       "driverNumber": "44",
       "accentColor": "#ff5546"
     },
@@ -106,8 +106,8 @@
         "logoPath": "/f1/teams/custom/mercedes.png",
         "sublabel": "Mercedes-AMG Petronas"
       },
-      "value": "88",
-      "secondaryValue": "1 vit • +68",
+      "value": "106",
+      "secondaryValue": "1 vit • +50",
       "driverNumber": "63",
       "accentColor": "#65e1c6"
     },
@@ -129,22 +129,6 @@
     },
     {
       "position": 5,
-      "name": "Oscar Piastri",
-      "team": "McLaren Racing",
-      "badge": {
-        "label": "OP",
-        "accentColor": "#ff9a3d",
-        "imagePath": "/f1/drivers/mclaren-racing-oscar-piastri.png",
-        "logoPath": "/f1/teams/custom/mclaren.png",
-        "sublabel": "McLaren Racing"
-      },
-      "value": "60",
-      "secondaryValue": "+96",
-      "driverNumber": "81",
-      "accentColor": "#ff9a3d"
-    },
-    {
-      "position": 6,
       "name": "Lando Norris",
       "team": "McLaren Racing",
       "badge": {
@@ -154,9 +138,25 @@
         "logoPath": "/f1/teams/custom/mclaren.png",
         "sublabel": "McLaren Racing"
       },
-      "value": "58",
-      "secondaryValue": "+98",
+      "value": "73",
+      "secondaryValue": "+83",
       "driverNumber": "1",
+      "accentColor": "#ff9a3d"
+    },
+    {
+      "position": 6,
+      "name": "Oscar Piastri",
+      "team": "McLaren Racing",
+      "badge": {
+        "label": "OP",
+        "accentColor": "#ff9a3d",
+        "imagePath": "/f1/drivers/mclaren-racing-oscar-piastri.png",
+        "logoPath": "/f1/teams/custom/mclaren.png",
+        "sublabel": "McLaren Racing"
+      },
+      "value": "68",
+      "secondaryValue": "+88",
+      "driverNumber": "81",
       "accentColor": "#ff9a3d"
     },
     {
@@ -170,13 +170,29 @@
         "logoPath": "/f1/teams/custom/red-bull.png",
         "sublabel": "Red Bull Racing"
       },
-      "value": "43",
-      "secondaryValue": "+113",
+      "value": "55",
+      "secondaryValue": "+101",
       "driverNumber": "3",
       "accentColor": "#5d74ff"
     },
     {
       "position": 8,
+      "name": "Pierre Gasly",
+      "team": "Alpine F1 Team",
+      "badge": {
+        "label": "PG",
+        "accentColor": "#ff76db",
+        "imagePath": "/f1/drivers/alpine-f1-team-pierre-gasly.png",
+        "logoPath": "/f1/teams/custom/alpine.png",
+        "sublabel": "Alpine F1 Team"
+      },
+      "value": "41",
+      "secondaryValue": "+115",
+      "driverNumber": "10",
+      "accentColor": "#ff76db"
+    },
+    {
+      "position": 9,
       "name": "Isack Hadjar",
       "team": "Red Bull Racing",
       "badge": {
@@ -186,13 +202,13 @@
         "logoPath": "/f1/teams/custom/red-bull.png",
         "sublabel": "Red Bull Racing"
       },
-      "value": "29",
-      "secondaryValue": "+127",
+      "value": "34",
+      "secondaryValue": "+122",
       "driverNumber": "6",
       "accentColor": "#5d74ff"
     },
     {
-      "position": 9,
+      "position": 10,
       "name": "Liam Lawson",
       "team": "Racing Bulls",
       "badge": {
@@ -208,23 +224,23 @@
       "accentColor": "#7b94ff"
     },
     {
-      "position": 10,
-      "name": "Pierre Gasly",
+      "position": 11,
+      "name": "Franco Colapinto",
       "team": "Alpine F1 Team",
       "badge": {
-        "label": "PG",
+        "label": "FC",
         "accentColor": "#ff76db",
-        "imagePath": "/f1/drivers/alpine-f1-team-pierre-gasly.png",
+        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
         "logoPath": "/f1/teams/custom/alpine.png",
         "sublabel": "Alpine F1 Team"
       },
-      "value": "26",
-      "secondaryValue": "+130",
-      "driverNumber": "10",
+      "value": "19",
+      "secondaryValue": "+137",
+      "driverNumber": "43",
       "accentColor": "#ff76db"
     },
     {
-      "position": 11,
+      "position": 12,
       "name": "Oliver Bearman",
       "team": "Haas F1 Team",
       "badge": {
@@ -240,22 +256,6 @@
       "accentColor": "#f1f1f1"
     },
     {
-      "position": 12,
-      "name": "Franco Colapinto",
-      "team": "Alpine F1 Team",
-      "badge": {
-        "label": "FC",
-        "accentColor": "#ff76db",
-        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
-        "logoPath": "/f1/teams/custom/alpine.png",
-        "sublabel": "Alpine F1 Team"
-      },
-      "value": "15",
-      "secondaryValue": "+141",
-      "driverNumber": "43",
-      "accentColor": "#ff76db"
-    },
-    {
       "position": 13,
       "name": "Arvid Lindblad",
       "team": "Racing Bulls",
@@ -266,8 +266,8 @@
         "logoPath": "/f1/teams/custom/racing-bulls.png",
         "sublabel": "Racing Bulls"
       },
-      "value": "13",
-      "secondaryValue": "+143",
+      "value": "12",
+      "secondaryValue": "+144",
       "driverNumber": "41",
       "accentColor": "#7b94ff"
     },

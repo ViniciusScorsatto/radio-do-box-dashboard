@@ -1,0 +1,7 @@
+{
+  "template": "race-predictions",
+  "label": "Palpites Top 10",
+  "compositionId": "F1RacePredictionsShort",
+  "themeVariant": "orange",
+  "durationInFrames": 360
+}

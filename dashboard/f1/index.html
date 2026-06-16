@@ -98,6 +98,29 @@
               </label>
             </div>
 
+            <div id="race-prediction-fields" hidden>
+              <div class="two-up">
+                <label>
+                  Autor do palpite
+                  <select name="predictionAuthor" id="prediction-author-select">
+                    <option value="vini">Vini</option>
+                    <option value="eme">Eme</option>
+                  </select>
+                </label>
+                <label>
+                  Tipo do palpite
+                  <select name="predictionType" id="prediction-type-select">
+                    <option value="race">Corrida</option>
+                    <option value="qualifying">Classificação</option>
+                  </select>
+                </label>
+              </div>
+              <div class="section-title compact-section-title">
+                <span>Top 10</span>
+              </div>
+              <div class="prediction-grid" id="prediction-driver-fields"></div>
+            </div>
+
           </section>
 
           <section class="form-section">
@@ -111,8 +134,8 @@
 
             <div class="two-up">
               <label>
-                Label override
-                <input type="text" name="labelOverride" placeholder="Opcional" />
+                Label / GP override
+                <input type="text" name="labelOverride" placeholder="Opcional: GP de Abu Dhabi" />
               </label>
               <label>
                 Output filename

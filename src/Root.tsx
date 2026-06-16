@@ -3,6 +3,7 @@ import {F1CircuitInsightsComposition} from './compositions/F1CircuitInsightsComp
 import {F1GridComposition} from './compositions/F1GridComposition';
 import {F1LargeVideosComposition} from './compositions/F1LargeVideosComposition';
 import {F1RacePaceComposition} from './compositions/F1RacePaceComposition';
+import {F1RacePredictionsComposition} from './compositions/F1RacePredictionsComposition';
 import {F1ScheduleComposition} from './compositions/F1ScheduleComposition';
 import {F1TeammateBattleComposition} from './compositions/F1TeammateBattleComposition';
 import {F1ConstructorStandingsComposition, F1DriverStandingsComposition} from './compositions/F1StandingsComposition';
@@ -19,6 +20,7 @@ const driverStandingsJob = currentF1Jobs.driverStandings;
 const constructorStandingsJob = currentF1Jobs.constructorStandings;
 const weekendScheduleJob = currentF1Jobs.weekendSchedule;
 const circuitInsightsJob = currentF1Jobs.circuitInsights;
+const racePredictionsJob = currentF1Jobs.racePredictions;
 
 const f1IntroOverrideByTemplate: Partial<
   Record<F1VideoJob['template'], {introTitle: string; introSubtitle: string}>
@@ -185,6 +187,24 @@ const circuitInsightsProps = {
     circuitInsightsJob.backgroundImagePath ?? sampleF1Jobs.circuitInsights.backgroundImagePath,
 };
 
+const racePredictionsProps = {
+  title: racePredictionsJob.title ?? sampleF1Jobs.racePredictions.title,
+  subtitle: racePredictionsJob.subtitle ?? sampleF1Jobs.racePredictions.subtitle,
+  raceName: racePredictionsJob.raceName ?? sampleF1Jobs.racePredictions.raceName,
+  predictionType:
+    racePredictionsJob.predictionType ?? sampleF1Jobs.racePredictions.predictionType,
+  predictionAuthor:
+    racePredictionsJob.predictionAuthor ?? sampleF1Jobs.racePredictions.predictionAuthor,
+  authorName: racePredictionsJob.authorName ?? sampleF1Jobs.racePredictions.authorName,
+  authorImagePath:
+    racePredictionsJob.authorImagePath ?? sampleF1Jobs.racePredictions.authorImagePath,
+  themeConfig: racePredictionsJob.themeConfig ?? sampleF1Jobs.racePredictions.themeConfig,
+  entries: racePredictionsJob.entries ?? sampleF1Jobs.racePredictions.entries,
+  ...f1MediaProps(racePredictionsJob, sampleF1Jobs.racePredictions),
+  backgroundImagePath:
+    racePredictionsJob.backgroundImagePath ?? sampleF1Jobs.racePredictions.backgroundImagePath,
+};
+
 const largeVideosJob =
   currentF1Job.template === 'driver-standings'
     ? driverStandingsJob
@@ -282,6 +302,15 @@ export const RemotionRoot = () => {
         width={1080}
         height={1920}
         defaultProps={circuitInsightsProps}
+      />
+      <Composition
+        id="F1RacePredictionsShort"
+        component={F1RacePredictionsComposition}
+        durationInFrames={F1_DURATION_IN_FRAMES}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={racePredictionsProps}
       />
     </>
   );

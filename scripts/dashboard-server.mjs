@@ -7,6 +7,7 @@ import {projectRoot} from './lib/video-system.mjs';
 import {
   getF1Options,
   loadCurrentF1Job,
+  loadF1DriverOptions,
   loadF1RaceOptions,
   loadF1TeamOptions,
   prepareF1Job,
@@ -130,6 +131,24 @@ const sendF1TeamOptions = async (response, url) => {
   }
 };
 
+const sendF1DriverOptions = async (response, url) => {
+  const parsedSeason = Number(url.searchParams.get('season'));
+  const season = Number.isFinite(parsedSeason) && parsedSeason > 0
+    ? parsedSeason
+    : new Date().getFullYear();
+  const competitionId = Number(url.searchParams.get('competitionId') ?? '1');
+  const options = await loadF1DriverOptions({
+    apiKey: process.env.F1_API_KEY,
+    apiHost: process.env.F1_API_HOST ?? 'v1.formula-1.api-sports.io',
+    season,
+    competitionId,
+  });
+  sendJson(response, 200, {
+    ok: true,
+    ...options,
+  });
+};
+
 const normalizeVideoOutputName = (outputName) => {
   const requestedName = String(outputName ?? '').trim();
   if (!requestedName) {
@@ -160,6 +179,11 @@ const prepareFormulaOneJob = async (body, {normalizeOutputName = normalizeVideoO
     competitionName: body.competitionName,
     labelOverride: body.labelOverride,
     contextSubtitle: body.contextSubtitle,
+    predictionAuthor: body.predictionAuthor,
+    predictionType: body.predictionType,
+    predictionDrivers: Array.from({length: 10}, (_, index) =>
+      body[`predictionDriver${index + 1}`]
+    ),
     introTitle: body.introTitle,
     introSubtitle: body.introSubtitle,
     voiceoverText: body.voiceoverText,
@@ -620,6 +644,11 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === 'GET' && url.pathname === '/api/f1/teams') {
     await sendF1TeamOptions(response, url);
+    return;
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/f1/drivers') {
+    await sendF1DriverOptions(response, url);
     return;
   }
 

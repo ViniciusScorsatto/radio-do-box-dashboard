@@ -25,6 +25,7 @@ const templateFileNames = [
   'driver-standings.json',
   'constructor-standings.json',
   'weekend-schedule.json',
+  'race-predictions.json',
 ];
 
 const brandLogos = {
@@ -347,6 +348,38 @@ const summarizeFailureReason = (reason = '') => {
   return normalized.length > 380 ? `${normalized.slice(0, 380)}…` : normalized;
 };
 
+const predictionAuthors = {
+  vini: {
+    authorName: 'Vini',
+    authorImagePath: '/branding/radio-do-box/hosts/vini.png',
+  },
+  eme: {
+    authorName: 'Eme',
+    authorImagePath: '/branding/radio-do-box/hosts/eme.png',
+  },
+};
+
+const normalizePredictionAuthor = (value = '') => {
+  const normalized = String(value).trim().toLowerCase();
+  const authorKey = normalized === 'emeline' ? 'eme' : normalized;
+  return predictionAuthors[authorKey] ? authorKey : 'vini';
+};
+
+const normalizePredictionType = (value = '') => {
+  const normalized = String(value).trim().toLowerCase();
+  return normalized === 'qualifying' || normalized === 'classificacao' || normalized === 'classificação'
+    ? 'qualifying'
+    : 'race';
+};
+
+const predictionTypeLabel = (value = '') =>
+  normalizePredictionType(value) === 'qualifying' ? 'Classificação' : 'Corrida';
+
+const predictionTypeSlug = (value = '') =>
+  normalizePredictionType(value) === 'qualifying' ? 'classificacao' : 'corrida';
+
+const predictionAuthorPronoun = (author = '') => (normalizePredictionAuthor(author) === 'eme' ? 'da' : 'do');
+
 class F1PreparationError extends Error {
   constructor(message, errorType, details) {
     super(message);
@@ -414,6 +447,107 @@ const badgeFor = async ({
 };
 
 const sortByPosition = (entries) => [...entries].sort((a, b) => a.position - b.position);
+
+const localPredictionDrivers = [
+  ['Andrea Kimi Antonelli', 'Mercedes-AMG Petronas', '12'],
+  ['Fernando Alonso', 'Aston Martin F1 Team', '14'],
+  ['George Russell', 'Mercedes-AMG Petronas', '63'],
+  ['Valtteri Bottas', 'Cadillac Formula 1 Team', '77'],
+  ['Esteban Ocon', 'Haas F1 Team', '31'],
+  ['Lewis Hamilton', 'Scuderia Ferrari', '44'],
+  ['Gabriel Bortoleto', 'Audi Revolut F1 Team', '5'],
+  ['Pierre Gasly', 'Alpine F1 Team', '10'],
+  ['Franco Colapinto', 'Alpine F1 Team', '43'],
+  ['Lance Stroll', 'Aston Martin F1 Team', '18'],
+  ['Oliver Bearman', 'Haas F1 Team', '87'],
+  ['Oscar Piastri', 'McLaren Racing', '81'],
+  ['Sergio Perez', 'Cadillac Formula 1 Team', '11'],
+  ['Alexander Albon', 'Williams F1 Team', '23'],
+  ['Arvid Lindblad', 'Racing Bulls', '4'],
+  ['Liam Lawson', 'Racing Bulls', '30'],
+  ['Carlos Sainz Jr', 'Williams F1 Team', '55'],
+  ['Nico Hulkenberg', 'Audi Revolut F1 Team', '27'],
+  ['Max Verstappen', 'Red Bull Racing', '1'],
+  ['Charles Leclerc', 'Scuderia Ferrari', '16'],
+  ['Isack Hadjar', 'Red Bull Racing', '6'],
+  ['Lando Norris', 'McLaren Racing', '4'],
+];
+
+const localF1DriverOptions = async () =>
+  Promise.all(
+    localPredictionDrivers.map(async ([name, team, driverNumber], index) => {
+      const badge = await badgeFor({name, team});
+      return {
+        id: sanitize(name),
+        name,
+        team,
+        code: deriveSurnameCode(name),
+        driverNumber,
+        position: index + 1,
+        badge,
+        accentColor: resolveTeamColor(team),
+      };
+    })
+  );
+
+const selectedPredictionDriverNames = (predictionDrivers) => {
+  if (Array.isArray(predictionDrivers)) {
+    return predictionDrivers.map((value) => String(value ?? '').trim()).filter(Boolean);
+  }
+
+  if (typeof predictionDrivers === 'string') {
+    return predictionDrivers
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const validatePredictionDriverNames = (driverNames) => {
+  if (driverNames.length !== 10) {
+    throw new F1PreparationError(
+      'Selecione exatamente 10 pilotos para montar o Top 10.',
+      'prediction_top10_invalid',
+      {count: driverNames.length}
+    );
+  }
+
+  const normalized = driverNames.map(normalizeEntityName);
+  const unique = new Set(normalized);
+  if (unique.size !== normalized.length) {
+    throw new F1PreparationError(
+      'O Top 10 de palpites não pode ter pilotos duplicados.',
+      'prediction_top10_duplicate',
+      {drivers: driverNames}
+    );
+  }
+};
+
+const predictionEntriesFromOptions = async (driverNames, driverOptions) => {
+  validatePredictionDriverNames(driverNames);
+  const byName = new Map(driverOptions.map((driver) => [normalizeEntityName(driver.name), driver]));
+
+  return Promise.all(
+    driverNames.map(async (driverName, index) => {
+      const matched = byName.get(normalizeEntityName(driverName));
+      const name = matched?.name ?? driverName;
+      const team = matched?.team ?? '';
+      const badge = matched?.badge ?? await badgeFor({name, team});
+      return {
+        position: index + 1,
+        name,
+        team,
+        badge,
+        value: `P${index + 1}`,
+        secondaryValue: team,
+        driverNumber: matched?.driverNumber,
+        accentColor: matched?.accentColor ?? resolveTeamColor(team),
+      };
+    })
+  );
+};
 
 const groupRaceWeekend = (races) => {
   const groups = new Map();
@@ -650,6 +784,7 @@ const getF1IntroDefaults = (job) => {
     'driver-standings': 'Mundial de Pilotos',
     'constructor-standings': 'Mundial de Construtores',
     'weekend-schedule': raceName,
+    'race-predictions': `Palpite para a ${predictionTypeLabel(job.predictionType)}`,
   };
   const subtitleByTemplate = {
     'race-results': 'Resultado da Corrida',
@@ -660,6 +795,7 @@ const getF1IntroDefaults = (job) => {
     'driver-standings': `Formula 1 ${job.season}`,
     'constructor-standings': `Formula 1 ${job.season}`,
     'weekend-schedule': 'Horarios do GP',
+    'race-predictions': `${predictionTypeLabel(job.predictionType)} - ${job.authorName || 'Radio do Box'}`,
   };
   const voiceoverByTemplate = {
     'race-results': `Fala, galera do box. Resultado da corrida no ${raceName}.`,
@@ -670,6 +806,7 @@ const getF1IntroDefaults = (job) => {
     'driver-standings': `Fala, galera do box. Mundial de pilotos atualizado da Formula 1 ${job.season}.`,
     'constructor-standings': `Fala, galera do box. Mundial de construtores atualizado da Formula 1 ${job.season}.`,
     'weekend-schedule': `Fala, galera do box. Horarios do ${raceName}.`,
+    'race-predictions': `Fala, galera do box. Palpite ${predictionAuthorPronoun(job.predictionAuthor)} ${job.authorName || 'Radio do Box'} para o top 10 de ${predictionTypeLabel(job.predictionType).toLowerCase()} no ${raceName}.`,
   };
 
   return {
@@ -783,6 +920,9 @@ const buildSampleJob = async ({
   soundtrackVolume,
   labelOverride,
   contextSubtitle,
+  predictionAuthor,
+  predictionType,
+  predictionDrivers,
   outputName,
   warning,
 }) => {
@@ -811,6 +951,41 @@ const buildSampleJob = async ({
     dataSource: 'sample',
     warnings: baseWarnings,
   };
+
+  if (template === 'race-predictions') {
+    const normalizedAuthor = normalizePredictionAuthor(predictionAuthor);
+    const normalizedType = normalizePredictionType(predictionType);
+    const author = predictionAuthors[normalizedAuthor];
+    const driverOptions = await localF1DriverOptions();
+    const selectedDrivers = selectedPredictionDriverNames(predictionDrivers);
+    const driverNames =
+      selectedDrivers.length > 0 ? selectedDrivers : driverOptions.slice(0, 10).map((driver) => driver.name);
+    const entries = await predictionEntriesFromOptions(driverNames, driverOptions);
+
+    const displayRaceName = labelOverride?.trim() || 'GP do Japão';
+
+    return {
+      ...createBaseJob({
+        ...common,
+        title: `Palpites ${predictionTypeLabel(normalizedType)}`,
+        subtitle: predictionTypeLabel(normalizedType),
+        raceType: 'Race',
+        raceId: 103,
+        raceName: displayRaceName,
+        countryCode: 'JPN',
+        circuitName: 'Suzuka',
+        brandLogoPath: pickBrandLogoPath(themeConfig.variant),
+        outputName:
+          outputName?.trim() ||
+          `palpites-${normalizedAuthor}-${predictionTypeSlug(normalizedType)}-${sanitize(displayRaceName)}-${season}.mp4`,
+      }),
+      predictionType: normalizedType,
+      predictionAuthor: normalizedAuthor,
+      authorName: author.authorName,
+      authorImagePath: author.authorImagePath,
+      entries,
+    };
+  }
 
   if (template === 'race-results') {
     const podium = await Promise.all([
@@ -2296,6 +2471,9 @@ const buildApiJob = async ({
   competitionName,
   labelOverride,
   contextSubtitle,
+  predictionAuthor,
+  predictionType,
+  predictionDrivers,
   soundtrackPath,
   soundtrackVolume,
   introTitle,
@@ -2326,7 +2504,10 @@ const buildApiJob = async ({
     : [];
   const selectedRaceType = String(raceType ?? '').trim();
   const effectiveSelectedRaceType =
-    template === 'race-pace' || template === 'teammate-battle' || template === 'circuit-insights'
+    template === 'race-pace' ||
+    template === 'teammate-battle' ||
+    template === 'circuit-insights' ||
+    template === 'race-predictions'
       ? 'Race'
       : selectedRaceType;
   const groupedWeekends = groupRaceWeekend(races);
@@ -2347,7 +2528,7 @@ const buildApiJob = async ({
       ? groupedWeekends.find((group) =>
           group.some((race) => Number(race.id) === Number(latestBySelectedType.id))
         )
-      : template === 'weekend-schedule' || template === 'circuit-insights'
+      : template === 'weekend-schedule' || template === 'circuit-insights' || template === 'race-predictions'
       ? pickNextWeekend(races)
       : template === 'qualifying-grid'
         ? pickLatestCompletedQualifyingWeekend(races)
@@ -2368,7 +2549,7 @@ const buildApiJob = async ({
         ? latestMatchingSession(targetWeekend, /qualifying/i)
         : template === 'race-results' || template === 'race-pace' || template === 'teammate-battle'
           ? latestMatchingSession(targetWeekend, /^race$/i) ?? latestMatchingSession(targetWeekend, /race/i)
-          : template === 'weekend-schedule' || template === 'circuit-insights'
+          : template === 'weekend-schedule' || template === 'circuit-insights' || template === 'race-predictions'
             ? earliestMatchingSession(targetWeekend, /.*/) ?? targetWeekend[0]
             : targetWeekend[0];
   const meta = extractRaceMeta(
@@ -2399,6 +2580,34 @@ const buildApiJob = async ({
     circuitName: meta.circuitName,
     brandLogoPath: pickBrandLogoPath(themeConfig.variant),
   };
+
+  if (template === 'race-predictions') {
+    const normalizedAuthor = normalizePredictionAuthor(predictionAuthor);
+    const normalizedType = normalizePredictionType(predictionType);
+    const author = predictionAuthors[normalizedAuthor];
+    const driverOptions = await loadF1DriverOptions({apiKey, apiHost, season, competitionId});
+    const driverNames = selectedPredictionDriverNames(predictionDrivers);
+    const entries = await predictionEntriesFromOptions(driverNames, driverOptions.drivers);
+    const displayRaceName = labelOverride?.trim() || meta.raceName;
+
+    return {
+      ...createBaseJob({
+        ...common,
+        title: `Palpites ${predictionTypeLabel(normalizedType)}`,
+        subtitle: predictionTypeLabel(normalizedType),
+        raceType: 'Race',
+        raceName: displayRaceName,
+        outputName:
+          outputName?.trim() ||
+          `palpites-${normalizedAuthor}-${predictionTypeSlug(normalizedType)}-${sanitize(displayRaceName)}-${season}.mp4`,
+      }),
+      predictionType: normalizedType,
+      predictionAuthor: normalizedAuthor,
+      authorName: author.authorName,
+      authorImagePath: author.authorImagePath,
+      entries,
+    };
+  }
 
   if (template === 'weekend-schedule') {
     const sessions = sortByPosition(
@@ -2794,7 +3003,10 @@ export const loadF1RaceOptions = async ({
       })
     : [];
   const selectedRaceType =
-    template === 'race-pace' || template === 'teammate-battle' || template === 'circuit-insights'
+    template === 'race-pace' ||
+    template === 'teammate-battle' ||
+    template === 'circuit-insights' ||
+    template === 'race-predictions'
       ? 'Race'
       : String(raceType ?? '').trim();
 
@@ -2863,6 +3075,61 @@ export const loadF1TeamOptions = async ({
   return {teams};
 };
 
+export const loadF1DriverOptions = async ({
+  apiKey,
+  apiHost = 'v1.formula-1.api-sports.io',
+  season,
+  competitionId = 1,
+} = {}) => {
+  if (!apiKey) {
+    return {
+      drivers: await localF1DriverOptions(),
+      dataSource: 'sample',
+      fallbackReason: 'Missing Formula 1 API key.',
+    };
+  }
+
+  try {
+    const standingsPayload = await fetchJson(
+      `https://${apiHost}/rankings/drivers?season=${season}`,
+      apiKey,
+      apiHost
+    );
+    const standingsRows = Array.isArray(standingsPayload.response) ? standingsPayload.response : [];
+    const entries = await normalizeRankingEntries(standingsRows, 'driver-standings');
+    const drivers = entries
+      .map((entry) => ({
+        id: sanitize(entry.name),
+        name: entry.name,
+        team: entry.team ?? entry.badge?.sublabel ?? '',
+        code: entry.badge?.label ?? deriveSurnameCode(entry.name),
+        driverNumber: entry.driverNumber,
+        position: entry.position,
+        badge: entry.badge,
+        accentColor: entry.accentColor ?? resolveTeamColor(entry.team),
+      }))
+      .filter((driver) => driver.name)
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', {sensitivity: 'base'}));
+
+    if (drivers.length >= 10) {
+      return {drivers, dataSource: 'api'};
+    }
+
+    return {
+      drivers: await localF1DriverOptions(),
+      dataSource: 'sample',
+      fallbackReason: 'API returned fewer than 10 drivers.',
+    };
+  } catch (error) {
+    return {
+      drivers: await localF1DriverOptions(),
+      dataSource: 'sample',
+      fallbackReason: error instanceof Error ? error.message : String(error),
+      competitionId,
+    };
+  }
+};
+
 export const prepareF1Job = async ({
   template,
   apiKey,
@@ -2876,6 +3143,9 @@ export const prepareF1Job = async ({
   competitionName,
   labelOverride,
   contextSubtitle,
+  predictionAuthor,
+  predictionType,
+  predictionDrivers,
   introTitle,
   introSubtitle,
   voiceoverText,
@@ -2907,6 +3177,9 @@ export const prepareF1Job = async ({
       competitionName,
       labelOverride,
       contextSubtitle,
+      predictionAuthor,
+      predictionType,
+      predictionDrivers,
       soundtrackPath,
       soundtrackVolume,
       introTitle,
@@ -2939,6 +3212,9 @@ export const prepareF1Job = async ({
       brandName,
       labelOverride,
       contextSubtitle,
+      predictionAuthor,
+      predictionType,
+      predictionDrivers,
       soundtrackPath,
       soundtrackVolume,
       introTitle,

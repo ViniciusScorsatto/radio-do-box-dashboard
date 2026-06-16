@@ -7,6 +7,7 @@ import type {
   F1ThemeConfig,
   TeamBadge,
 } from '../lib/types';
+import {F1_DATA_FONT, F1_DISPLAY_FONT, F1FontFaces} from './F1Typography';
 
 export const F1Frame = ({
   theme,
@@ -29,10 +30,11 @@ export const F1Frame = ({
         inset: 0,
         overflow: 'hidden',
         color: theme.text,
-        fontFamily: '"Arial Black", "Avenir Next Condensed", "Segoe UI", sans-serif',
+        fontFamily: F1_DATA_FONT,
         background: theme.background,
       }}
     >
+      <F1FontFaces />
       <div
         style={{
           position: 'absolute',
@@ -121,7 +123,8 @@ export const F1Header = ({
             fontSize: 62,
             lineHeight: 1,
             fontWeight: 900,
-            letterSpacing: -1.8,
+            fontFamily: F1_DISPLAY_FONT,
+            letterSpacing: 0,
             textTransform: 'uppercase',
             color: theme.variant === 'light' ? '#1a253a' : theme.text,
           }}
@@ -145,6 +148,7 @@ export const F1Header = ({
             fontSize: 34,
             lineHeight: 1,
             fontWeight: 900,
+            fontFamily: F1_DISPLAY_FONT,
             textTransform: 'uppercase',
             color: theme.variant === 'light' ? '#30405a' : theme.text,
           }}
