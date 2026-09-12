@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shorts por Copy/Cola — Radio do Box</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <nav class="top-nav dashboard-top-nav">
+        <a class="back-link" href="/">Todos os dashboards</a>
+        <div class="dashboard-status">
+          <span class="chip subtle">Formula 1</span>
+          <span class="chip paste-chip">Offline</span>
+          <span class="chip">Short vertical</span>
+        </div>
+      </nav>
+
+      <section class="dashboard-header f1-dashboard-header">
+        <div>
+          <p class="eyebrow">Radio do Box • F1</p>
+          <h1>Shorts por copy/cola</h1>
+        </div>
+        <p class="quick-status">Cole o resultado do Google, prepare o job e renderize o vídeo vertical.</p>
+      </section>
+
+      <section class="paste-production-grid">
+        <section class="paste-results-panel panel paste-results-page-panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Resultado da corrida</p>
+            <h2>Gerar Short sem API-Sports</h2>
+            <p class="panel-help">O parser aceita tanto linhas separadas quanto colunas tabuladas. Ele identifica circuito, posições, pilotos, equipes, número do carro, tempo e pontos.</p>
+          </div>
+          <span class="chip paste-chip">Sem API-Sports</span>
+        </div>
+
+        <div class="paste-results-grid">
+          <label>
+            Cole aqui o resultado completo
+            <textarea id="paste-results-input" class="paste-results-input" placeholder="Circuito: Circuito de Monza\n\nResultadosEncerrado\nPos. Piloto Tempo Pts..."></textarea>
+          </label>
+          <div class="paste-results-side">
+            <div class="two-up">
+              <label>Temporada<input id="paste-season" type="number" /></label>
+              <label>Nome do arquivo<input id="paste-output-name" placeholder="monza-resultado-2026.mp4" /></label>
+            </div>
+            <label>Nome exibido do circuito (opcional)<input id="paste-label-override" placeholder="Circuito de Monza" /></label>
+            <label>Trilha sonora<select id="paste-soundtrack-select"></select></label>
+            <label>
+              Volume da trilha
+              <div class="volume-control">
+                <input type="range" id="paste-soundtrack-volume-range" min="0" max="1" step="0.05" value="0.30" />
+                <input type="number" id="paste-soundtrack-volume" min="0" max="1" step="0.05" value="0.30" />
+              </div>
+            </label>
+            <div class="actions paste-actions">
+              <button type="button" id="paste-prepare-button">Preparar Short offline</button>
+              <button type="button" id="paste-render-button" class="secondary">Renderizar MP4</button>
+            </div>
+            <div id="paste-results-status" class="paste-results-status"></div>
+            <div id="paste-render-download" class="paste-render-download"></div>
+          </div>
+        </div>
+        </section>
+
+        <aside class="preview-rail paste-preview-rail">
+          <section class="panel preview-panel f1-preview-panel">
+            <div class="panel-header">
+              <h2>Video Preview</h2>
+              <span class="chip subtle">9:16</span>
+            </div>
+            <div class="preview-toolbar">
+              <label class="preview-url-field">
+                Studio URL
+                <input type="url" id="studio-url" placeholder="http://127.0.0.1:3000" />
+              </label>
+              <div class="preview-actions">
+                <button type="button" id="apply-preview-button" class="secondary">Load</button>
+                <a id="open-preview-link" class="preview-link" href="#" target="_blank" rel="noreferrer">Open Studio</a>
+              </div>
+            </div>
+            <div class="preview-frame-shell video-only-preview">
+              <iframe id="preview-frame" title="Remotion Studio preview"></iframe>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <section class="panel paste-howto-panel">
+        <div class="panel-header">
+          <h2>Fluxo</h2>
+          <span class="chip subtle">3 passos</span>
+        </div>
+        <ol>
+          <li>Copie o resultado completo no Google.</li>
+          <li>Cole no campo acima e clique em <strong>Preparar Short offline</strong>.</li>
+          <li>Confira o job e clique em <strong>Renderizar MP4</strong>.</li>
+        </ol>
+      </section>
+    </main>
+    <script src="/f1-paste-results/app.js"></script>
+  </body>
+</html>

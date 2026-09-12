@@ -142,28 +142,21 @@
                 <input type="text" name="outputName" placeholder="Opcional" />
               </label>
             </div>
+            <textarea name="manualAdjustments" hidden></textarea>
+            <div id="manual-adjustments-builder" class="manual-adjustments-builder"></div>
           </section>
 
           <details class="form-section compact-details" id="intro-voiceover-field">
-            <summary>Intro + Narração</summary>
+            <summary>Narração</summary>
             <div class="details-body">
-              <p>Texto automático em pt-BR para a abertura Radio do Box. Edite se quiser uma chamada especial.</p>
+              <p>Texto automático em pt-BR para TTS. Edite se quiser uma chamada especial.</p>
               <input type="hidden" name="voiceoverEnabled" value="false" />
+              <input type="hidden" name="introTitle" value="" />
+              <input type="hidden" name="introSubtitle" value="" />
               <label class="toggle-row">
                 <input type="checkbox" name="voiceoverEnabled" value="true" checked />
                 <span>Gerar narração TTS</span>
               </label>
-              <div class="two-up">
-                <label>
-                  Intro title
-                  <input type="text" name="introTitle" placeholder="Automático" />
-                </label>
-                <label>
-                  Intro subtitle
-                  <input type="text" name="introSubtitle" placeholder="Automático" />
-                </label>
-              </div>
-
               <label>
                 Speech text
                 <input type="text" name="voiceoverText" placeholder="Automático" />
@@ -226,8 +219,8 @@
           <section class="youtube-content-panel">
             <div class="panel-header">
               <div>
-                <h2>Shorts Metadata</h2>
-                <p>Gere textos a partir do job atual preparado pela API.</p>
+                <h2>Social Metadata</h2>
+                <p>Gere título, descrições, tags e comentário a partir do job atual preparado pela API.</p>
               </div>
               <span class="chip subtle">OpenAI</span>
             </div>
@@ -279,6 +272,13 @@
                   <button type="button" class="copy-button" data-copy-target="youtube-tags-output">Copiar</button>
                 </div>
                 <textarea id="youtube-tags-output" class="tags-textarea" readonly></textarea>
+              </div>
+              <div class="copy-field pinned-comment-copy-field">
+                <div class="copy-field-header">
+                  <span>Comentário fixado</span>
+                  <button type="button" class="copy-button" data-copy-target="youtube-pinned-comment-output">Copiar</button>
+                </div>
+                <textarea id="youtube-pinned-comment-output" class="pinned-comment-textarea" readonly></textarea>
               </div>
             </div>
           </section>

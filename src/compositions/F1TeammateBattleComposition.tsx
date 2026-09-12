@@ -145,9 +145,11 @@ const DriverHero = ({
 const StatBattleRow = ({
   block,
   accent,
+  showBar = true,
 }: {
   block: F1TeammateBattleScoreBlock;
   accent: string;
+  showBar?: boolean;
 }) => {
   const winner = compareScore(block);
   const higherIsBetter = block.higherIsBetter ?? true;
@@ -166,58 +168,70 @@ const StatBattleRow = ({
         alignItems: 'center',
         gap: 18,
         borderTop: `2px solid ${accent}88`,
-        padding: '17px 0 14px',
+        padding: showBar ? '17px 0 14px' : '23px 0 20px',
       }}
     >
       <div
         style={{
           fontSize: 58,
           lineHeight: 0.9,
-          color: winner === 'left' ? accent : '#f7f9ff',
+          color: showBar && winner === 'left' ? accent : '#f7f9ff',
           textAlign: 'left',
-          textShadow: winner === 'left' ? `0 0 16px ${accent}78` : 'none',
+          textShadow: showBar && winner === 'left' ? `0 0 16px ${accent}78` : 'none',
         }}
       >
         {displayValue(block, 'driver1')}
       </div>
-      <div style={{display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center'}}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: showBar ? 10 : 0,
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: showBar ? 72 : 48,
+        }}
+      >
         <div
           style={{
-            fontSize: 28,
+            fontSize: showBar ? 28 : 36,
             lineHeight: 1,
             color: '#ffffff',
             textTransform: 'uppercase',
             letterSpacing: 1,
+            textAlign: 'center',
           }}
         >
           {block.label}
         </div>
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            height: 34,
-            border: '2px solid rgba(255,255,255,0.85)',
-            background: '#ffffff',
-            overflow: 'hidden',
-          }}
-        >
+        {showBar ? (
           <div
             style={{
-              width: `${Math.max(4, Math.min(96, leftPercent))}%`,
-              height: '100%',
-              background: accent,
+              position: 'relative',
+              width: '100%',
+              height: 34,
+              border: '2px solid rgba(255,255,255,0.85)',
+              background: '#ffffff',
+              overflow: 'hidden',
             }}
-          />
-        </div>
+          >
+            <div
+              style={{
+                width: `${Math.max(4, Math.min(96, leftPercent))}%`,
+                height: '100%',
+                background: accent,
+              }}
+            />
+          </div>
+        ) : null}
       </div>
       <div
         style={{
           fontSize: 58,
           lineHeight: 0.9,
-          color: winner === 'right' ? accent : '#f7f9ff',
+          color: showBar && winner === 'right' ? accent : '#f7f9ff',
           textAlign: 'right',
-          textShadow: winner === 'right' ? `0 0 16px ${accent}78` : 'none',
+          textShadow: showBar && winner === 'right' ? `0 0 16px ${accent}78` : 'none',
         }}
       >
         {displayValue(block, 'driver2')}
@@ -258,17 +272,20 @@ export const F1TeammateBattleComposition = ({
   const accent = driver1.accentColor ?? driver2.accentColor ?? themeConfig.accent;
   const secondaryAccent = themeConfig.secondaryAccent || '#ffe06b';
   const scoreRows = [
-    raceFinishScore,
-    qualifyingScore,
-    championshipPoints,
-    wins,
-    podiums,
-    bestRaceFinish,
-    highestGridPosition,
-    dnfCount,
-    dnsCount,
-    dsqCount,
-  ].filter((row) => row && row.hasData !== false) as F1TeammateBattleScoreBlock[];
+    {block: raceFinishScore, showBar: true},
+    {block: qualifyingScore, showBar: true},
+    {block: championshipPoints, showBar: true},
+    {block: wins, showBar: true},
+    {block: podiums, showBar: true},
+    {block: bestRaceFinish, showBar: false},
+    {block: highestGridPosition, showBar: false},
+    {block: dnfCount, showBar: false},
+    {block: dnsCount, showBar: false},
+    {block: dsqCount, showBar: false},
+  ].filter((row) => row.block && row.block.hasData !== false) as Array<{
+    block: F1TeammateBattleScoreBlock;
+    showBar: boolean;
+  }>;
   const displayContextSubtitle =
     contextSubtitle || (raceName ? `Após o ${raceName.replace(/^GP\s+/i, 'GP de ')}` : '');
 
@@ -361,7 +378,12 @@ export const F1TeammateBattleComposition = ({
             }}
           >
             {scoreRows.map((row) => (
-              <StatBattleRow key={row.label} block={row} accent={accent} />
+              <StatBattleRow
+                key={row.block.label}
+                block={row.block}
+                accent={accent}
+                showBar={row.showBar}
+              />
             ))}
           </div>
 

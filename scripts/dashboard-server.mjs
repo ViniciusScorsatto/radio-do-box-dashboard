@@ -7,10 +7,15 @@ import {projectRoot} from './lib/video-system.mjs';
 import {
   getF1Options,
   loadCurrentF1Job,
+  loadF1Editorial,
   loadF1DriverOptions,
   loadF1RaceOptions,
+  loadF1SourceEvents,
+  loadF1SourceResults,
+  loadFiaSourceDocuments,
   loadF1TeamOptions,
   prepareF1Job,
+  prepareF1PasteJob,
 } from './lib/f1-system.mjs';
 
 const dashboardDir = path.join(projectRoot, 'dashboard');
@@ -84,6 +89,7 @@ const sendF1RaceOptions = async (response, url) => {
     const competitionId = Number(url.searchParams.get('competitionId') ?? '1');
     const template = url.searchParams.get('template') ?? 'race-results';
     const raceType = url.searchParams.get('raceType') ?? '';
+    const category = url.searchParams.get('category') ?? 'f1';
     const races = await loadF1RaceOptions({
       apiKey: process.env.F1_API_KEY,
       apiHost: process.env.F1_API_HOST ?? 'v1.formula-1.api-sports.io',
@@ -91,6 +97,7 @@ const sendF1RaceOptions = async (response, url) => {
       competitionId,
       template,
       raceType,
+      category,
     });
     sendJson(response, 200, {
       ok: true,
@@ -149,6 +156,55 @@ const sendF1DriverOptions = async (response, url) => {
   });
 };
 
+const sourceCategoryOrDefault = (value) =>
+  ['f1', 'f2', 'f3', 'f1-academy'].includes(value) ? value : 'f1';
+
+const sendF1SourceEvents = async (response, url) => {
+  try {
+    const season = Number(url.searchParams.get('season')) || new Date().getFullYear();
+    const category = sourceCategoryOrDefault(url.searchParams.get('category'));
+    const events = await loadF1SourceEvents({season, category});
+    sendJson(response, 200, {ok: true, season, category, events});
+  } catch (error) {
+    sendJson(response, 502, {ok: false, error: error instanceof Error ? error.message : String(error), events: []});
+  }
+};
+
+const sendF1SourceResults = async (response, url) => {
+  try {
+    const season = Number(url.searchParams.get('season')) || new Date().getFullYear();
+    const category = sourceCategoryOrDefault(url.searchParams.get('category'));
+    const eventUrl = url.searchParams.get('eventUrl');
+    const session = url.searchParams.get('session') || 'race';
+    const result = await loadF1SourceResults({season, category, eventUrl, session});
+    sendJson(response, 200, {ok: true, result});
+  } catch (error) {
+    sendJson(response, 502, {ok: false, error: error instanceof Error ? error.message : String(error)});
+  }
+};
+
+const sendFiaSourceDocuments = async (response, url) => {
+  try {
+    const season = Number(url.searchParams.get('season')) || new Date().getFullYear();
+    const category = sourceCategoryOrDefault(url.searchParams.get('category'));
+    const result = await loadFiaSourceDocuments({season, category});
+    sendJson(response, 200, {ok: true, result});
+  } catch (error) {
+    sendJson(response, 502, {ok: false, error: error instanceof Error ? error.message : String(error)});
+  }
+};
+
+const sendF1Editorial = async (response, url) => {
+  try {
+    const season = Number(url.searchParams.get('season')) || new Date().getFullYear();
+    const category = sourceCategoryOrDefault(url.searchParams.get('category'));
+    const result = await loadF1Editorial({season, category});
+    sendJson(response, 200, {ok: true, result});
+  } catch (error) {
+    sendJson(response, 502, {ok: false, error: error instanceof Error ? error.message : String(error), articles: []});
+  }
+};
+
 const normalizeVideoOutputName = (outputName) => {
   const requestedName = String(outputName ?? '').trim();
   if (!requestedName) {
@@ -165,8 +221,24 @@ const normalizeVideoOutputName = (outputName) => {
     : `${requestedName}.mp4`;
 };
 
-const prepareFormulaOneJob = async (body, {normalizeOutputName = normalizeVideoOutputName} = {}) =>
-  prepareF1Job({
+const normalizeScheduleImageOutputName = (outputName, format) => {
+  const raw = String(outputName ?? '').trim().replace(/\.(mp4|png)$/i, '');
+  const suffix = format === 'landscape' ? '-16x9' : '-9x16';
+  return `${raw || 'f1-schedule'}${suffix}.png`;
+};
+
+const prepareFormulaOneJob = async (body, {normalizeOutputName = normalizeVideoOutputName} = {}) => {
+  const currentJob = await loadCurrentF1Job().catch(() => null);
+  const currentManualAdjustments = Array.isArray(currentJob?.manualAdjustments)
+    ? currentJob.manualAdjustments.join('\n')
+    : currentJob?.manualAdjustments;
+  const submittedManualAdjustments = String(body.manualAdjustments ?? '').trim();
+  const manualAdjustments =
+    body.manualAdjustments !== undefined && submittedManualAdjustments
+      ? body.manualAdjustments
+      : currentManualAdjustments;
+
+  return prepareF1Job({
     template: body.template,
     apiKey: process.env.F1_API_KEY,
     apiHost: process.env.F1_API_HOST ?? 'v1.formula-1.api-sports.io',
@@ -174,7 +246,11 @@ const prepareFormulaOneJob = async (body, {normalizeOutputName = normalizeVideoO
     season: Number(body.season),
     raceType: body.raceType,
     teamId: body.teamId ? Number(body.teamId) : undefined,
-    raceId: body.raceId ? Number(body.raceId) : undefined,
+    raceId: body.raceId
+      ? body.template === 'weekend-schedule' || body.template === 'official-results'
+        ? String(body.raceId)
+        : Number(body.raceId)
+      : undefined,
     brandName: body.brandName,
     competitionName: body.competitionName,
     labelOverride: body.labelOverride,
@@ -190,8 +266,13 @@ const prepareFormulaOneJob = async (body, {normalizeOutputName = normalizeVideoO
     voiceoverEnabled: parseBooleanField(body.voiceoverEnabled, true),
     soundtrackPath: body.soundtrackPath,
     soundtrackVolume: body.soundtrackVolume,
+    manualAdjustments,
     outputName: normalizeOutputName(body.outputName),
+    category: body.category ?? 'f1',
+    eventUrl: body.eventUrl,
+    articleUrl: body.articleUrl,
   });
+};
 
 const largeStillDefaultNameByTemplate = {
   'race-results': 'f1-large-race-results',
@@ -229,7 +310,7 @@ const prepareFormulaOneLargeStillJob = async (body) => {
 const RADIO_DO_BOX_CONTENT_SYSTEM = `RADIO DO BOX - CONTENT GENERATION SYSTEM
 
 Objective:
-Generate YouTube Shorts metadata that maximizes swipe-through rate, retention, satisfaction, comments, and subscriber conversion.
+Generate social metadata for Radio do Box videos that maximizes swipe-through rate, retention, satisfaction, comments, and subscriber conversion.
 
 Channel position:
 The channel is not an F1 news channel. It explains what changed, why it matters, who gained momentum, who lost momentum, and what happens next.
@@ -290,6 +371,62 @@ Never ask: O que achou? Gostou do video? Comente abaixo.
 Radio do Box formula:
 Hook, statistic, consequence, question.`;
 
+const RADIO_DO_BOX_METADATA_GUIDE = `RADIO DO BOX METADATA GUIDE
+
+Language and tone:
+- Brazilian Portuguese.
+- Informed F1 fan voice: quick sports analysis, direct, energetic, but not fake clickbait.
+- Short, strong sentences. Moderate emoji use.
+- Always turn the fact into a consequence for the race, championship, driver, or team.
+- Do not invent results, times, drivers, teams, penalties, or championship narratives that are not supported by currentJob, storyBrief, dashboardContext, or editorialHint.
+
+Title:
+- Maximum 100 characters; ideal range is 45 to 80 characters.
+- Put the main keyword or subject at the start.
+- Do not use #Shorts in the title.
+- Use 0 to 2 emojis only when they help the hook.
+- Make the video content clear.
+- Preferred patterns by template:
+  race-results: [PILOTO] VENCE EM [LOCAL]! [CONSEQUENCIA]
+  qualifying-grid: [PILOTO] NA POLE! [GANCHO DA CLASSIFICACAO]
+  weekend-schedule: HORARIOS DO [GP] [TEMPORADA]
+  circuit-insights: [PISTA/CIRCUITO] E [CARACTERISTICA FORTE]
+  driver-standings: [PILOTO] DISPARA NO MUNDIAL!
+  constructor-standings: [EQUIPE] DISPARA NO MUNDIAL DE CONSTRUTORES
+  teammate-battle: [EQUIPE/PILOTO] GANHA FORCA NO DUELO INTERNO
+  race-predictions: PALPITES DO [GP]: [GANCHO DE CONSEQUENCIA]
+
+YouTube Shorts description:
+- 120 to 350 words.
+- Structure:
+  [Opening sentence with the main fact/consequence] [emoji]
+  [Quick context in 1 to 3 lines.]
+  [Short bullet list with the main points from the video.]
+  [Interpretive sentence about consequence for championship/team/driver.]
+  [Specific comment question.]
+  [CTA: Inscreva-se no Radio do Box para acompanhar toda a temporada da Formula 1!]
+  [Exactly 3 hashtags.]
+- Hashtags must be exactly 3 and be the final line:
+  #Shorts
+  category hashtag such as #F1, #F2, #F3, or #F1Academy
+  GP/theme hashtag such as #AustrianGP, #SpanishGP, #Formula1, or a relevant theme.
+
+TikTok and Instagram:
+- pt-BR, ready to paste.
+- Keep the same consequence-led story, shorter and more native to each platform.
+- End each one with exactly 5 relevant hashtags.
+
+YouTube tags:
+- Return at least 20 tags as an array, without #.
+- Prefer 20 to 24 tags and keep the total compact enough for YouTube.
+- Order tags like this: specific video type + GP, official/popular GP name, circuit, category, main drivers, main teams, broad F1 niche terms, radio do box.
+- Start specific and end broad.
+- No duplicates, no irrelevant tags.
+
+Pinned comment:
+- Return pinnedComment.
+- It must be short, debate-oriented, and specific. Ask about the championship, winner, title fight, team momentum, or driver pressure.`;
+
 const extractOpenAiText = (data) => {
   if (typeof data?.output_text === 'string') {
     return data.output_text;
@@ -330,6 +467,9 @@ const normalizeGeneratedYoutubeContent = (content) => {
   const description = String(content?.description ?? '').trim();
   const tiktokDescription = String(content?.tiktokDescription ?? '').trim();
   const instagramDescription = String(content?.instagramDescription ?? '').trim();
+  const pinnedComment = String(
+    content?.pinnedComment ?? content?.pinned_comment ?? content?.comment ?? ''
+  ).trim();
   const tags = Array.isArray(content?.tags)
     ? content.tags.map((tag) => String(tag ?? '').trim()).filter(Boolean)
     : String(content?.tags ?? '')
@@ -340,6 +480,12 @@ const normalizeGeneratedYoutubeContent = (content) => {
   if (!title || !description || !tiktokDescription || !instagramDescription || tags.length === 0) {
     throw new Error('OpenAI response missed title, descriptions, or tags.');
   }
+  if (title.length > 100) {
+    throw new Error('OpenAI response title exceeded 100 characters.');
+  }
+  if (/#Shorts/i.test(title)) {
+    throw new Error('OpenAI response included #Shorts in the title.');
+  }
 
   const youtubeHashtagCount = description.match(/#[\p{L}\p{N}_]+/gu)?.length ?? 0;
   const tiktokHashtagCount = tiktokDescription.match(/#[\p{L}\p{N}_]+/gu)?.length ?? 0;
@@ -347,6 +493,12 @@ const normalizeGeneratedYoutubeContent = (content) => {
 
   if (youtubeHashtagCount !== 3 || tiktokHashtagCount !== 5 || instagramHashtagCount !== 5) {
     throw new Error('OpenAI response did not include the required hashtag counts.');
+  }
+  if (tags.length < 20) {
+    throw new Error('OpenAI response did not include at least 20 YouTube tags.');
+  }
+  if (tags.some((tag) => tag.includes('#'))) {
+    throw new Error('OpenAI response included hashtag symbols in YouTube tags.');
   }
 
   return {
@@ -358,6 +510,7 @@ const normalizeGeneratedYoutubeContent = (content) => {
     tiktokDescription,
     instagramDescription,
     tags,
+    pinnedComment,
   };
 };
 
@@ -497,7 +650,8 @@ const generateF1YoutubeContent = async (body) => {
       description: 'YouTube description following the provided structure and ending with exactly 3 hashtags, each including #',
       tiktokDescription: 'TikTok description in pt-BR ending with exactly 5 hashtags, each including #',
       instagramDescription: 'Instagram Reels description in pt-BR ending with exactly 5 hashtags, each including #',
-      tags: ['12 to 18 YouTube tags, no hashtag symbol'],
+      tags: ['20 to 24 YouTube tags, no hashtag symbol, ordered from specific to broad'],
+      pinnedComment: 'short pt-BR pinned comment that sparks a specific debate',
     },
   };
 
@@ -511,7 +665,9 @@ const generateF1YoutubeContent = async (body) => {
       model,
       instructions: `${RADIO_DO_BOX_CONTENT_SYSTEM}
 
-Use currentJob and storyBrief as the source of truth. If editorialHint exists, use it only as a direction, never as a replacement for the job data. Infer the strongest consequence from the template and API data. Return only valid JSON with one title, one YouTube description, one TikTok description, one Instagram description, and YouTube tags. Do not wrap the JSON in markdown. The title must be the best single option: specific, consequence-led, and avoid broad category-killer wording. The YouTube description must be ready to paste and end with exactly 3 relevant hashtags, every hashtag including the # symbol. TikTok and Instagram descriptions must be ready to paste and must end with exactly 5 relevant hashtags each, every hashtag including the # symbol.`,
+${RADIO_DO_BOX_METADATA_GUIDE}
+
+Use currentJob and storyBrief as the source of truth. If editorialHint exists, use it only as a direction, never as a replacement for the job data. Infer the strongest consequence from the template and API data. Return only valid JSON with one title, one YouTube description, one TikTok description, one Instagram description, YouTube tags, and pinnedComment. Do not wrap the JSON in markdown. The title must be the best single option: specific, consequence-led, within 100 characters, and avoid broad category-killer wording. The YouTube description must be ready to paste, follow the Radio do Box structure, and end with exactly 3 relevant hashtags, every hashtag including the # symbol. TikTok and Instagram descriptions must be ready to paste and must end with exactly 5 relevant hashtags each, every hashtag including the # symbol. YouTube tags must have at least 20 items, no # symbol, ordered from specific to broad.`,
       input: [
         {
           role: 'user',
@@ -523,7 +679,7 @@ Use currentJob and storyBrief as the source of truth. If editorialHint exists, u
           ],
         },
       ],
-      max_output_tokens: 1400,
+      max_output_tokens: 2200,
     }),
   });
 
@@ -652,6 +808,26 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === 'GET' && url.pathname === '/api/f1/sources/events') {
+    await sendF1SourceEvents(response, url);
+    return;
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/f1/sources/results') {
+    await sendF1SourceResults(response, url);
+    return;
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/f1/sources/fia') {
+    await sendFiaSourceDocuments(response, url);
+    return;
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/f1/sources/editorial') {
+    await sendF1Editorial(response, url);
+    return;
+  }
+
   if (request.method === 'POST' && url.pathname === '/api/f1/youtube-content') {
     try {
       const body = await readBody(request);
@@ -693,6 +869,61 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === 'POST' && url.pathname === '/api/f1/paste-results/prepare') {
+    try {
+      const body = await readBody(request);
+      const result = await prepareF1PasteJob({
+        pastedText: body.pastedText,
+        season: Number(body.season),
+        competitionId: Number(body.competitionId ?? 1),
+        brandName: body.brandName,
+        competitionName: body.competitionName,
+        labelOverride: body.labelOverride,
+        soundtrackPath: body.soundtrackPath,
+        soundtrackVolume: body.soundtrackVolume,
+        outputName: body.outputName,
+        voiceoverEnabled: parseBooleanField(body.voiceoverEnabled, false),
+      });
+      sendJson(response, 200, {ok: true, ...result});
+    } catch (error) {
+      sendJson(response, 400, {
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+        errorType: error?.errorType ?? undefined,
+        errorDetails: error?.details ?? undefined,
+      });
+    }
+    return;
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/f1/paste-results/render') {
+    try {
+      const body = await readBody(request);
+      const result = await prepareF1PasteJob({
+        pastedText: body.pastedText,
+        season: Number(body.season),
+        competitionId: Number(body.competitionId ?? 1),
+        brandName: body.brandName,
+        competitionName: body.competitionName,
+        labelOverride: body.labelOverride,
+        soundtrackPath: body.soundtrackPath,
+        soundtrackVolume: body.soundtrackVolume,
+        outputName: body.outputName,
+        voiceoverEnabled: parseBooleanField(body.voiceoverEnabled, false),
+      });
+      const render = await runRender(result.job.compositionId, result.job.outputName);
+      sendJson(response, 200, {ok: true, ...result, render});
+    } catch (error) {
+      sendJson(response, 400, {
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+        errorType: error?.errorType ?? undefined,
+        errorDetails: error?.details ?? undefined,
+      });
+    }
+    return;
+  }
+
   if (request.method === 'POST' && url.pathname === '/api/f1/jobs/render') {
     try {
       const body = await readBody(request);
@@ -713,6 +944,19 @@ const server = http.createServer(async (request, response) => {
         errorType: error?.errorType ?? undefined,
         errorDetails: error?.details ?? undefined,
       });
+    }
+    return;
+  }
+
+  if (request.method === 'POST' && url.pathname === '/api/f1/jobs/render-png') {
+    try {
+      const body = await readBody(request);
+      const format = body.format === 'landscape' ? 'landscape' : 'vertical';
+      const result = await prepareFormulaOneJob({...body, outputName: normalizeScheduleImageOutputName(body.outputName, format)}, {normalizeOutputName: (name) => name});
+      const render = await runStill(format === 'landscape' ? 'F1WeekendScheduleLandscape' : 'F1WeekendScheduleShort', result.job.outputName);
+      sendJson(response, 200, {ok: true, message: 'PNG renderizado com sucesso.', job: result.job, render});
+    } catch (error) {
+      sendJson(response, 500, {ok: false, error: error instanceof Error ? error.message : String(error), errorType: error?.errorType ?? undefined, errorDetails: error?.details ?? undefined});
     }
     return;
   }
@@ -765,8 +1009,16 @@ const server = http.createServer(async (request, response) => {
     filePath = path.join(dashboardDir, 'index.html');
   } else if (url.pathname === '/f1' || url.pathname === '/f1/') {
     filePath = path.join(dashboardDir, 'f1', 'index.html');
+  } else if (url.pathname === '/f1-paste-results' || url.pathname === '/f1-paste-results/') {
+    filePath = path.join(dashboardDir, 'f1-paste-results', 'index.html');
   } else if (url.pathname === '/f1-large-videos' || url.pathname === '/f1-large-videos/') {
     filePath = path.join(dashboardDir, 'f1-large-videos', 'index.html');
+  } else if (url.pathname === '/f1-schedule' || url.pathname === '/f1-schedule/') {
+    filePath = path.join(dashboardDir, 'f1-schedule', 'index.html');
+  } else if (url.pathname === '/f1-official-results' || url.pathname === '/f1-official-results/') {
+    filePath = path.join(dashboardDir, 'f1-official-results', 'index.html');
+  } else if (url.pathname === '/f1-sources' || url.pathname === '/f1-sources/') {
+    filePath = path.join(dashboardDir, 'f1-sources', 'index.html');
   } else {
     filePath = path.join(dashboardDir, url.pathname);
   }

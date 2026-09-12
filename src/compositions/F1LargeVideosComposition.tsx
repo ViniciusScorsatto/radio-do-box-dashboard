@@ -98,6 +98,17 @@ const resolveConstructorLogo = (entry: F1RankingEntry | F1PodiumEntry) => {
   return constructorLogoOverrides[key] ?? entry.badge.imagePath ?? entry.badge.logoPath;
 };
 
+const constructorDisplayNameOverrides: Record<string, string> = {
+  mercedes: 'Mercedes-AMG',
+  'mercedes-amg-petronas': 'Mercedes-AMG',
+  'scuderia-ferrari': 'Scuderia Ferrari',
+  'mclaren-racing': 'McLaren Racing',
+  'red-bull-racing': 'Red Bull Racing',
+  'cadillac-formula-1-team': 'Cadillac F1 Team',
+};
+
+const constructorDisplayName = (value = '') => constructorDisplayNameOverrides[normalizeKey(value)] ?? value;
+
 export const F1LargeVideosComposition = ({job}: F1LargeVideosCompositionProps) => {
   const theme = job.themeConfig;
   const isRaceResults = job.template === 'race-results';
@@ -446,8 +457,9 @@ const StandingsBoard = ({
   theme: F1ThemeConfig;
   isConstructorStandings: boolean;
 }) => {
-  const leader = job.leader;
-  const rows = isConstructorStandings ? job.entries.slice(1, 10) : job.entries.slice(1, 22);
+  const displayEntries = job.entries;
+  const leader = isConstructorStandings ? job.leader : displayEntries[0] ?? job.leader;
+  const rows = isConstructorStandings ? displayEntries.slice(1, 11) : displayEntries.slice(1);
 
   return (
     <div
@@ -455,10 +467,10 @@ const StandingsBoard = ({
         position: 'absolute',
         left: 68,
         right: 68,
-        top: 248,
-        bottom: 96,
+        top: isConstructorStandings ? 214 : 248,
+        bottom: isConstructorStandings ? 72 : 96,
         display: 'grid',
-        gridTemplateColumns: '548px minmax(0, 1fr)',
+        gridTemplateColumns: isConstructorStandings ? '520px minmax(0, 1fr)' : '548px minmax(0, 1fr)',
         gap: 28,
       }}
     >
@@ -732,13 +744,14 @@ const LeaderPanel = ({
   theme: F1ThemeConfig;
   isConstructor: boolean;
 }) => {
+  const leaderValue = leader?.stat?.replace(/\s*pts$/i, '') ?? fallback?.value;
   const entry = leader
     ? {
         position: leader.position,
         name: leader.name,
         team: leader.team,
         badge: leader.badge,
-        value: leader.stat?.replace(/\s*pts$/i, ''),
+        value: leaderValue,
         secondaryValue: 'lider',
         accentColor: leader.accentColor,
       }
@@ -749,13 +762,14 @@ const LeaderPanel = ({
   }
 
   const logoPath = isConstructor ? resolveConstructorLogo(entry) : entry.badge.imagePath;
+  const displayName = isConstructor ? constructorDisplayName(entry.name) : entry.name;
 
   return (
     <div
       style={{
         position: 'relative',
         overflow: 'hidden',
-        padding: 32,
+        padding: isConstructor ? 28 : 32,
         border: `2px solid ${(entry.accentColor ?? theme.accent)}8a`,
         background:
           'linear-gradient(160deg, rgba(6,10,20,0.96), rgba(21,29,43,0.88) 64%, rgba(6,10,18,0.92))',
@@ -789,7 +803,7 @@ const LeaderPanel = ({
           alignItems: 'center',
           gap: 12,
           color: GOLD,
-          fontSize: 26,
+          fontSize: isConstructor ? 22 : 26,
           lineHeight: 1,
           fontWeight: 900,
           textTransform: 'uppercase',
@@ -800,8 +814,8 @@ const LeaderPanel = ({
       </div>
       <div
         style={{
-          marginTop: 28,
-          height: 312,
+          marginTop: isConstructor ? 22 : 28,
+          height: isConstructor ? 246 : 312,
           display: 'grid',
           placeItems: 'center',
           background:
@@ -813,8 +827,8 @@ const LeaderPanel = ({
           <Img
             src={staticFile(logoPath.replace(/^\//, ''))}
             style={{
-              width: isConstructor ? 238 : 282,
-              height: isConstructor ? 172 : 302,
+              width: isConstructor ? 214 : 282,
+              height: isConstructor ? 150 : 302,
               objectFit: isConstructor ? 'contain' : 'cover',
               objectPosition: 'center top',
               filter: 'drop-shadow(0 18px 28px rgba(0,0,0,0.38))',
@@ -826,22 +840,22 @@ const LeaderPanel = ({
       </div>
       <div
         style={{
-          marginTop: 28,
+          marginTop: isConstructor ? 20 : 28,
           fontFamily: DISPLAY_FONT,
-          fontSize: 56,
-          lineHeight: 0.94,
+          fontSize: isConstructor ? 48 : 56,
+          lineHeight: isConstructor ? 0.88 : 0.94,
           fontWeight: 900,
           color: '#ffffff',
           textTransform: 'uppercase',
         }}
       >
-        {entry.name}
+        {displayName}
       </div>
       {entry.team ? (
         <div
           style={{
-            marginTop: 12,
-            fontSize: 28,
+            marginTop: isConstructor ? 8 : 12,
+            fontSize: isConstructor ? 20 : 28,
             lineHeight: 1,
             fontWeight: 800,
             color: '#bdcadb',
@@ -854,11 +868,11 @@ const LeaderPanel = ({
       <div
         style={{
           position: 'absolute',
-          left: 32,
-          right: 32,
-          bottom: 28,
-          height: 112,
-          padding: '14px 20px',
+          left: isConstructor ? 28 : 32,
+          right: isConstructor ? 28 : 32,
+          bottom: isConstructor ? 22 : 28,
+          height: isConstructor ? 92 : 112,
+          padding: isConstructor ? '12px 18px' : '14px 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -869,7 +883,7 @@ const LeaderPanel = ({
         <div
           style={{
             color: '#c9d4e4',
-            fontSize: 18,
+            fontSize: isConstructor ? 15 : 18,
             lineHeight: 1,
             fontWeight: 900,
             textTransform: 'uppercase',
@@ -885,10 +899,10 @@ const LeaderPanel = ({
             color: GOLD,
           }}
         >
-          <span style={{fontFamily: DISPLAY_FONT, fontSize: 86, lineHeight: 0.86}}>
+          <span style={{fontFamily: DISPLAY_FONT, fontSize: isConstructor ? 70 : 86, lineHeight: 0.86}}>
             {valueOrDash(entry.value)}
           </span>
-          <span style={{fontSize: 28, fontWeight: 900, textTransform: 'uppercase'}}>pts</span>
+          <span style={{fontSize: isConstructor ? 22 : 28, fontWeight: 900, textTransform: 'uppercase'}}>pts</span>
         </div>
       </div>
     </div>
@@ -927,7 +941,7 @@ const BroadcastTable = ({
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 1fr) 164px',
         alignItems: 'center',
-        padding: compact ? '14px 22px' : '18px 26px',
+        padding: compact ? '14px 22px' : isConstructor ? '14px 24px' : '18px 26px',
         borderBottom: `4px solid ${theme.secondaryAccent}`,
         background:
           'linear-gradient(90deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02))',
@@ -936,7 +950,7 @@ const BroadcastTable = ({
       <div
         style={{
           fontFamily: DISPLAY_FONT,
-          fontSize: compact ? 32 : 36,
+          fontSize: compact ? 32 : isConstructor ? 32 : 36,
           lineHeight: 1,
           color: '#ffffff',
           textTransform: 'uppercase',
@@ -960,8 +974,8 @@ const BroadcastTable = ({
     <div
       style={{
         display: columns === 2 ? 'none' : 'grid',
-        gridTemplateColumns: '80px 76px minmax(0, 1fr) 142px',
-        padding: compact ? '8px 20px' : '10px 24px',
+        gridTemplateColumns: isConstructor ? '68px 66px minmax(0, 1fr) 126px' : '80px 76px minmax(0, 1fr) 142px',
+        padding: compact ? '8px 20px' : isConstructor ? '7px 20px' : '10px 24px',
         color: '#8796aa',
         fontSize: 12,
         lineHeight: 1,
@@ -1047,15 +1061,20 @@ const TableRow = ({
   compact: boolean;
 }) => {
   const logoPath = isConstructor ? resolveConstructorLogo(row) : row.badge.imagePath;
+  const displayName = isConstructor ? constructorDisplayName(row.name) : row.name;
 
   return (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: compact ? '46px 52px minmax(0, 1fr) 96px' : '80px 76px minmax(0, 1fr) 142px',
+        gridTemplateColumns: compact
+          ? '46px 52px minmax(0, 1fr) 96px'
+          : isConstructor
+            ? '68px 66px minmax(0, 1fr) 126px'
+            : '80px 76px minmax(0, 1fr) 142px',
         alignItems: 'center',
-        minHeight: compact ? 51 : isConstructor ? 74 : 64,
-        padding: compact ? '5px 12px 5px 0' : '7px 24px 7px 0',
+        minHeight: compact ? 51 : isConstructor ? 60 : 64,
+        padding: compact ? '5px 12px 5px 0' : isConstructor ? '4px 20px 4px 0' : '7px 24px 7px 0',
         borderBottom: '1px solid rgba(255,255,255,0.10)',
         background:
           row.position % 2 === 0
@@ -1067,7 +1086,7 @@ const TableRow = ({
         style={{
           color: row.position <= 3 ? GOLD : theme.secondaryAccent,
           fontFamily: DISPLAY_FONT,
-          fontSize: compact ? 25 : 34,
+          fontSize: compact ? 25 : isConstructor ? 29 : 34,
           lineHeight: 1,
           textAlign: 'center',
         }}
@@ -1079,8 +1098,8 @@ const TableRow = ({
           <Img
             src={staticFile(logoPath.replace(/^\//, ''))}
             style={{
-              width: compact ? 38 : isConstructor ? 54 : 48,
-              height: compact ? 38 : isConstructor ? 44 : 48,
+              width: compact ? 38 : isConstructor ? 48 : 48,
+              height: compact ? 38 : isConstructor ? 38 : 48,
               objectFit: isConstructor ? 'contain' : 'cover',
               objectPosition: 'center top',
               borderRadius: isConstructor ? 0 : 999,
@@ -1095,7 +1114,7 @@ const TableRow = ({
           style={{
             color: '#ffffff',
             fontFamily: DISPLAY_FONT,
-            fontSize: compact ? 18 : isConstructor ? 30 : 27,
+            fontSize: compact ? 18 : isConstructor ? 25 : 27,
             lineHeight: 1,
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
@@ -1103,7 +1122,7 @@ const TableRow = ({
             textOverflow: 'ellipsis',
           }}
         >
-          {row.name}
+          {displayName}
         </div>
         {!isConstructor && row.team ? (
           <div

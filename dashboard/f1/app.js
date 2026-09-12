@@ -40,10 +40,22 @@ const youtubeDescriptionOutput = document.getElementById('youtube-description-ou
 const tiktokDescriptionOutput = document.getElementById('tiktok-description-output');
 const instagramDescriptionOutput = document.getElementById('instagram-description-output');
 const youtubeTagsOutput = document.getElementById('youtube-tags-output');
+const youtubePinnedCommentOutput = document.getElementById('youtube-pinned-comment-output');
 const copyActiveDescriptionButton = document.getElementById('copy-active-description-button');
+const manualAdjustmentsBuilder = document.getElementById('manual-adjustments-builder');
+const pasteResultsInput = document.getElementById('paste-results-input');
+const pasteSeasonInput = document.getElementById('paste-season');
+const pasteOutputNameInput = document.getElementById('paste-output-name');
+const pasteLabelOverrideInput = document.getElementById('paste-label-override');
+const pasteSoundtrackSelect = document.getElementById('paste-soundtrack-select');
+const pastePrepareButton = document.getElementById('paste-prepare-button');
+const pasteRenderButton = document.getElementById('paste-render-button');
+const pasteResultsStatus = document.getElementById('paste-results-status');
+let manualAdjustmentsDraft = '';
 
 const apiBase = '/api/f1';
 const STUDIO_URL_KEY = 'f1-dashboard-studio-url';
+const MANUAL_ADJUSTMENTS_KEY = 'f1-dashboard-manual-adjustments';
 const templateCompositionMap = {
   'race-results': 'F1RaceResultsShort',
   'race-pace': 'F1RacePaceShort',
@@ -92,6 +104,9 @@ const setErrorBanner = (message) => {
 };
 
 const bannerMessageForErrorType = (errorType, fallbackMessage) => {
+  if (errorType === 'official_schedule_unavailable') {
+    return 'Não foi possível obter os horários oficiais no Formula1.com. Tente novamente.';
+  }
   if (errorType === 'network_error') {
     return 'Falha de rede ao buscar dados da API-Sports. Tente novamente.';
   }
@@ -201,6 +216,166 @@ const escapeHtml = (value) =>
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+
+const normalizeAdjustmentKey = (value) =>
+  String(value ?? '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '');
+
+const classificationEntriesForJob = (job) => {
+  if (!job || !['race-results', 'qualifying-grid'].includes(job.template)) {
+    return [];
+  }
+
+  const podium = Array.isArray(job.podium) ? job.podium : [];
+  const entries = Array.isArray(job.entries) ? job.entries : [];
+  return [...podium, ...entries]
+    .filter((entry) => entry?.name)
+    .sort((a, b) => Number(a.position ?? 999) - Number(b.position ?? 999));
+};
+
+const manualAdjustmentMap = () => {
+  const map = new Map();
+  String(
+    manualAdjustmentsDraft ||
+      form.elements.manualAdjustments?.value ||
+      localStorage.getItem(MANUAL_ADJUSTMENTS_KEY) ||
+      ''
+  )
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .forEach((line) => {
+      const timeMatch = line.match(/([+-]?\d+(?:[.,]\d+)?)\s*(?:s|sec|seg|segundo|segundos)\b/i);
+      const positionMatch = line.match(/([+-]?\d+)\s*(?:pos|posicao|posicoes|posição|posições|places?|grid)\b/i);
+      if (!timeMatch && !positionMatch) {
+        return;
+      }
+      const driverName = line
+        .replace(timeMatch?.[0] ?? '', '')
+        .replace(positionMatch?.[0] ?? '', '')
+        .trim();
+      if (driverName) {
+        map.set(normalizeAdjustmentKey(driverName), {
+          seconds: timeMatch?.[1]?.trim() ?? '',
+          positions: positionMatch?.[1]?.replace(/^\+/, '').trim() ?? '',
+        });
+      }
+    });
+  return map;
+};
+
+const syncManualAdjustmentsFromBuilder = () => {
+  if (!manualAdjustmentsBuilder || !form.elements.manualAdjustments) {
+    return;
+  }
+
+  const lines = [...manualAdjustmentsBuilder.querySelectorAll('[data-manual-adjustment-row]')]
+    .map((row) => {
+      const driver = row.dataset.manualAdjustmentRow;
+      const seconds = row.querySelector('[data-manual-adjustment-seconds]')?.value.trim();
+      const positions = row.querySelector('[data-manual-adjustment-positions]')?.value.trim();
+      const parts = [];
+      if (seconds) {
+        parts.push(`+${seconds.replace(/^\+/, '')}s`);
+      }
+      if (positions) {
+        parts.push(`+${positions.replace(/^\+/, '')} pos`);
+      }
+      return parts.length > 0 ? `${driver} ${parts.join(' ')}` : '';
+    })
+    .filter(Boolean);
+  form.elements.manualAdjustments.value = lines.join('\n');
+  manualAdjustmentsDraft = form.elements.manualAdjustments.value;
+  localStorage.setItem(MANUAL_ADJUSTMENTS_KEY, manualAdjustmentsDraft);
+};
+
+const preserveManualAdjustmentsPayload = () => {
+  if (!form.elements.manualAdjustments) {
+    return;
+  }
+  if (!form.elements.manualAdjustments.value && manualAdjustmentsDraft) {
+    form.elements.manualAdjustments.value = manualAdjustmentsDraft;
+  }
+  if (!manualAdjustmentsDraft && form.elements.manualAdjustments.value) {
+    manualAdjustmentsDraft = form.elements.manualAdjustments.value;
+  }
+  if (manualAdjustmentsDraft) {
+    localStorage.setItem(MANUAL_ADJUSTMENTS_KEY, manualAdjustmentsDraft);
+  }
+};
+
+const renderManualAdjustmentsBuilder = (job) => {
+  if (!manualAdjustmentsBuilder) {
+    return;
+  }
+
+  if (!manualAdjustmentsDraft && !form.elements.manualAdjustments?.value) {
+    form.elements.manualAdjustments.value = Array.isArray(job?.manualAdjustments)
+      ? job.manualAdjustments.join('\n')
+      : job?.manualAdjustments ?? localStorage.getItem(MANUAL_ADJUSTMENTS_KEY) ?? '';
+    manualAdjustmentsDraft = form.elements.manualAdjustments.value;
+  }
+
+  const rows = classificationEntriesForJob(job);
+  if (rows.length === 0) {
+    manualAdjustmentsBuilder.innerHTML =
+      '<div class="manual-adjustments-empty">Prepare um job de Resultado ou Grid para listar pilotos ajustáveis.</div>';
+    return;
+  }
+
+  const existing = manualAdjustmentMap();
+  manualAdjustmentsBuilder.innerHTML = `
+    <div class="manual-adjustments-title">
+      <strong>Ajustes manuais</strong>
+      <span>Preencha somente quem recebeu punição. O prepare/render recalcula a ordem.</span>
+    </div>
+    <div class="manual-adjustments-header">
+      <span>Pos</span>
+      <span>Piloto</span>
+      <span>Equipe</span>
+      <span>Tempo +s</span>
+      <span>Pos. perdidas</span>
+    </div>
+    ${rows
+      .map((entry) => {
+        const key = normalizeAdjustmentKey(entry.name);
+        const existingValue = existing.get(key) ?? {};
+        return `
+          <div class="manual-adjustments-row" data-manual-adjustment-row="${escapeHtml(entry.name)}">
+            <span class="manual-adjustments-position">P${escapeHtml(String(entry.position ?? ''))}</span>
+            <span class="manual-adjustments-driver">${escapeHtml(entry.name)}</span>
+            <span class="manual-adjustments-team">${escapeHtml(entry.team || entry.badge?.sublabel || '')}</span>
+            <input
+              type="number"
+              step="0.001"
+              min="0"
+              inputmode="decimal"
+              data-manual-adjustment-seconds
+              value="${escapeHtml(existingValue.seconds ?? '')}"
+              placeholder="5.000"
+            />
+            <input
+              type="number"
+              step="1"
+              min="0"
+              inputmode="numeric"
+              data-manual-adjustment-positions
+              value="${escapeHtml(existingValue.positions ?? '')}"
+              placeholder="3"
+            />
+          </div>
+        `;
+      })
+      .join('')}
+  `;
+  manualAdjustmentsBuilder
+    .querySelectorAll('[data-manual-adjustment-seconds], [data-manual-adjustment-positions]')
+    .forEach((input) => input.addEventListener('input', syncManualAdjustmentsFromBuilder));
+};
 
 const updateDashboardMeta = () => {
   const templateLabel = getSelectedOptionLabel(templateSelect) || 'template';
@@ -348,6 +523,7 @@ const renderCurrentJob = (job) => {
     if (dashboardQuickStatus) {
       dashboardQuickStatus.textContent = 'Escolha um template de F1, selecione o GP quando precisar e prepare o preview.';
     }
+    renderManualAdjustmentsBuilder(null);
     return;
   }
 
@@ -364,7 +540,11 @@ const renderCurrentJob = (job) => {
           ? `${job.teamName} • ${job.driver1.code} x ${job.driver2.code}`
         : `${job.entries.length}${job.podium ? ` + ${job.podium.length} no topo` : ''}`;
 
-  const warningLine = Array.isArray(job.warnings) && job.warnings.length > 0 ? job.warnings[0] : 'Fonte: API';
+  const warningLine = job.dataSource === 'formula1.com'
+    ? 'Fonte: Formula1.com • horário de Brasília'
+    : job.dataSource === 'paste'
+    ? 'Fonte: resultado colado • offline'
+    : Array.isArray(job.warnings) && job.warnings.length > 0 ? job.warnings[0] : 'Fonte: API';
 
   if (dashboardQuickStatus) {
     dashboardQuickStatus.textContent = `${job.title} • ${job.subtitle} • ${detailLine}`;
@@ -382,6 +562,7 @@ const renderCurrentJob = (job) => {
       </div>
     </div>
   `;
+  renderManualAdjustmentsBuilder(job);
 };
 
 const setRenderDownload = (job, render) => {
@@ -660,6 +841,12 @@ const loadOptions = async () => {
   soundtrackSelect.innerHTML = (data.soundtrackPresets ?? [])
     .map((preset) => `<option value="${preset.value}">${preset.label}</option>`)
     .join('');
+  if (pasteSoundtrackSelect) {
+    pasteSoundtrackSelect.innerHTML = soundtrackSelect.innerHTML;
+  }
+  if (pasteSeasonInput) {
+    pasteSeasonInput.value = String(new Date().getFullYear());
+  }
 
   const currentJob = data.currentJob;
   if (currentJob) {
@@ -685,6 +872,10 @@ const loadOptions = async () => {
     }
     form.elements.labelOverride.value =
       currentJob.template === 'race-predictions' ? currentJob.raceName ?? '' : currentJob.subtitle;
+    form.elements.manualAdjustments.value = Array.isArray(currentJob.manualAdjustments)
+      ? currentJob.manualAdjustments.join('\n')
+      : currentJob.manualAdjustments ?? localStorage.getItem(MANUAL_ADJUSTMENTS_KEY) ?? '';
+    manualAdjustmentsDraft = form.elements.manualAdjustments.value;
     form.elements.brandName.value = currentJob.brandName;
     form.elements.outputName.value = isVideoOutputName(currentJob.outputName) ? currentJob.outputName : '';
     form.elements.introTitle.value = currentJob.introTitle ?? '';
@@ -706,6 +897,9 @@ const loadOptions = async () => {
     form.elements.predictionAuthor.value = 'vini';
     form.elements.predictionType.value = 'race';
     ensurePredictionDriverFields();
+    form.elements.manualAdjustments.value = '';
+    manualAdjustmentsDraft = localStorage.getItem(MANUAL_ADJUSTMENTS_KEY) ?? '';
+    form.elements.manualAdjustments.value = manualAdjustmentsDraft;
     form.elements.brandName.value = 'Radio do Box';
     form.elements.introTitle.value = '';
     form.elements.introSubtitle.value = '';
@@ -805,11 +999,14 @@ const submitJob = async (endpoint, actionLabel) => {
   try {
     setBusy(true);
     setErrorBanner('');
+    syncManualAdjustmentsFromBuilder();
+    preserveManualAdjustmentsPayload();
+    const payload = formDataToObject();
     log(`${actionLabel}…`);
     const response = await fetch(`${apiBase}${endpoint}`, {
       method: 'POST',
       headers: {'content-type': 'application/json'},
-      body: JSON.stringify(formDataToObject()),
+      body: JSON.stringify(payload),
     });
 
     const data = await response.json();
@@ -844,6 +1041,54 @@ const submitJob = async (endpoint, actionLabel) => {
   }
 };
 
+const setPasteStatus = (message, isError = false) => {
+  pasteResultsStatus.textContent = message;
+  pasteResultsStatus.classList.toggle('error', isError);
+};
+
+const submitPastedResult = async (render = false) => {
+  const pastedText = pasteResultsInput.value.trim();
+  if (!pastedText) {
+    setPasteStatus('Cole o resultado da corrida antes de continuar.', true);
+    return;
+  }
+
+  pastePrepareButton.disabled = true;
+  pasteRenderButton.disabled = true;
+  setPasteStatus(render ? 'Renderizando o Short offline…' : 'Interpretando resultado e preparando preview…');
+  try {
+    const response = await fetch(`${apiBase}/paste-results/${render ? 'render' : 'prepare'}`, {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({
+        pastedText,
+        season: pasteSeasonInput.value,
+        outputName: pasteOutputNameInput.value,
+        labelOverride: pasteLabelOverrideInput.value,
+        soundtrackPath: pasteSoundtrackSelect.value,
+        soundtrackVolume: form.elements.soundtrackVolume?.value || '0.30',
+        voiceoverEnabled: false,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || 'Não foi possível interpretar o resultado colado.');
+    }
+    templateSelect.value = 'race-results';
+    renderCurrentJob(data.job);
+    setRenderDownload(data.job, data.render);
+    setPasteStatus(data.render?.outputPath ? `MP4 pronto: ${data.job.outputName}` : data.message);
+    log(data.message || 'Resultado colado preparado offline.');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    setPasteStatus(message, true);
+    log(message);
+  } finally {
+    pastePrepareButton.disabled = false;
+    pasteRenderButton.disabled = false;
+  }
+};
+
 const setYoutubeStatus = (message, isError = false) => {
   youtubeContentStatus.textContent = message;
   youtubeContentStatus.classList.toggle('error', isError);
@@ -857,6 +1102,7 @@ const renderYoutubeContent = (content) => {
   youtubeTagsOutput.value = Array.isArray(content.tags)
     ? content.tags.join(', ')
     : String(content.tags ?? '');
+  youtubePinnedCommentOutput.value = content.pinnedComment ?? '';
   youtubeContentOutput.hidden = false;
 };
 
@@ -882,7 +1128,7 @@ const generateYoutubeContent = async () => {
 
     renderYoutubeContent(data.content);
     setYoutubeStatus(`Conteúdo gerado com ${data.model}.`);
-    log('Conteúdo de YouTube Shorts gerado.');
+    log('Conteúdo para redes sociais gerado.');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     setYoutubeStatus(message, true);
@@ -929,6 +1175,8 @@ const copyFieldValue = async (button) => {
 
 prepareButton.addEventListener('click', () => submitJob('/jobs/prepare', 'Preparando job'));
 renderButton.addEventListener('click', () => submitJob('/jobs/render', 'Renderizando video'));
+pastePrepareButton?.addEventListener('click', () => submitPastedResult(false));
+pasteRenderButton?.addEventListener('click', () => submitPastedResult(true));
 applyPreviewButton.addEventListener('click', updatePreview);
 generateYoutubeContentButton.addEventListener('click', generateYoutubeContent);
 document.querySelectorAll('[data-copy-target]').forEach((button) => {

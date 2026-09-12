@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Horários Oficiais • Rádio do Box</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell shell-home schedule-shell">
+      <nav class="top-nav dashboard-top-nav">
+        <a class="back-link" href="/">All dashboards</a>
+        <div class="dashboard-status">
+          <span class="chip subtle" id="category-chip">F1</span>
+          <span class="chip" id="source-chip-nav">Fonte oficial</span>
+          <span class="chip subtle">America/Sao_Paulo</span>
+        </div>
+      </nav>
+      <section class="dashboard-header f1-dashboard-header">
+        <div>
+          <p class="eyebrow">Radio do Box • categoria oficial</p>
+          <h1>Horários Oficiais</h1>
+        </div>
+        <p class="quick-status">Agenda completa do fim de semana, convertida para Brasília.</p>
+      </section>
+      <section class="schedule-production-grid">
+        <section class="panel schedule-control-panel">
+          <div class="panel-header">
+            <div><p class="eyebrow">Fonte oficial</p><h2>Escolha o GP</h2></div>
+            <span class="chip" id="source-chip">Carregando</span>
+          </div>
+          <label>Categoria<select id="category-select"><option value="f1">Formula 1</option><option value="f2">Formula 2</option><option value="f3">Formula 3</option><option value="f1-academy">F1 Academy</option></select></label>
+          <div class="two-up">
+            <label>Temporada<input id="season-input" type="number" min="1950" step="1" /></label>
+            <label>GP<select id="race-select" disabled><option>Carregando calendário oficial…</option></select></label>
+          </div>
+          <div class="two-up">
+            <label>Título do GP (opcional)<input id="label-input" placeholder="Ex.: GP da Espanha" /></label>
+            <label>Nome do arquivo (opcional)<input id="output-input" placeholder="gp-espanha-horarios-2026.mp4" /></label>
+          </div>
+          <label>Trilha sonora<select id="soundtrack-select"></select></label>
+          <label class="toggle-row schedule-toggle"><input id="voiceover-input" type="checkbox" /><span>Gerar narração em pt-BR</span></label>
+          <div class="actions">
+            <button id="prepare-button" type="button">Preparar Short</button>
+            <button id="render-button" type="button" class="secondary">Renderizar MP4</button>
+            <button id="png-button" type="button" class="secondary">Exportar PNG 9:16</button>
+            <button id="png-landscape-button" type="button" class="secondary">Exportar PNG 16:9</button>
+          </div>
+          <p id="status-message" class="schedule-status"></p>
+        </section>
+        <section class="panel schedule-preview-panel">
+          <div class="panel-header">
+            <div><p class="eyebrow">Horário de Brasília</p><h2 id="race-heading">Próximo GP</h2></div>
+            <span class="chip subtle" id="session-count">0 sessões</span>
+          </div>
+          <div id="sessions-list" class="official-sessions-list"><p class="schedule-empty">Selecione um GP para carregar os horários oficiais.</p></div>
+        </section>
+      </section>
+      <section class="panel schedule-output-panel">
+        <div class="panel-header"><h2>Resultado</h2><div class="actions"><a id="download-link" class="preview-link" href="#" hidden download>Download MP4</a><a id="download-png-link" class="preview-link" href="#" hidden download>Download PNG</a></div></div>
+        <p id="output-message" class="schedule-empty">O job preparado aparecerá aqui.</p>
+      </section>
+    </main>
+    <script type="module" src="/f1-schedule/app.js"></script>
+  </body>
+</html>

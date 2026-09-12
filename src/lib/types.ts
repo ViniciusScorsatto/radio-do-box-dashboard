@@ -9,7 +9,8 @@ export type F1VideoTemplate =
   | 'driver-standings'
   | 'constructor-standings'
   | 'weekend-schedule'
-  | 'race-predictions';
+  | 'race-predictions'
+  | 'editorial';
 export type VideoTemplate = F1VideoTemplate;
 
 export type TeamBadge = {
@@ -52,7 +53,8 @@ export type F1TemplateConfig = {
     | 'F1DriverStandingsShort'
     | 'F1ConstructorStandingsShort'
     | 'F1WeekendScheduleShort'
-    | 'F1RacePredictionsShort';
+    | 'F1RacePredictionsShort'
+    | 'F1EditorialShort';
   themeVariant: F1ThemeVariant;
   durationInFrames: number;
   headlinePrefix?: string;
@@ -69,7 +71,7 @@ type BaseVideoJob = {
   soundtrackVolume?: number;
   outputName: string;
   durationInFrames: number;
-  dataSource?: 'api' | 'sample';
+  dataSource?: 'api' | 'fia' | 'formula1.com' | 'fiaformula2.com' | 'fiaformula3.com' | 'f1academy.com' | 'sample' | 'paste';
   warnings?: string[];
 };
 
@@ -100,6 +102,11 @@ export type F1ScheduleEntry = {
   title: string;
   timeLabel: string;
   subtitle?: string;
+  startAt?: string;
+  endAt?: string;
+  source?: 'formula1.com' | 'fiaformula2.com' | 'fiaformula3.com' | 'f1academy.com' | 'api' | 'sample';
+  sourceUrl?: string;
+  timeZone?: string;
 };
 
 export type F1CircuitInsightsStat = {
@@ -123,7 +130,7 @@ type F1BaseVideoJob = BaseVideoJob & {
   title: string;
   subtitle: string;
   raceType?: string;
-  raceId?: number;
+  raceId?: number | string;
   raceName?: string;
   countryCode?: string;
   circuitName?: string;
@@ -133,6 +140,7 @@ type F1BaseVideoJob = BaseVideoJob & {
   voiceoverEnabled?: boolean;
   voiceoverPath?: string;
   voiceoverLabel?: string;
+  manualAdjustments?: string[];
 };
 
 export type F1RaceResultsJob = F1BaseVideoJob & {
@@ -250,6 +258,9 @@ export type F1ConstructorStandingsJob = F1BaseVideoJob & {
 export type F1WeekendScheduleJob = F1BaseVideoJob & {
   template: 'weekend-schedule';
   compositionId: 'F1WeekendScheduleShort';
+  category?: 'f1' | 'f2' | 'f3' | 'f1-academy';
+  categoryLabel?: string;
+  sourceLabel?: string;
   sessions: F1ScheduleEntry[];
 };
 
@@ -272,6 +283,17 @@ export type F1RacePredictionsJob = F1BaseVideoJob & {
   entries: F1RankingEntry[];
 };
 
+export type F1EditorialJob = F1BaseVideoJob & {
+  template: 'editorial';
+  compositionId: 'F1EditorialShort';
+  sourceLabel: string;
+  sourceUrl: string;
+  headline: string;
+  deck?: string;
+  body?: string;
+  articleUrl: string;
+};
+
 export type F1VideoJob =
   | F1RaceResultsJob
   | F1RacePaceJob
@@ -281,6 +303,7 @@ export type F1VideoJob =
   | F1DriverStandingsJob
   | F1ConstructorStandingsJob
   | F1WeekendScheduleJob
-  | F1RacePredictionsJob;
+  | F1RacePredictionsJob
+  | F1EditorialJob;
 
 export type VideoJob = F1VideoJob;

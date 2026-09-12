@@ -1,68 +1,31 @@
-import {AbsoluteFill} from 'remotion';
-import {F1Frame, F1Header, F1ScheduleList, RadioDoBoxMark} from '../components/F1Shared';
+import {AbsoluteFill, Img, staticFile, useVideoConfig} from 'remotion';
 import {F1ProductionBed} from '../components/F1ProductionBed';
+import {RadioDoBoxMark} from '../components/F1Shared';
+import {F1FontFaces, F1_BEBAS_FONT, F1_DATA_FONT, F1_OSWALD_FONT, F1_TEKO_FONT} from '../components/F1Typography';
 import type {F1ScheduleEntry, F1ThemeConfig} from '../lib/types';
 
-type F1ScheduleCompositionProps = {
-  title: string;
-  subtitle: string;
-  themeConfig: F1ThemeConfig;
-  sessions: F1ScheduleEntry[];
-  brandName: string;
-  brandLogoPath?: string;
-  backgroundImagePath?: string;
-  soundtrackPath?: string;
-  soundtrackVolume?: number;
-  voiceoverPath?: string;
-  introTitle?: string;
-  introSubtitle?: string;
-};
+type Props = {title: string; subtitle: string; themeConfig: F1ThemeConfig; sessions: F1ScheduleEntry[]; brandName: string; brandLogoPath?: string; backgroundImagePath?: string; soundtrackPath?: string; soundtrackVolume?: number; voiceoverPath?: string; introTitle?: string; introSubtitle?: string; category?: string; categoryLabel?: string; sourceLabel?: string; circuitName?: string; countryCode?: string};
+const day = (s: string) => s.replace(/,\s*\d{2}\/\d{2}/, '').trim();
+const date = (s: string) => s.match(/\d{2}\/\d{2}/)?.[0] ?? '';
+const sessionName = (s: string) => s;
+const sessionTime = (s: string) => s.replace(/(\d{2}):(\d{2})/g, '$1h$2').replace(/\s*-\s*/g, ' – ');
+const ScheduleClockIcon = ({accent}: {accent: string}) => <svg viewBox="0 0 48 48" width="30" height="30" aria-label="Horário" role="img" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 5h12M24 5v5M17 9l-3-3M31 9l3-3" stroke={accent} strokeWidth="3" strokeLinecap="square"/><circle cx="24" cy="27" r="14" stroke={accent} strokeWidth="3"/><path d="M24 19v9l6 4" stroke={accent} strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter"/><path d="M24 13v2M38 27h-2M24 41v-2M10 27h2" stroke={accent} strokeWidth="2"/></svg>;
 
-export const F1ScheduleComposition = ({
-  title,
-  subtitle,
-  themeConfig,
-  sessions,
-  brandName,
-  brandLogoPath,
-  backgroundImagePath,
-  soundtrackPath,
-  soundtrackVolume,
-  voiceoverPath,
-  introTitle,
-  introSubtitle,
-}: F1ScheduleCompositionProps) => {
-  return (
-    <AbsoluteFill>
-      <F1Frame theme={themeConfig} backgroundImagePath={backgroundImagePath}>
-        <div
-          style={{
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-            padding: '28px 34px 26px',
-          }}
-        >
-          <F1Header title={title} subtitle={subtitle} theme={themeConfig} />
-          <div style={{flex: 1, display: 'flex', alignItems: 'center'}}>
-            <F1ScheduleList sessions={sessions} theme={themeConfig} />
-          </div>
-          <div style={{marginTop: 'auto', paddingTop: 16}}>
-            <RadioDoBoxMark theme={themeConfig} logoPath={brandLogoPath} />
-          </div>
-        </div>
-      </F1Frame>
-      <F1ProductionBed
-        theme={themeConfig}
-        brandName={brandName}
-        brandLogoPath={brandLogoPath}
-        soundtrackPath={soundtrackPath}
-        soundtrackVolume={soundtrackVolume}
-        voiceoverPath={voiceoverPath}
-        introTitle={introTitle}
-        introSubtitle={introSubtitle}
-      />
-    </AbsoluteFill>
-  );
+const DayBadge = ({label, dateText, accent, count}: {label: string; dateText: string; accent: string; count: number}) => <div style={{width: 180, height: 334, border: `2px solid ${accent}`, clipPath: 'polygon(0 14px, 14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.48)', flexShrink: 0}}><div style={{fontSize: 112, lineHeight: .78, fontWeight: 800, color: '#fff', fontFamily: F1_TEKO_FONT}}>{dateText.split('/')[0] || '—'}</div><div style={{fontSize: 68, color: accent, fontWeight: 800, letterSpacing: 2, fontFamily: F1_TEKO_FONT}}>SET</div><div style={{fontSize: 22, color: '#fff', textTransform: 'uppercase', fontWeight: 600, marginTop: 10, fontFamily: F1_DATA_FONT}}>{label}</div></div>;
+const SessionRow = ({session, accent}: {session: F1ScheduleEntry; accent: string}) => <div style={{display: 'grid', gridTemplateColumns: '34px minmax(0, 1fr)', columnGap: 14, alignItems: 'center', minHeight: 164, borderBottom: `2px solid ${accent}cc`, padding: '7px 0'}}><div style={{width: 32, height: 32, border: `2px solid ${accent}`, clipPath: 'polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><ScheduleClockIcon accent={accent} /></div><div><div style={{fontSize: 38, color: '#fff', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 1, fontFamily: F1_TEKO_FONT}}>{sessionName(session.title)}</div><div style={{fontSize: 64, lineHeight: .88, color: '#fff', fontFamily: F1_TEKO_FONT, fontWeight: 800, letterSpacing: 1}}>{sessionTime(session.timeLabel)}</div></div></div>;
+const countryFlagColors: Record<string, [string, string, string]> = {
+  AUS: ['#00843D', '#FFCD00', '#00843D'], AUT: ['#E10600', '#FFFFFF', '#E10600'], AZE: ['#00A3DD', '#E10600', '#00A650'], BEL: ['#111111', '#FFCD00', '#E10600'], BHR: ['#CE1126', '#FFFFFF', '#CE1126'], BRA: ['#009C3B', '#FFDF00', '#002776'], CAN: ['#E10600', '#FFFFFF', '#E10600'], CHN: ['#E10600', '#FFDE00', '#E10600'], DEU: ['#111111', '#E10600', '#FFCD00'], ESP: ['#E10600', '#FFCC00', '#E10600'], FRA: ['#0055A4', '#FFFFFF', '#EF4135'], GBR: ['#012169', '#FFFFFF', '#C8102E'], HUN: ['#CE2939', '#FFFFFF', '#477050'], ITA: ['#009246', '#FFFFFF', '#CE2B37'], JPN: ['#FFFFFF', '#BC002D', '#FFFFFF'], MEX: ['#006847', '#FFFFFF', '#CE1126'], MCO: ['#E10600', '#FFFFFF', '#E10600'], NLD: ['#AE1C28', '#FFFFFF', '#21468B'], PRT: ['#046A38', '#E10600', '#E10600'], QAT: ['#8A1538', '#FFFFFF', '#8A1538'], SAU: ['#006C35', '#FFFFFF', '#006C35'], SGP: ['#E10600', '#FFFFFF', '#E10600'], TUR: ['#E30A17', '#FFFFFF', '#E30A17'], ARE: ['#E10600', '#00732F', '#FFFFFF'], UAE: ['#E10600', '#00732F', '#FFFFFF'], USA: ['#B22234', '#FFFFFF', '#3C3B6E'],
+};
+const FlagPaint = ({countryCode}: {countryCode?: string; category?: string}) => { const colors = countryFlagColors[countryCode?.toUpperCase() ?? ''] ?? ['#E10600', '#FFFFFF', '#E10600']; return <div style={{position: 'absolute', top: 18, right: -4, width: 440, height: 300, transform: 'rotate(-12deg)', opacity: .95, overflow: 'hidden', filter: 'drop-shadow(0 10px 12px rgba(0,0,0,.5)) drop-shadow(0 0 7px rgba(255,255,255,.16))'}}><div style={{position: 'absolute', top: 72, left: -48, width: 540, height: 66, background: colors[0], transform: 'rotate(-19deg)', clipPath: 'polygon(0 24%, 10% 0, 96% 18%, 100% 67%, 89% 100%, 6% 76%)'}} /><div style={{position: 'absolute', top: 132, left: -28, width: 510, height: 60, background: colors[1], transform: 'rotate(-19deg)', clipPath: 'polygon(0 35%, 9% 4%, 93% 0, 100% 63%, 87% 100%, 5% 80%)'}} /><div style={{position: 'absolute', top: 188, left: 20, width: 450, height: 56, background: colors[2], transform: 'rotate(-19deg)', clipPath: 'polygon(0 20%, 11% 0, 97% 22%, 100% 70%, 84% 100%, 7% 73%)'}} /></div>; };
+
+export const F1ScheduleComposition = ({subtitle, themeConfig, sessions, brandName, brandLogoPath, backgroundImagePath, soundtrackPath, soundtrackVolume, voiceoverPath, introTitle, introSubtitle, category = 'f1', categoryLabel = 'FÓRMULA 1', sourceLabel, circuitName = 'CIRCUITO', countryCode}: Props) => {
+  const {width, height} = useVideoConfig();
+  const accent = category === 'f2' ? '#0057FF' : category === 'f3' ? '#FF7A00' : category === 'f1-academy' ? '#FF4FA3' : themeConfig.accent || '#E10600';
+  const landscape = width > height;
+  const groups = sessions.reduce<Record<string, F1ScheduleEntry[]>>((acc, s) => { (acc[s.dayLabel || 'Data'] ||= []).push(s); return acc; }, {});
+  const raceName = subtitle.replace(/^GP\s+DA?\s*/i, '').trim() || subtitle;
+  const circuitDisplayName = circuitName.replace(/^Madrid$/i, 'Madring');
+  const categoryBackground = category === 'f2' ? '/f1/backgrounds/f1-schedule-background-f2.png' : category === 'f3' ? '/f1/backgrounds/f1-schedule-background-f3.png' : category === 'f1-academy' ? '/f1/backgrounds/f1-schedule-background-f1-academy.png' : '/f1/backgrounds/f1-schedule-background.png';
+  const resolvedBackgroundPath = categoryBackground;
+  return <AbsoluteFill style={{background: '#050609', color: '#fff', fontFamily: 'Arial, sans-serif'}}><Img src={staticFile(resolvedBackgroundPath.replace(/^\//, ''))} style={{position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover'}} /><AbsoluteFill style={{background: 'linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.08) 70%, rgba(0,0,0,.14))'}} /><div style={{position: 'relative', zIndex: 2, height: '100%', padding: landscape ? '34px 56px 28px' : '62px 34px 30px', display: 'flex', flexDirection: 'column'}}><FlagPaint countryCode={countryCode} category={category} /><div style={{width: landscape ? '60%' : '74%', textTransform: 'uppercase'}}><div style={{fontSize: landscape ? 46 : 52, color: accent, fontWeight: 400, fontStyle: 'italic', letterSpacing: 2, fontFamily: F1_BEBAS_FONT}}>GP DA</div><div style={{fontSize: landscape ? 106 : 120, lineHeight: .86, fontFamily: F1_BEBAS_FONT, color: '#fff', textShadow: '3px 4px 0 rgba(0,0,0,.45)'}}>{raceName}</div><div style={{marginTop: 14, display: 'flex', alignItems: 'center', gap: 12, color: accent, fontSize: landscape ? 28 : 32, fontWeight: 900, letterSpacing: 2}}><span style={{width: 56, height: 3, background: accent}} /> CIRCUITO DE {circuitDisplayName.toUpperCase()}</div><div style={{marginTop: 20, width: '80%', padding: '10px 24px', background: `linear-gradient(105deg, ${accent}, rgba(130,0,0,.55))`, clipPath: 'polygon(0 0, 100% 0, 96% 100%, 0 100%)', fontSize: landscape ? 55 : 62, fontWeight: 900, fontStyle: 'italic', textAlign: 'center'}}>{category === 'f1' ? 'FÓRMULA 1' : categoryLabel}</div></div><div style={{marginTop: landscape ? 74 : 190, width: landscape ? '61%' : '72%', display: 'flex', flexDirection: 'column', gap: 16}}>{Object.entries(groups).map(([label, items]) => <div key={label} style={{display: 'flex', gap: 16, alignItems: 'stretch'}}><DayBadge label={day(label)} dateText={date(label)} accent={accent} count={items.length} /><div style={{flex: 1}}>{items.map((s, i) => <SessionRow key={`${s.title}-${i}`} session={s} accent={accent} />)}</div></div>)}</div><div style={{marginTop: 'auto', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', width: landscape ? '62%' : '74%'}}><div style={{border: `2px solid ${accent}`, padding: '10px 18px', color: '#fff', fontSize: 24, fontWeight: 800, letterSpacing: 1}}>◷ HORÁRIO DE BRASÍLIA <span style={{color: accent}}>(BRT)</span></div><RadioDoBoxMark theme={themeConfig} logoPath={brandLogoPath} /></div></div><F1ProductionBed theme={themeConfig} brandName={brandName} brandLogoPath={brandLogoPath} soundtrackPath={soundtrackPath} soundtrackVolume={soundtrackVolume} voiceoverPath={voiceoverPath} introTitle={introTitle} introSubtitle={introSubtitle} /></AbsoluteFill>;
 };

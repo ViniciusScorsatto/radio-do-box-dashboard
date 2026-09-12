@@ -148,7 +148,7 @@ const BaseF1StandingsComposition = ({
         <StandingsHeader title={title} subtitle={headerSubtitle} />
 
         {!showSecondPage ? (
-        <StandingsPage
+          <StandingsPage
             rows={pageOneRows}
             emphasizeTopThree
             leader={effectiveLeader}
@@ -156,6 +156,8 @@ const BaseF1StandingsComposition = ({
             isConstructorStandings={forceConstructorLogos}
             leaderTop={forceConstructorLogos ? 268 : 230}
             rowsTop={forceConstructorLogos ? 468 : 430}
+            rowGap={12}
+            rowMinHeight={112}
           />
         ) : (
           <StandingsPage
@@ -163,6 +165,8 @@ const BaseF1StandingsComposition = ({
             logoPath={brandLogoPath}
             secondPage
             isConstructorStandings={forceConstructorLogos}
+            rowGap={12}
+            rowMinHeight={112}
           />
         )}
       </div>
@@ -185,12 +189,12 @@ export const F1DriverStandingsComposition = (props: F1StandingsCompositionProps)
     {...props}
     brandLogoPath="/branding/radio-do-box/red.png"
     forceConstructorLogos={false}
-    maxRows={22}
+    maxRows={23}
   />
 );
 
 export const F1ConstructorStandingsComposition = (props: F1StandingsCompositionProps) => (
-  <BaseF1StandingsComposition {...props} forceConstructorLogos maxRows={10} />
+  <BaseF1StandingsComposition {...props} forceConstructorLogos maxRows={11} />
 );
 
 export const F1StandingsComposition = F1DriverStandingsComposition;
@@ -344,6 +348,8 @@ const StandingsPage = ({
   isConstructorStandings = false,
   leaderTop = 230,
   rowsTop = 430,
+  rowGap = 10,
+  rowMinHeight = 86,
 }: {
   rows: F1RankingEntry[];
   emphasizeTopThree?: boolean;
@@ -353,6 +359,8 @@ const StandingsPage = ({
   isConstructorStandings?: boolean;
   leaderTop?: number;
   rowsTop?: number;
+  rowGap?: number;
+  rowMinHeight?: number;
 }) => (
   <>
     {!secondPage && emphasizeTopThree && leader ? (
@@ -367,7 +375,12 @@ const StandingsPage = ({
           gap: 14,
         }}
       >
-        <StandingsLeaderCard leader={leader} forceConstructorLogos={isConstructorStandings} />
+        <StandingsLeaderCard
+          leader={leader}
+          forceConstructorLogos={isConstructorStandings}
+          minHeight={174}
+          pointsFontSize={80}
+        />
       </div>
     ) : null}
 
@@ -379,7 +392,7 @@ const StandingsPage = ({
         top: secondPage ? 228 : rowsTop,
         display: 'flex',
         flexDirection: 'column',
-        gap: 10,
+        gap: rowGap,
       }}
     >
       {rows.map((entry) => (
@@ -387,6 +400,10 @@ const StandingsPage = ({
           key={`${entry.position}-${entry.name}`}
           entry={entry}
           forceConstructorLogos={isConstructorStandings}
+          minHeight={rowMinHeight}
+          pointsFontSize={44}
+          pointsLabelFontSize={19}
+          nameFontSize={36}
         />
       ))}
     </div>
@@ -410,9 +427,13 @@ const StandingsPage = ({
 const StandingsLeaderCard = ({
   leader,
   forceConstructorLogos = false,
+  minHeight = 152,
+  pointsFontSize = 72,
 }: {
   leader: F1PodiumEntry;
   forceConstructorLogos?: boolean;
+  minHeight?: number;
+  pointsFontSize?: number;
 }) => {
   const {imagePath, isLogo} = resolveBadgeVisual(leader.badge, {
     forceConstructorLogos,
@@ -430,7 +451,7 @@ const StandingsLeaderCard = ({
       display: 'grid',
       gridTemplateColumns: '204px minmax(0, 1fr) 146px',
       alignItems: 'center',
-      minHeight: 152,
+      minHeight,
       padding: '12px 24px 12px 12px',
       borderRadius: 34,
       background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,247,252,0.98))',
@@ -573,7 +594,7 @@ const StandingsLeaderCard = ({
     >
       <div
         style={{
-          fontSize: 72,
+          fontSize: pointsFontSize,
           lineHeight: 0.9,
           fontWeight: 900,
           color: '#0e1530',
@@ -601,9 +622,17 @@ const StandingsLeaderCard = ({
 const StandingsRow = ({
   entry,
   forceConstructorLogos = false,
+  minHeight = 86,
+  pointsFontSize = 38,
+  pointsLabelFontSize = 17,
+  nameFontSize = 32,
 }: {
   entry: F1RankingEntry;
   forceConstructorLogos?: boolean;
+  minHeight?: number;
+  pointsFontSize?: number;
+  pointsLabelFontSize?: number;
+  nameFontSize?: number;
 }) => {
   const isTopThree = entry.position <= 3;
   const chipStyle = getAccentChipStyle(entry.accentColor);
@@ -632,7 +661,7 @@ const StandingsRow = ({
         display: 'grid',
         gridTemplateColumns: '78px 106px minmax(0, 1fr) 124px',
         alignItems: 'center',
-        minHeight: 86,
+        minHeight,
         padding: '6px 18px 6px 10px',
         borderRadius: 24,
         background: 'linear-gradient(180deg, rgba(255,255,255,0.985), rgba(242,246,252,0.985))',
@@ -747,7 +776,7 @@ const StandingsRow = ({
           ) : null}
           <div
             style={{
-            fontSize: 32,
+            fontSize: nameFontSize,
             lineHeight: 0.96,
             fontWeight: 600,
             fontFamily: DATA_FONT,
@@ -806,7 +835,7 @@ const StandingsRow = ({
       >
         <div
           style={{
-            fontSize: 38,
+            fontSize: pointsFontSize,
             lineHeight: 0.9,
             fontWeight: 700,
             fontFamily: DATA_FONT,
@@ -835,7 +864,7 @@ const StandingsRow = ({
         ) : null}
         <div
           style={{
-            fontSize: 17,
+            fontSize: pointsLabelFontSize,
             lineHeight: 1,
             fontWeight: 500,
             fontFamily: DATA_FONT,

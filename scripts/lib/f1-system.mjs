@@ -15,6 +15,53 @@ const f1DriverImagesDir = path.join(f1AssetsDir, 'drivers');
 const f1TeamLogosDir = path.join(f1AssetsDir, 'teams');
 const f1CircuitImagesDir = path.join(f1AssetsDir, 'circuits');
 const f1VoiceoversDir = path.join(projectRoot, 'public', 'voiceovers', 'f1');
+const officialF1BaseUrl = process.env.F1_OFFICIAL_BASE_URL ?? 'https://www.formula1.com';
+const officialF1TimeZone = 'America/Sao_Paulo';
+const officialScheduleCategories = {
+  f1: {label: 'F1', name: 'Formula 1', baseUrl: officialF1BaseUrl, source: 'formula1.com', calendar: (season) => `/en/racing/${season}`},
+  f2: {label: 'F2', name: 'Formula 2', baseUrl: 'https://www.fiaformula2.com', source: 'fiaformula2.com', calendar: (season) => `/en/racing/${season}`},
+  f3: {label: 'F3', name: 'Formula 3', baseUrl: 'https://www.fiaformula3.com', source: 'fiaformula3.com', calendar: (season) => `/en/racing/${season}`},
+  'f1-academy': {label: 'F1 Academy', name: 'F1 Academy', baseUrl: 'https://www.f1academy.com', source: 'f1academy.com', calendar: () => '/Racing-Series/Calendar'},
+};
+const officialCategory = (category = 'f1') => officialScheduleCategories[category] ?? officialScheduleCategories.f1;
+
+const sourceCategoryConfigs = {
+  f1: {
+    label: 'Formula 1',
+    shortLabel: 'F1',
+    site: 'formula1.com',
+    home: 'https://www.formula1.com/en',
+    calendar: (season) => `https://www.formula1.com/en/racing/${season}`,
+    resultsCalendar: (season) => `https://www.formula1.com/en/results/${season}/races`,
+    fia: (season) => `https://www.fia.com/documents/championships/fia-formula-one-world-championship-14/season/season-${season}-2072`,
+  },
+  f2: {
+    label: 'Formula 2',
+    shortLabel: 'F2',
+    site: 'fiaformula2.com',
+    home: 'https://www.fiaformula2.com/',
+    calendar: (season) => `https://www.fiaformula2.com/en/racing/${season}`,
+    fia: (season) => `https://www.fia.com/documents/championships/formula-2-championship-44/season/season-${season}-2072`,
+  },
+  f3: {
+    label: 'Formula 3',
+    shortLabel: 'F3',
+    site: 'fiaformula3.com',
+    home: 'https://www.fiaformula3.com/',
+    calendar: (season) => `https://www.fiaformula3.com/en/racing/${season}`,
+    fia: (season) => `https://www.fia.com/documents/championships/formula-3-championship-14/season/season-${season}-2072`,
+  },
+  'f1-academy': {
+    label: 'F1 Academy',
+    shortLabel: 'F1 Academy',
+    site: 'f1academy.com',
+    home: 'https://www.f1academy.com/',
+    calendar: () => 'https://www.f1academy.com/Racing-Series/Calendar',
+    fia: null,
+  },
+};
+
+const sourceCategory = (category = 'f1') => sourceCategoryConfigs[category] ?? sourceCategoryConfigs.f1;
 
 const templateFileNames = [
   'race-results.json',
@@ -26,6 +73,7 @@ const templateFileNames = [
   'constructor-standings.json',
   'weekend-schedule.json',
   'race-predictions.json',
+  'editorial.json',
 ];
 
 const brandLogos = {
@@ -130,6 +178,20 @@ const teamAliases = [
   {match: ['williams-f1-team', 'williams'], key: 'Williams'},
   {match: ['aston-martin-aramco', 'aston-martin'], key: 'Aston Martin'},
   {match: ['cadillac'], key: 'Cadillac'},
+];
+
+const knownConstructorStandingsTeams = [
+  'Mercedes-AMG Petronas',
+  'Scuderia Ferrari',
+  'McLaren Racing',
+  'Red Bull Racing',
+  'Alpine F1 Team',
+  'Racing Bulls',
+  'Haas F1 Team',
+  'Williams F1 Team',
+  'Audi Revolut F1 Team',
+  'Aston Martin F1 Team',
+  'Cadillac Formula 1 Team',
 ];
 
 let gpNameTranslationsCache = null;
@@ -245,6 +307,9 @@ const loadThemeConfig = async (variant) =>
 const loadTemplateConfig = async (template) =>
   readJsonFile(path.join(configRoot, 'templates', `${template}.json`));
 
+const loadRaceResultPatches = () =>
+  readJsonFile(path.join(configRoot, 'race-result-patches.json')).catch(() => ({}));
+
 const loadCompetitionPresets = async () => {
   const competitionDir = path.join(configRoot, 'competitions');
   const entries = await fs.readdir(competitionDir);
@@ -268,6 +333,492 @@ const fetchJson = async (url, apiKey, apiHost) => {
   }
 
   return response.json();
+};
+
+const fetchOfficialHtml = async (url) => {
+  const response = await fetch(url, {
+    headers: {
+      accept: 'text/html,application/xhtml+xml',
+      'user-agent': 'RadioDoBox/1.0 (+https://www.formula1.com)',
+    },
+    signal: AbortSignal.timeout(20_000),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Formula1.com returned ${response.status} ${response.statusText} for ${url}`);
+  }
+
+  return response.text();
+};
+
+const decodeHtmlEntities = (value = '') => String(value)
+  .replace(/&nbsp;/gi, ' ')
+  .replace(/&amp;/gi, '&')
+  .replace(/&quot;/gi, '"')
+  .replace(/&#39;|&apos;/gi, "'")
+  .replace(/&#x27;/gi, "'")
+  .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+  .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)));
+
+const htmlFragmentText = (fragment = '') => decodeHtmlEntities(String(fragment)
+  .replace(/<img\b[^>]*\balt=["']([^"']+)["'][^>]*>/gi, ' $1 ')
+  .replace(/<br\s*\/?>/gi, ' ')
+  .replace(/<[^>]+>/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim());
+
+const extractHtmlTableRows = (html = '') => [...String(html).matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]
+  .map((match) => [...match[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)]
+    .map((cell) => htmlFragmentText(cell[1])))
+  .filter((row) => row.length >= 2);
+
+const extractSourceLinks = (html = '', matcher, baseUrl = 'https://www.formula1.com') => {
+  const links = new Map();
+  for (const match of String(html).matchAll(/href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
+    const href = decodeHtmlEntities(match[1]);
+    const absolute = href.startsWith('http') ? href : new URL(href, baseUrl).toString();
+    if (!matcher(absolute)) continue;
+    const label = htmlFragmentText(match[2]);
+    if (!links.has(absolute)) links.set(absolute, label);
+  }
+  return [...links.entries()].map(([url, label]) => ({url, label}));
+};
+
+const sourceEventLabel = (url, label = '') => {
+  const cleanLabel = htmlFragmentText(label).replace(/^Flag of [^ ]+(?: [^ ]+)?\s+/i, '').trim();
+  if (cleanLabel && cleanLabel.length > 2) return cleanLabel;
+  const slug = decodeURIComponent(url.split('/').filter(Boolean).at(-1) ?? '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+  return slug || 'Evento oficial';
+};
+
+const sourceEventsForSeason = async (season, category = 'f1') => {
+  const config = sourceCategory(category);
+  const calendarUrl = category === 'f1' ? config.resultsCalendar(season) : config.calendar(season);
+  const html = await fetchOfficialHtml(calendarUrl);
+  const links = category === 'f1'
+    ? extractSourceLinks(html, (url) => /\/en\/results\/\d+\/races\/\d+\/[^/]+\/race-result/i.test(url), config.home)
+    : category === 'f1-academy'
+      ? extractSourceLinks(html, (url) => /\/Racing-Series\/Results\?raceid=\d+/i.test(url), config.home)
+      : extractSourceLinks(html, (url) => new RegExp(`/en/racing/${season}/[a-z0-9-]+$`, 'i').test(new URL(url).pathname), config.home);
+
+  const unique = new Map();
+  for (const link of links) {
+    const normalized = link.url.split('#')[0];
+    if (!unique.has(normalized)) unique.set(normalized, link.label);
+  }
+  return [...unique.entries()].map(([url, label], index) => ({
+    id: url,
+    label: sourceEventLabel(url, label),
+    url,
+    category,
+    season,
+    order: index + 1,
+    source: config.site,
+  }));
+};
+
+const sessionUrlForF1Result = (url, session = 'race') => {
+  const suffixes = {
+    race: 'race-result',
+    sprint: 'sprint',
+    'starting-grid': 'starting-grid',
+    qualifying: 'qualifying',
+    practice: 'practice-1',
+  };
+  const suffix = suffixes[session] ?? suffixes.race;
+  return url.replace(/\/(?:race-result|sprint|starting-grid|qualifying|practice-[123])$/i, `/${suffix}`);
+};
+
+const normalizeSourceResultRow = (row, index) => {
+  const values = row.map((value) => value.trim()).filter(Boolean);
+  if (values.length < 2) return null;
+  const position = Number.parseInt(values[0], 10);
+  if (!Number.isFinite(position) || position < 1 || position > 99) return null;
+  return {
+    position,
+    number: values.find((value) => /^\d{1,3}$/.test(value)) ?? '',
+    driver: values.find((value) => /[A-Za-zÀ-ÿ]/.test(value) && !/^(McLaren|Mercedes|Ferrari|Red Bull|PREMA|Campos|ART|Hitech|Rodin|MP Motorsport)/i.test(value)) ?? values[1] ?? '',
+    values,
+    sourceIndex: index,
+  };
+};
+
+const selectResultTable = (tables, session = 'race') => {
+  const keywords = {
+    race: ['race result', 'feature race', 'resultado'],
+    sprint: ['sprint'],
+    'starting-grid': ['starting grid', 'grid'],
+    qualifying: ['qualifying', 'classification'],
+    practice: ['practice', 'free practice'],
+  }[session] ?? [];
+  const scored = tables.map((rows) => {
+    const header = rows.slice(0, 2).flat().join(' ').toLowerCase();
+    const score = keywords.reduce((sum, keyword) => sum + (header.includes(keyword) ? 2 : 0), 0) + Math.min(rows.length / 20, 1);
+    return {rows, score};
+  }).sort((a, b) => b.score - a.score);
+  return scored[0]?.rows ?? [];
+};
+
+const extractSourceResults = (html, session) => {
+  const tableMatches = [...String(html).matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)];
+  const tables = tableMatches.map((match) => extractHtmlTableRows(match[1])).filter((rows) => rows.length);
+  const selectedRows = selectResultTable(tables, session);
+  const rows = selectedRows
+    .map(normalizeSourceResultRow)
+    .filter((row) => row && row.driver)
+    .slice(0, 40);
+  return {rows, tableCount: tables.length, rawRows: selectedRows.slice(0, 60)};
+};
+
+const loadOfficialSourceResults = async ({season, category = 'f1', eventUrl, session = 'race'}) => {
+  if (!eventUrl) throw new Error('Missing official event URL.');
+  const sourceUrl = category === 'f1' ? sessionUrlForF1Result(eventUrl, session) : eventUrl;
+  const html = await fetchOfficialHtml(sourceUrl);
+  const parsed = extractSourceResults(html, session);
+  return {
+    season,
+    category,
+    session,
+    sourceUrl,
+    eventUrl,
+    ...parsed,
+    extractedAt: new Date().toISOString(),
+    warning: parsed.rows.length === 0 ? 'A página oficial foi localizada, mas a tabela não foi publicada no HTML acessível.' : null,
+  };
+};
+
+const fiaDocumentLinks = (html = '', baseUrl = 'https://www.fia.com') => {
+  const links = new Map();
+  for (const match of String(html).matchAll(/href=["']([^"']+\.pdf(?:[?#][^"']*)?)["']/gi)) {
+    const url = match[1].startsWith('http') ? match[1] : new URL(match[1], baseUrl).toString();
+    const filename = decodeURIComponent(url.split('/').pop()?.split('?')[0] ?? 'document.pdf')
+      .replace(/\.pdf$/i, '')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b\d{4}\b/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!links.has(url)) links.set(url, filename || 'Documento FIA');
+  }
+  return [...links.entries()].map(([url, label]) => ({url, label}));
+};
+
+const loadFiaClassificationDocuments = async ({season, category = 'f1'}) => {
+  const config = sourceCategory(category);
+  if (!config.fia) {
+    return {season, category, sourceUrl: null, documents: [], warning: 'Esta categoria não possui um arquivo FIA de classificações equivalente localizado.'};
+  }
+  let sourceUrl = config.fia(season);
+  let html = await fetchOfficialHtml(sourceUrl);
+  let standingsRows = [];
+  if (category === 'f1') {
+    const classificationUrl = `https://www.fia.com/events/fia-formula-one-world-championship/season-${season}/${season}-classifications`;
+    try {
+      const classificationHtml = await fetchOfficialHtml(classificationUrl);
+      const tables = [...classificationHtml.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)]
+        .map((match) => extractHtmlTableRows(match[1]))
+        .filter((rows) => rows.length);
+      const table = tables.find((rows) => rows[0]?.join(' ').toLowerCase().includes('driver')) ?? tables[0];
+      standingsRows = table?.slice(0, 30) ?? [];
+      if (standingsRows.length) {
+        sourceUrl = classificationUrl;
+        html = classificationHtml;
+      }
+    } catch {
+      // Fall back to the FIA decision-document archive below.
+    }
+  }
+  const documents = fiaDocumentLinks(html, sourceUrl)
+    .filter(({label, url}) => /classification|championship|starting grid|grid|standings|result/i.test(`${label} ${url}`))
+    .slice(0, 80)
+    .map(({label, url}, index) => ({id: `${category}-${index}`, label: label || 'Documento FIA', url, category, season}));
+  return {
+    season,
+    category,
+    sourceUrl,
+    documents,
+    standingsRows,
+    warning: documents.length === 0 && standingsRows.length === 0 ? 'A página FIA foi localizada, mas nenhum PDF ou tabela de classificação foi encontrado no HTML acessível.' : null,
+    extractedAt: new Date().toISOString(),
+  };
+};
+
+const loadOfficialEditorial = async ({season, category = 'f1'}) => {
+  const config = sourceCategory(category);
+  const html = await fetchOfficialHtml(config.home);
+  const pattern = category === 'f1-academy'
+    ? /\/Latest\//i
+    : /\/en\/latest\/article\//i;
+  const articles = extractSourceLinks(html, (url) => pattern.test(url), config.home)
+    .filter(({url}) => !/\/Latest\/(?:Tag|Category)\//i.test(url))
+    .map(({url, label}, index) => ({
+      id: `${category}-${index}`,
+      title: sourceEventLabel(url, label),
+      url,
+      category,
+      season,
+      source: config.site,
+    }))
+    .filter((article) => article.title.length > 4)
+    .slice(0, 30);
+  return {season, category, sourceUrl: config.home, articles, extractedAt: new Date().toISOString()};
+};
+
+const officialRaceLinksFromCalendar = (html, season, category = 'f1') => {
+  const links = new Set();
+  const pattern = category === 'f1-academy'
+    ? /Racing-Series\/Results\?raceid=([0-9]+)/gi
+    : new RegExp(`(?:https?:\\/\\/[^"']+)?\\/en\\/racing\\/${season}\\/([a-z0-9-]+)`, 'gi');
+  for (const match of html.matchAll(pattern)) {
+    const slug = match[1];
+    if (!slug || slug.startsWith('pre-season-testing')) continue;
+    links.add(category === 'f1-academy' ? `/Racing-Series/Results?raceid=${slug}` : `/en/racing/${season}/${slug}`);
+  }
+  return [...links];
+};
+
+const decodeOfficialText = (value = '') => String(value)
+  .replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, ' ')
+  .replace(/<br\s*\/?\s*>/gi, ' ')
+  .replace(/<[^>]+>/g, ' ')
+  .replace(/&#x9;|&#9;|&#9;/gi, ' ')
+  .replace(/&#x20;|&#32;|&nbsp;/gi, ' ')
+  .replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'")
+  .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const officialResultLinks = (html, season) => {
+  const found = new Map();
+  const pattern = new RegExp(`(?:https?:\\/\\/[^"']+)?\\/en\\/results\\/${season}\\/races\\/(\\d+)\\/([a-z0-9-]+)\\/(race-result|sprint-results|starting-grid)`, 'gi');
+  for (const match of html.matchAll(pattern)) {
+    const [, officialRaceId, slug, session] = match;
+    const current = found.get(slug) ?? {id: officialRaceId, slug, sessions: new Set()};
+    current.sessions.add(session === 'race-result' ? 'race' : session === 'sprint-results' ? 'sprint' : session);
+    found.set(slug, current);
+  }
+  return [...found.values()].map((race) => ({...race, sessions: [...race.sessions]}));
+};
+
+const officialResultSessionsFromPage = (html, season, race) => {
+  const sessions = new Set(race.sessions);
+  const pattern = new RegExp(`\\/en\\/results\\/${season}\\/races\\/${race.id}\\/${race.slug}\\/(race-result|sprint-results|starting-grid)`, 'gi');
+  for (const match of html.matchAll(pattern)) {
+    const session = match[1].toLowerCase();
+    sessions.add(session === 'race-result' ? 'race' : session === 'sprint-results' ? 'sprint' : session);
+  }
+  return [...sessions];
+};
+
+const parseOfficialResultTable = (html, session) => {
+  const tables = [...String(html).matchAll(/<table[\s\S]*?<\/table>/gi)].map((match) => match[0]);
+  for (const table of tables) {
+    const rows = [...table.matchAll(/<tr[\s\S]*?<\/tr>/gi)].map((match) =>
+      [...match[0].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)].map((cell) => decodeOfficialText(cell[1]))
+    ).filter((row) => row.length >= 4);
+    const header = rows.find((row) => row.some((cell) => /^pos\.?$/i.test(cell)) && row.some((cell) => /driver/i.test(cell)));
+    if (!header) continue;
+    const indexes = {
+      position: header.findIndex((cell) => /^pos\.?$/i.test(cell)),
+      number: header.findIndex((cell) => /^(no\.?|number)$/i.test(cell)),
+      driver: header.findIndex((cell) => /driver/i.test(cell)),
+      team: header.findIndex((cell) => /^team$/i.test(cell)),
+      laps: header.findIndex((cell) => /^laps$/i.test(cell)),
+      time: header.findIndex((cell) => /time|retired/i.test(cell)),
+      points: header.findIndex((cell) => /^pts?\.?$/i.test(cell)),
+    };
+    const data = rows.slice(rows.indexOf(header) + 1).map((row) => {
+      const positionText = row[indexes.position] ?? '';
+      if (!/^\d+$/.test(positionText) && !/^NC$/i.test(positionText)) return null;
+      const driverText = row[indexes.driver] ?? '';
+      const codeMatch = driverText.match(/\b[A-Z]{3}\b$/);
+      return {
+        position: /^\d+$/.test(positionText) ? Number(positionText) : null,
+        driver: driverText.replace(/\b[A-Z]{3}\b$/, '').trim(),
+        code: codeMatch?.[0] ?? '',
+        number: row[indexes.number] ?? '',
+        team: row[indexes.team] ?? '',
+        laps: indexes.laps >= 0 ? row[indexes.laps] ?? '' : '',
+        time: indexes.time >= 0 ? row[indexes.time] ?? '' : '',
+        points: indexes.points >= 0 ? row[indexes.points] ?? '0' : '0',
+      };
+    }).filter(Boolean);
+    if (data.length) return data;
+  }
+  throw new Error(`No official ${session} result table found.`);
+};
+
+const loadOfficialResultRaceOptions = async (season) => {
+  const html = await fetchOfficialHtml(`${officialF1BaseUrl}/en/results/${season}/races`);
+  const links = officialResultLinks(html, season);
+  if (!links.length) throw new Error(`No official results found for season ${season}.`);
+  const enriched = await Promise.all(links.map(async (race) => {
+    if (race.sessions.includes('sprint') && race.sessions.includes('starting-grid')) return race;
+    try {
+      const resultUrl = `${officialF1BaseUrl}/en/results/${season}/races/${race.id}/${race.slug}/race-result`;
+      const resultHtml = await fetchOfficialHtml(resultUrl);
+      return {...race, sessions: officialResultSessionsFromPage(resultHtml, season, race)};
+    } catch {
+      return race;
+    }
+  }));
+  return enriched.map((race) => ({
+    id: race.slug,
+    officialRaceId: race.id,
+    label: race.slug.replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
+    sessions: race.sessions,
+  }));
+};
+
+const loadOfficialResult = async ({season, race, session}) => {
+  const officialSessionPath = session === 'race' ? 'race-result' : session === 'sprint' ? 'sprint-results' : 'starting-grid';
+  const pathName = `/en/results/${season}/races/${race.officialRaceId}/${race.id}/${officialSessionPath}`;
+  const sourceUrl = `${officialF1BaseUrl}${pathName}`;
+  const rows = parseOfficialResultTable(await fetchOfficialHtml(sourceUrl), session);
+  return {rows, sourceUrl};
+};
+
+const officialJsonLdEvents = (html) => {
+  const events = [];
+  const collect = (value) => {
+    if (Array.isArray(value)) return value.forEach(collect);
+    if (!value || typeof value !== 'object') return;
+    if (value['@type'] === 'SportsEvent') events.push(value);
+    if (value['@graph']) collect(value['@graph']);
+  };
+  const pattern = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  for (const match of html.matchAll(pattern)) {
+    try {
+      const payload = JSON.parse(match[1].trim());
+      collect(payload);
+    } catch {
+      // Ignore unrelated or malformed JSON-LD blocks.
+    }
+  }
+  return events;
+};
+
+const officialSessionLabel = (name = '') => {
+  const value = String(name).split(' - ')[0].trim().toLowerCase();
+  const labels = {
+    'practice 1': 'Treino Livre 1',
+    'practice 2': 'Treino Livre 2',
+    'practice 3': 'Treino Livre 3',
+    sprint: 'Sprint',
+    'sprint qualifying': 'Classificação Sprint',
+    qualifying: 'Classificação',
+    'qualifying 1': 'Classificação 1',
+    'qualifying 2': 'Classificação 2',
+    practice: 'Treino Livre',
+    'free practice': 'Treino Livre',
+    'sprint race': 'Sprint Race',
+    'feature race': 'Feature Race',
+    'opening race': 'Corrida de Abertura',
+    'reverse grid race': 'Corrida de Grid Reverso',
+    race: 'Corrida',
+  };
+  return labels[value] ?? String(name).split(' - ')[0].trim();
+};
+
+const formatOfficialDate = (value) => new Intl.DateTimeFormat('pt-BR', {
+  timeZone: officialF1TimeZone,
+  weekday: 'long',
+  day: '2-digit',
+  month: '2-digit',
+}).format(new Date(value));
+
+const formatOfficialTime = (value) => new Intl.DateTimeFormat('pt-BR', {
+  timeZone: officialF1TimeZone,
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+}).format(new Date(value));
+
+const normalizeOfficialSession = (event, sourceUrl, category = 'f1') => {
+  const startAt = new Date(event.startDate);
+  const endAt = event.endDate ? new Date(event.endDate) : null;
+  if (Number.isNaN(startAt.getTime())) return null;
+  const isRace = /^race$/i.test(String(event.name ?? '').split(' - ')[0].trim());
+  const endLabel = endAt && !Number.isNaN(endAt.getTime()) && !isRace
+    ? ` - ${formatOfficialTime(endAt)}`
+    : '';
+  return {
+    dayLabel: formatOfficialDate(startAt),
+    title: officialSessionLabel(event.name),
+    timeLabel: `${formatOfficialTime(startAt)}${endLabel}`,
+    subtitle: startAt.getTime() <= Date.now() ? 'Concluída' : 'Agendada',
+    startAt: startAt.toISOString(),
+    endAt: endAt && !Number.isNaN(endAt.getTime()) ? endAt.toISOString() : undefined,
+    source: officialCategory(category).source,
+    sourceUrl,
+    timeZone: officialF1TimeZone,
+  };
+};
+
+const parseOfficialRacePage = (html, sourceUrl, slug, category = 'f1') => {
+  const event = officialJsonLdEvents(html).find((item) => item.subEvent?.length);
+  if (event) {
+    let sessions = event.subEvent.map((session) => normalizeOfficialSession(session, sourceUrl, category)).filter(Boolean)
+    .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+    if (category === 'f2' && sessions.length >= 4) sessions = sessions.map((session, index) => ({...session, title: ['Treino Livre', 'Classificação', 'Sprint Race', 'Feature Race'][index] ?? session.title}));
+    if (category === 'f3' && sessions.length >= 6) sessions = sessions.map((session, index) => ({...session, title: ['Treino Livre', 'Classificação 1', 'Classificação 2', 'Sprint Race', 'Feature Race 1', 'Feature Race 2'][index] ?? session.title}));
+    if (sessions.length) return {
+    slug,
+    sourceUrl,
+    title: event.name ?? `Formula 1 ${slug}`,
+    location: event.location?.name ?? slug,
+    country: String(event.location?.address ?? '').split(',').pop()?.trim() || event.location?.name || slug,
+    sessions,
+    };
+  }
+  const text = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ');
+  const sessions = [];
+  const pattern = /(Practice|Free Practice|Qualifying(?: 1| 2)?|Sprint Race|Feature Race(?: 1| 2)?|Opening Race|Reverse Grid Race)\s+(\d{1,2} \w{3,9})\s+([0-2]\d:[0-5]\d)\s*-\s*([0-2]\d:[0-5]\d)/gi;
+  for (const match of text.matchAll(pattern)) sessions.push({dayLabel: match[2], title: officialSessionLabel(match[1]), timeLabel: `${match[3]} - ${match[4]}`, subtitle: 'Agendada', source: officialCategory(category).source, sourceUrl, timeZone: officialF1TimeZone});
+  if (!sessions.length && category === 'f1-academy') {
+    const academyPattern = /(Free Practice|Qualifying|Opening Race|Reverse Grid Race|Feature Race)\s+(Thursday|Friday|Saturday|Sunday)\s+TBC/gi;
+    for (const match of text.matchAll(academyPattern)) sessions.push({dayLabel: match[2], title: officialSessionLabel(match[1]), timeLabel: 'A definir', subtitle: 'A definir', source: 'f1academy.com', sourceUrl, timeZone: officialF1TimeZone});
+  }
+  if (!sessions.length) throw new Error(`No official schedule data found on ${sourceUrl}`);
+  const academyLocation = text.match(/\b(?:United States|Canada|China|Great Britain|Netherlands)\s+([A-Z][A-Za-z-]+)/)?.[1];
+  const weekdayMap = {Thursday: 'quinta-feira', Friday: 'sexta-feira', Saturday: 'sábado', Sunday: 'domingo'};
+  return {slug, sourceUrl, title: `${officialCategory(category).name} ${academyLocation ?? slug}`, location: academyLocation ?? slug.replaceAll('-', ' '), country: academyLocation ?? slug, sessions: sessions.map((session) => ({...session, dayLabel: weekdayMap[session.dayLabel] ?? session.dayLabel}))};
+};
+
+const loadOfficialRace = async (season, slug, category = 'f1', linkOverride) => {
+  const config = officialCategory(category);
+  const sourceUrl = `${config.baseUrl}${linkOverride ?? `/en/racing/${season}/${slug}`}`;
+  return parseOfficialRacePage(await fetchOfficialHtml(sourceUrl), sourceUrl, slug, category);
+};
+
+const loadOfficialRaceOptions = async (season, category = 'f1') => {
+  const config = officialCategory(category);
+  const calendarUrl = `${config.baseUrl}${config.calendar(season)}`;
+  const links = officialRaceLinksFromCalendar(await fetchOfficialHtml(calendarUrl), season, category);
+  const races = await Promise.all(links.map(async (link) => {
+    const slug = category === 'f1-academy' ? link.match(/raceid=(\d+)/)?.[1] : link.split('/').pop();
+    try {
+      return await loadOfficialRace(season, slug, category, link);
+    } catch {
+      return null;
+    }
+  }));
+  return races.filter(Boolean).map((race) => ({
+    id: race.slug,
+    label: `${race.location} — ${race.sessions[0].dayLabel}`,
+    date: race.sessions[0].startAt,
+    type: `${config.name} official weekend`,
+    status: race.sessions.some((session) => new Date(session.startAt).getTime() > Date.now()) ? 'Scheduled' : 'Completed',
+  }));
+};
+
+const selectOfficialRace = (races, slug) => {
+  if (slug) return races.find((race) => race.slug === slug) ?? null;
+  const upcoming = races
+    .filter((race) => race.sessions.some((session) => Number.isFinite(new Date(session.startAt).getTime()) && new Date(session.startAt).getTime() > Date.now()))
+    .sort((a, b) => Math.min(...a.sessions.map((session) => new Date(session.startAt).getTime())) - Math.min(...b.sessions.map((session) => new Date(session.startAt).getTime())));
+  return upcoming[0] ?? races[0] ?? null;
 };
 
 const downloadAsset = async (url, directory, fileStem) => {
@@ -464,12 +1015,12 @@ const localPredictionDrivers = [
   ['Sergio Perez', 'Cadillac Formula 1 Team', '11'],
   ['Alexander Albon', 'Williams F1 Team', '23'],
   ['Arvid Lindblad', 'Racing Bulls', '4'],
-  ['Liam Lawson', 'Racing Bulls', '30'],
+  ['Liam Lawson', 'Red Bull Racing', '30'],
+  ['Yuki Tsunoda', 'Racing Bulls', '22'],
   ['Carlos Sainz Jr', 'Williams F1 Team', '55'],
   ['Nico Hulkenberg', 'Audi Revolut F1 Team', '27'],
   ['Max Verstappen', 'Red Bull Racing', '1'],
   ['Charles Leclerc', 'Scuderia Ferrari', '16'],
-  ['Isack Hadjar', 'Red Bull Racing', '6'],
   ['Lando Norris', 'McLaren Racing', '4'],
 ];
 
@@ -489,6 +1040,202 @@ const localF1DriverOptions = async () =>
       };
     })
   );
+
+const normalizePastedText = (value = '') =>
+  String(value ?? '')
+    .replace(/&amp;#x9;|&#x9;|&#9;/gi, '\t')
+    .replace(/&amp;#x20;|&#x20;|&#32;/gi, ' ')
+    .replace(/\u00a0/g, ' ')
+    .replace(/\\u0009/g, '\t')
+    .replace(/\\u0020/g, ' ')
+    .split(/\r?\n/)
+    .flatMap((line) => line.split('\t'))
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+
+const parsePastedRaceResult = (value) => {
+  const lines = normalizePastedText(value);
+  const circuitLine = lines.find((line) => /^circuito\s*:/i.test(line));
+  if (!circuitLine) {
+    throw new F1PreparationError(
+      'Cole o resultado completo da corrida, começando por “Circuito:”.',
+      'paste_result_invalid'
+    );
+  }
+
+  const circuitName = circuitLine.replace(/^circuito\s*:\s*/i, '').trim();
+  const resultStart = lines.findIndex((line) => /^resultados\b/i.test(line));
+  const entries = [];
+
+  for (let index = resultStart + 1; index < lines.length;) {
+    const positionMatch = lines[index]?.match(/^(\d{1,2})$/);
+    if (!positionMatch) {
+      index += 1;
+      continue;
+    }
+
+    const position = Number(positionMatch[1]);
+    const country = lines[index + 1] ?? '';
+    const pastedName = lines[index + 2] ?? '';
+    if (!country || !pastedName) {
+      index += 1;
+      continue;
+    }
+
+    let cursor = index + 3;
+    const teamParts = [];
+    let driverNumber = '';
+    while (cursor < lines.length && !driverNumber) {
+      const numberMatch = lines[cursor].match(/#(\d+)/);
+      if (numberMatch) {
+        driverNumber = numberMatch[1];
+        teamParts.push(lines[cursor].replace(/#\d+/g, ''));
+        cursor += 1;
+        break;
+      }
+      if (/^\d{1,2}$/.test(lines[cursor])) {
+        break;
+      }
+      teamParts.push(lines[cursor]);
+      cursor += 1;
+    }
+
+    const value = lines[cursor] ?? '';
+    const points = lines[cursor + 1] ?? '';
+    if (!driverNumber || !teamParts.length || !value || !/^\d+(?:[.,]\d+)?$/.test(points)) {
+      index += 1;
+      continue;
+    }
+
+    const team = teamParts.join(' ').replace(/·/g, '').replace(/\s+/g, ' ').trim();
+    entries.push({position, country, pastedName, team, driverNumber, value, points});
+    index = cursor + 2;
+  }
+
+  if (entries.length < 3) {
+    throw new F1PreparationError(
+      'Não encontrei pelo menos três pilotos no texto colado. Verifique se as colunas foram copiadas completas.',
+      'paste_result_invalid'
+    );
+  }
+
+  return {circuitName, entries};
+};
+
+const normalizePastedDriverKey = (value = '') =>
+  sanitize(value).replace(/-/g, '');
+
+const resolvePastedDriver = (pastedName, team) => {
+  const normalized = normalizePastedDriverKey(pastedName);
+  const suffixes = new Set(['jr', 'sr', 'ii', 'iii']);
+  const surnameKeyFor = (value) => {
+    const parts = String(value).split(/\s+/).map(normalizePastedDriverKey).filter(Boolean);
+    if (parts.length > 1 && suffixes.has(parts.at(-1))) {
+      parts.pop();
+    }
+    return parts.at(-1) ?? '';
+  };
+  const pastedSurnameKey = surnameKeyFor(pastedName);
+  const candidates = localPredictionDrivers.filter(([name]) => {
+    const nameKey = normalizePastedDriverKey(name);
+    return nameKey.includes(normalized) || pastedSurnameKey === surnameKeyFor(name);
+  });
+  const teamKey = normalizeTeamKey(team);
+  const matched = candidates.find(([, knownTeam]) => normalizeTeamKey(knownTeam) === teamKey) ?? candidates[0];
+  return matched ? {name: matched[0], team: matched[1]} : {name: pastedName, team};
+};
+
+const localDriverImageFor = async (name) => {
+  const files = await fs.readdir(f1DriverImagesDir).catch(() => []);
+  const surname = normalizePastedDriverKey(name.split(/\s+/).at(-1));
+  const match = files.find((file) => normalizePastedDriverKey(file).includes(surname));
+  return match ? `/f1/drivers/${match}` : undefined;
+};
+
+export const prepareF1PasteJob = async ({
+  pastedText,
+  season = new Date().getFullYear(),
+  competitionId = 1,
+  brandName,
+  competitionName,
+  labelOverride,
+  soundtrackPath,
+  soundtrackVolume,
+  outputName,
+  voiceoverEnabled = false,
+}) => {
+  await ensureGeneratedDir();
+  const parsed = parsePastedRaceResult(pastedText);
+  const competitionConfigs = await loadCompetitionPresets();
+  const competitionConfig = competitionConfigs.find((item) => item.competitionId === Number(competitionId)) ?? competitionConfigs[0];
+  const template = 'race-results';
+  const templateConfig = await loadTemplateConfig(template);
+  const themeConfig = await loadThemeConfig(templateConfig.themeVariant);
+  const displayName = labelOverride?.trim() || parsed.circuitName;
+  const normalizedEntries = await Promise.all(parsed.entries.map(async (row) => {
+    const driver = resolvePastedDriver(row.pastedName, row.team);
+    const badge = await badgeFor({name: driver.name, team: driver.team});
+    badge.imagePath = await localDriverImageFor(driver.name) ?? badge.imagePath;
+    return {
+      position: row.position,
+      name: driver.name,
+      team: driver.team,
+      badge,
+      value: row.position === 1 ? row.value : row.value,
+      secondaryValue: row.position === 1 ? `${row.points} pts` : `${row.points} pts`,
+      driverNumber: row.driverNumber,
+      accentColor: resolveTeamColor(driver.team),
+    };
+  }));
+  const podium = normalizedEntries.slice(0, 3).map((entry) => ({
+    ...entry,
+    stat: [entry.value, entry.secondaryValue].filter(Boolean).join(' • '),
+  }));
+  const job = await addF1IntroAndVoiceover({
+    ...createBaseJob({
+      template,
+      templateConfig,
+      themeConfig,
+      competitionConfig: {
+        ...competitionConfig,
+        label: competitionName?.trim() || competitionConfig.label,
+      },
+      season: Number(season),
+      brandName,
+      soundtrackPath,
+      soundtrackLabel: f1SoundtrackPresets.find((preset) => preset.value === soundtrackPath)?.label,
+      soundtrackVolume,
+      raceType: 'Race',
+      raceName: displayName,
+      circuitName: parsed.circuitName,
+      countryCode: countryCodeFromName(parsed.circuitName),
+      brandLogoPath: pickBrandLogoPath(themeConfig.variant),
+      backgroundImagePath: pickResultsBackground('Race'),
+      title: displayName,
+      subtitle: 'Resultado da Corrida',
+      outputName:
+        outputName?.trim()
+          ? /\.(mp4|mkv|mov)$/i.test(outputName.trim())
+            ? outputName.trim()
+            : `${outputName.trim()}.mp4`
+          : `${sanitize(displayName)}-resultado-${season}.mp4`,
+      dataSource: 'paste',
+    }),
+    podium,
+    entries: normalizedEntries.slice(3),
+    manualAdjustments: ['Fonte: resultado colado manualmente; API-Sports não utilizada.'],
+  }, {voiceoverEnabled});
+  const currentJobFile = path.join(generatedDir, 'current-job.f1.json');
+  const templateJobFile = currentTemplateJobFile(template);
+  await fs.writeFile(currentJobFile, `${JSON.stringify(job, null, 2)}\n`, 'utf8');
+  await fs.writeFile(templateJobFile, `${JSON.stringify(job, null, 2)}\n`, 'utf8');
+  return {
+    job,
+    files: {currentJobFile, templateJobFile},
+    message: `Resultado colado preparado offline com ${normalizedEntries.length} pilotos.`,
+    fallbackReason: null,
+  };
+};
 
 const selectedPredictionDriverNames = (predictionDrivers) => {
   if (Array.isArray(predictionDrivers)) {
@@ -735,6 +1482,7 @@ const createBaseJob = ({
   voiceoverPath,
   voiceoverLabel,
   dataSource = 'api',
+  sourceUrl,
   warnings = [],
 }) => ({
   sport: 'f1',
@@ -770,6 +1518,7 @@ const createBaseJob = ({
   outputName,
   durationInFrames: templateConfig.durationInFrames,
   dataSource,
+  sourceUrl,
   warnings,
 });
 
@@ -785,6 +1534,7 @@ const getF1IntroDefaults = (job) => {
     'constructor-standings': 'Mundial de Construtores',
     'weekend-schedule': raceName,
     'race-predictions': `Palpite para a ${predictionTypeLabel(job.predictionType)}`,
+    editorial: job.headline || job.title || raceName,
   };
   const subtitleByTemplate = {
     'race-results': 'Resultado da Corrida',
@@ -796,6 +1546,7 @@ const getF1IntroDefaults = (job) => {
     'constructor-standings': `Formula 1 ${job.season}`,
     'weekend-schedule': 'Horarios do GP',
     'race-predictions': `${predictionTypeLabel(job.predictionType)} - ${job.authorName || 'Radio do Box'}`,
+    editorial: job.sourceLabel || 'Notícia oficial',
   };
   const voiceoverByTemplate = {
     'race-results': `Fala, galera do box. Resultado da corrida no ${raceName}.`,
@@ -807,6 +1558,7 @@ const getF1IntroDefaults = (job) => {
     'constructor-standings': `Fala, galera do box. Mundial de construtores atualizado da Formula 1 ${job.season}.`,
     'weekend-schedule': `Fala, galera do box. Horarios do ${raceName}.`,
     'race-predictions': `Fala, galera do box. Palpite ${predictionAuthorPronoun(job.predictionAuthor)} ${job.authorName || 'Radio do Box'} para o top 10 de ${predictionTypeLabel(job.predictionType).toLowerCase()} no ${raceName}.`,
+    editorial: `Fala, galera do box. As principais informações de ${job.sourceLabel || 'Formula 1'} direto da fonte oficial.`,
   };
 
   return {
@@ -910,6 +1662,7 @@ const sanitizeF1LabelOverride = (template, labelOverride) => {
 
 const buildSampleJob = async ({
   template,
+  category = 'f1',
   season,
   competitionId,
   competitionName,
@@ -924,6 +1677,7 @@ const buildSampleJob = async ({
   predictionType,
   predictionDrivers,
   outputName,
+  manualAdjustments,
   warning,
 }) => {
   const competitionConfigs = await loadCompetitionPresets();
@@ -988,7 +1742,7 @@ const buildSampleJob = async ({
   }
 
   if (template === 'race-results') {
-    const podium = await Promise.all([
+    const rawPodium = await Promise.all([
       {position: 1, name: 'George Russell', team: 'Mercedes', stat: '1:33:14.445', accentColor: '#65e1c6'},
       {position: 2, name: 'Kimi Antonelli', team: 'Mercedes', stat: '+1.4s', accentColor: '#65e1c6'},
       {position: 3, name: 'Charles Leclerc', team: 'Ferrari', stat: '+3.9s', accentColor: '#ff5546'},
@@ -996,7 +1750,7 @@ const buildSampleJob = async ({
       ...entry,
       badge: await badgeFor({name: entry.name, team: entry.team}),
     })));
-    const entries = await Promise.all(
+    const rawEntries = await Promise.all(
       [
         ['Lewis Hamilton', 'Ferrari', '4', '+7.1s'],
         ['Lando Norris', 'McLaren', '5', '+10.6s'],
@@ -1015,6 +1769,33 @@ const buildSampleJob = async ({
         accentColor: resolveTeamColor(team),
       }))
     );
+    const adjusted = applyManualClassificationAdjustments(
+      [
+        ...rawPodium.map((entry) => ({
+          position: entry.position,
+          name: entry.name,
+          team: entry.team,
+          badge: entry.badge,
+          value: entry.stat,
+          secondaryValue: '',
+          accentColor: entry.accentColor,
+        })),
+        ...rawEntries,
+      ],
+      template,
+      manualAdjustments
+    );
+    const podium = adjusted.entries.slice(0, 3).map((entry) => ({
+      position: entry.position,
+      name: entry.name,
+      team: entry.team ?? '',
+      badge: entry.badge,
+      value: entry.value,
+      secondaryValue: entry.secondaryValue,
+      stat: entry.secondaryValue || entry.value,
+      accentColor: entry.accentColor,
+    }));
+    const entries = adjusted.entries.slice(3);
     return {
       ...createBaseJob({
         ...common,
@@ -1031,11 +1812,12 @@ const buildSampleJob = async ({
       }),
       podium,
       entries,
+      ...(adjusted.appliedAdjustments.length > 0 ? {manualAdjustments: adjusted.appliedAdjustments} : {}),
     };
   }
 
   if (template === 'qualifying-grid') {
-    const podium = await Promise.all([
+    const rawPodium = await Promise.all([
       {position: 1, name: 'George Russell', team: 'Mercedes', stat: '1:15.102', accentColor: '#65e1c6'},
       {position: 2, name: 'Kimi Antonelli', team: 'Mercedes', stat: '+0.083', accentColor: '#65e1c6'},
       {position: 3, name: 'Lewis Hamilton', team: 'Ferrari', stat: '+0.194', accentColor: '#ff5546'},
@@ -1043,7 +1825,7 @@ const buildSampleJob = async ({
       ...entry,
       badge: await badgeFor({name: entry.name, team: entry.team}),
     })));
-    const entries = await Promise.all(
+    const rawEntries = await Promise.all(
       [
         ['Charles Leclerc', 'Ferrari', 'P4'],
         ['Oscar Piastri', 'McLaren', 'P5'],
@@ -1061,6 +1843,33 @@ const buildSampleJob = async ({
         accentColor: resolveTeamColor(team),
       }))
     );
+    const adjusted = applyManualClassificationAdjustments(
+      [
+        ...rawPodium.map((entry) => ({
+          position: entry.position,
+          name: entry.name,
+          team: entry.team,
+          badge: entry.badge,
+          value: entry.stat,
+          secondaryValue: '',
+          accentColor: entry.accentColor,
+        })),
+        ...rawEntries,
+      ],
+      template,
+      manualAdjustments
+    );
+    const podium = adjusted.entries.slice(0, 3).map((entry) => ({
+      position: entry.position,
+      name: entry.name,
+      team: entry.team ?? '',
+      badge: entry.badge,
+      value: entry.value,
+      secondaryValue: entry.secondaryValue,
+      stat: entry.secondaryValue || entry.value,
+      accentColor: entry.accentColor,
+    }));
+    const entries = adjusted.entries.slice(3);
     return {
       ...createBaseJob({
         ...common,
@@ -1076,6 +1885,7 @@ const buildSampleJob = async ({
       }),
       podium,
       entries,
+      ...(adjusted.appliedAdjustments.length > 0 ? {manualAdjustments: adjusted.appliedAdjustments} : {}),
     };
   }
 
@@ -1254,6 +2064,7 @@ const buildSampleJob = async ({
       ['Audi Revolut', '2', ''],
       ['Alpine', '1', ''],
       ['Williams', '0', ''],
+      ['Aston Martin', '0', ''],
       ['Cadillac', '0', ''],
     ];
     const normalizedEntries = await Promise.all(
@@ -1297,6 +2108,13 @@ const buildSampleJob = async ({
         raceName: 'GP da China',
         countryCode: 'CHN',
         circuitName: 'Xangai',
+        backgroundImagePath: category === 'f2'
+          ? '/f1/backgrounds/f1-schedule-background-f2.png'
+          : category === 'f3'
+            ? '/f1/backgrounds/f1-schedule-background-f3.png'
+            : category === 'f1-academy'
+              ? '/f1/backgrounds/f1-schedule-background-f1-academy.png'
+              : '/f1/backgrounds/f1-schedule-background.png',
         brandLogoPath: pickBrandLogoPath(themeConfig.variant),
         outputName: outputName?.trim() || 'f1-weekend-schedule-china.mp4',
       }),
@@ -1451,6 +2269,196 @@ const formatRaceGapMs = (gapMs) => {
   return `+${minutes}:${seconds.toFixed(3).padStart(6, '0')}`;
 };
 
+const parseRaceGapMs = (value) => {
+  const rawValue = String(value ?? '').trim();
+  const numericGap = rawValue.match(/^\+?\s*(\d+(?:[.,]\d+)?)$/);
+  if (numericGap) {
+    return Number(numericGap[1].replace(',', '.')) * 1000;
+  }
+
+  const minuteGap = rawValue.match(/^\+?\s*(\d+):(\d{2})(?:[.,](\d+))?$/);
+  if (minuteGap) {
+    const [, minutes, seconds, fraction = '0'] = minuteGap;
+    return Number(minutes) * 60 * 1000 + Number(seconds) * 1000 + Number(fraction.padEnd(3, '0').slice(0, 3));
+  }
+
+  return null;
+};
+
+const normalizeAdjustmentKey = (value = '') => sanitize(value).replace(/-/g, '');
+
+const parseManualClassificationAdjustments = (value) =>
+  String(value ?? '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'))
+    .map((line) => {
+      let remaining = line;
+      const secondsMatch = remaining.match(/([+-]?\d+(?:[.,]\d+)?)\s*(?:s|sec|seg|segundo|segundos)\b/i);
+      const positionDeltaMatch = remaining.match(/([+-]?\d+)\s*(?:pos|posicao|posicao|posicoes|posição|posições|places?|grid)\b/i);
+      const absolutePositionMatch = remaining.match(/\b(?:p|pos|posicao|posição)\s*(\d+)\b/i);
+      const seconds = secondsMatch ? Number(secondsMatch[1].replace(',', '.')) : null;
+      const positionDelta = positionDeltaMatch ? Number(positionDeltaMatch[1]) : null;
+      const absolutePosition = !positionDeltaMatch && absolutePositionMatch ? Number(absolutePositionMatch[1]) : null;
+
+      for (const match of [secondsMatch, positionDeltaMatch, absolutePositionMatch]) {
+        if (match) {
+          remaining = remaining.replace(match[0], '');
+        }
+      }
+
+      const driverName = remaining.replace(/[:;,|-]+/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!driverName || (seconds === null && positionDelta === null && absolutePosition === null)) {
+        return null;
+      }
+
+      return {
+        driverName,
+        key: normalizeAdjustmentKey(driverName),
+        seconds,
+        positionDelta,
+        absolutePosition,
+        label: line,
+      };
+    })
+    .filter(Boolean);
+
+const findManualAdjustmentForEntry = (entry, adjustments) => {
+  const driverKey = normalizeAdjustmentKey(entry.name);
+
+  return adjustments.find((adjustment) =>
+    driverKey === adjustment.key ||
+    (adjustment.key.length >= 4 && driverKey.includes(adjustment.key)) ||
+    (driverKey.length >= 4 && adjustment.key.includes(driverKey))
+  );
+};
+
+const raceResultSortableMs = (entry, index) => {
+  if (Number(entry.position) === 1) {
+    return 0;
+  }
+
+  const gapMs = parseRaceGapMs(entry.value);
+  if (gapMs !== null) {
+    return gapMs;
+  }
+
+  return 60 * 60 * 1000 + index * 1000;
+};
+
+const appendAdjustmentNote = (entry, note) => ({
+  ...entry,
+  secondaryValue: [entry.secondaryValue, note].filter(Boolean).join(' • '),
+});
+
+const applyGridPositionAdjustments = (decorated) => {
+  const ordered = [...decorated].sort((a, b) => a.originalIndex - b.originalIndex);
+  const penalized = ordered
+    .filter((item) => item.adjustment?.positionDelta)
+    .sort((a, b) => {
+      const aDelta = a.adjustment.positionDelta;
+      const bDelta = b.adjustment.positionDelta;
+      if (aDelta > 0 && bDelta > 0) {
+        return b.originalIndex - a.originalIndex;
+      }
+      if (aDelta < 0 && bDelta < 0) {
+        return a.originalIndex - b.originalIndex;
+      }
+      return aDelta - bDelta;
+    });
+
+  for (const item of penalized) {
+    const currentIndex = ordered.indexOf(item);
+    if (currentIndex === -1) {
+      continue;
+    }
+    const nextIndex = Math.max(
+      0,
+      Math.min(ordered.length - 1, item.originalIndex + item.adjustment.positionDelta)
+    );
+    ordered.splice(currentIndex, 1);
+    ordered.splice(nextIndex, 0, item);
+  }
+
+  return ordered;
+};
+
+const applyManualClassificationAdjustments = (entries, template, manualAdjustmentsText) => {
+  const adjustments = parseManualClassificationAdjustments(manualAdjustmentsText);
+  if (adjustments.length === 0 || !['race-results', 'qualifying-grid'].includes(template)) {
+    return {entries, appliedAdjustments: []};
+  }
+
+  const decorated = entries.map((entry, index) => {
+    const adjustment = findManualAdjustmentForEntry(entry, adjustments);
+    const secondsPenaltyMs =
+      template === 'race-results' && adjustment?.seconds !== null && adjustment?.seconds !== undefined
+        ? adjustment.seconds * 1000
+        : 0;
+    const positionDelta = adjustment?.positionDelta ?? 0;
+    const absolutePosition = adjustment?.absolutePosition ?? null;
+    const adjustedPosition = absolutePosition ?? Number(entry.position) + positionDelta;
+    const adjustedRaceMs = raceResultSortableMs(entry, index) + secondsPenaltyMs;
+    const notes = [];
+
+    if (template === 'race-results' && secondsPenaltyMs) {
+      notes.push(`PEN +${Math.abs(adjustment.seconds).toString().replace('.', ',')}s`);
+    }
+    if (positionDelta) {
+      notes.push(`PEN ${positionDelta > 0 ? '+' : ''}${positionDelta} POS`);
+    }
+    if (absolutePosition) {
+      notes.push(`AJUSTE P${absolutePosition}`);
+    }
+
+    return {
+      entry: notes.length > 0 ? appendAdjustmentNote(entry, notes.join(' • ')) : entry,
+      originalIndex: index,
+      adjustment,
+      adjustedPosition,
+      adjustedRaceMs,
+    };
+  });
+
+  const hasPositionAdjustments = decorated.some(
+    (item) => item.adjustment?.positionDelta || item.adjustment?.absolutePosition
+  );
+  const hasGridPositionDelta =
+    template === 'qualifying-grid' && decorated.some((item) => item.adjustment?.positionDelta);
+  const sorted = hasGridPositionDelta
+    ? applyGridPositionAdjustments(decorated)
+    : [...decorated].sort((a, b) => {
+        if (template === 'race-results' && !hasPositionAdjustments && a.adjustedRaceMs !== b.adjustedRaceMs) {
+          return a.adjustedRaceMs - b.adjustedRaceMs;
+        }
+        if (a.adjustedPosition !== b.adjustedPosition) {
+          return a.adjustedPosition - b.adjustedPosition;
+        }
+        return a.originalIndex - b.originalIndex;
+      });
+  const leaderMs = template === 'race-results' ? sorted[0]?.adjustedRaceMs ?? 0 : 0;
+  const adjustedEntries = sorted.map((item, index) => {
+    const nextEntry = {
+      ...item.entry,
+      position: index + 1,
+    };
+    if (template === 'race-results' && Number.isFinite(item.adjustedRaceMs)) {
+      nextEntry.value =
+        index === 0
+          ? Number(item.entry.position) === 1
+            ? item.entry.value
+            : 'VENCEDOR'
+          : formatRaceGapMs(item.adjustedRaceMs - leaderMs);
+    }
+    return nextEntry;
+  });
+
+  return {
+    entries: adjustedEntries,
+    appliedAdjustments: adjustments.map((adjustment) => adjustment.label),
+  };
+};
+
 const raceResultValueForRow = (row, position, winnerRaceDurationMs) => {
   const gap = normalizeRaceGapLabel(row.gap);
   if (gap) {
@@ -1477,13 +2485,95 @@ const raceResultValueForRow = (row, position, winnerRaceDurationMs) => {
   return '';
 };
 
-const normalizeRankingEntries = async (rows, template) => {
+const isDutchWeekendContext = (context = {}) => {
+  if (!context.dutchWeekendDriverOverride) {
+    return false;
+  }
+
+  const countryCode = String(context.countryCode ?? '').trim().toUpperCase();
+  const raceName = sanitize(context.raceName ?? '');
+  return countryCode === 'NLD' || /netherlands|holanda|dutch/.test(raceName);
+};
+
+const applyDutchWeekendDriverOverride = (row = {}, context = {}) => {
+  if (!isDutchWeekendContext(context)) {
+    return row;
+  }
+
+  const driver = row.driver ?? row.competitor ?? {};
+  const team = row.team ?? row.teams?.[0] ?? {};
+  const driverKey = sanitize(driver.name ?? '');
+  const teamKey = sanitize(team.name ?? '');
+
+  if (driverKey === 'isack-hadjar' || (driverKey === 'alexander-albon' && teamKey === 'racing-bulls')) {
+    return {
+      ...row,
+      driver: {
+        ...driver,
+        name: 'Yuki Tsunoda',
+        abbr: 'TSU',
+        number: 22,
+      },
+      competitor: row.competitor
+        ? {
+            ...row.competitor,
+            name: 'Yuki Tsunoda',
+            abbr: 'TSU',
+            number: 22,
+          }
+        : row.competitor,
+      team: {
+        ...team,
+        name: 'Racing Bulls',
+      },
+      driverImagePathOverride: '/f1/drivers/racing-bulls-yuki-tsunoda.png',
+    };
+  }
+
+  if (driverKey === 'liam-lawson' && teamKey !== 'red-bull-racing') {
+    return {
+      ...row,
+      team: {
+        ...team,
+        name: 'Red Bull Racing',
+      },
+      driverImagePathOverride: '/f1/drivers/red-bull-racing-liam-lawson.png',
+    };
+  }
+
+  return row;
+};
+
+const applyDriverStandingsDisplayOverride = (row = {}) => {
+  const driver = row.driver ?? row.competitor ?? {};
+  const team = row.team ?? row.teams?.[0] ?? {};
+  const driverKey = sanitize(driver.name ?? '');
+
+  if (driverKey !== 'liam-lawson') {
+    return row;
+  }
+
+  return {
+    ...row,
+    team: {
+      ...team,
+      name: 'Racing Bulls',
+    },
+  };
+};
+
+const normalizeRankingEntries = async (rows, template, context = {}) => {
+  const displayRows = rows
+    .map((row) => applyDutchWeekendDriverOverride(row, context))
+    .map((row) => (template === 'driver-standings' ? applyDriverStandingsDisplayOverride(row) : row));
   const winnerRaceDurationMs = template === 'race-results'
-    ? parseRaceDurationMs(rows.find((row) => Number(row.position ?? row.rank) === 1)?.time ?? rows[0]?.time)
+    ? parseRaceDurationMs(
+        displayRows.find((row) => Number(row.position ?? row.rank) === 1)?.time ?? displayRows[0]?.time
+      )
     : null;
 
   return Promise.all(
-    rows.map(async (row, index) => {
+    displayRows.map(async (row, index) => {
       const driver = row.driver ?? row.competitor ?? {};
       const team = row.team ?? row.teams?.[0] ?? {};
       const name = driver.name ?? team.name ?? `Posicao ${index + 1}`;
@@ -1525,17 +2615,22 @@ const normalizeRankingEntries = async (rows, template) => {
         secondaryValue = row.wins ? `${row.wins} vit` : '';
       }
 
+      const badge = await badgeFor({
+        name,
+        team: teamName || name,
+        driverImageUrl: template === 'constructor-standings' ? undefined : driver.image,
+        teamLogoUrl: team.logo,
+        useDriverPortrait: template !== 'constructor-standings',
+      });
+      if (row.driverImagePathOverride) {
+        badge.imagePath = row.driverImagePathOverride;
+      }
+
       return {
         position,
         name,
         team: template === 'constructor-standings' ? '' : teamName,
-        badge: await badgeFor({
-          name,
-          team: teamName || name,
-          driverImageUrl: template === 'constructor-standings' ? undefined : driver.image,
-          teamLogoUrl: team.logo,
-          useDriverPortrait: template !== 'constructor-standings',
-        }),
+        badge,
         value,
         secondaryValue,
         driverNumber:
@@ -1546,6 +2641,58 @@ const normalizeRankingEntries = async (rows, template) => {
       };
     })
   ).then((entries) => entries.filter((entry) => entry.name));
+};
+
+const completeConstructorStandingsEntries = async (entries) => {
+  const seenTeams = new Set(
+    entries.map((entry) => normalizeTeamKey(entry.name || entry.badge?.sublabel || entry.team))
+  );
+  const nextPosition = Math.max(0, ...entries.map((entry) => Number(entry.position) || 0)) + 1;
+  const missingTeams = knownConstructorStandingsTeams.filter(
+    (teamName) => !seenTeams.has(normalizeTeamKey(teamName))
+  );
+  const missingEntries = await Promise.all(
+    missingTeams.map(async (name, index) => ({
+      position: nextPosition + index,
+      name,
+      team: '',
+      badge: await badgeFor({name, team: name, useDriverPortrait: false}),
+      value: '0',
+      secondaryValue: '',
+      accentColor: resolveTeamColor(name),
+    }))
+  );
+
+  return sortByPosition([...entries, ...missingEntries]);
+};
+
+const completeDriverStandingsEntries = async (entries) => {
+  const hasSergioPerez = entries.some((entry) => sanitize(entry.name) === 'sergio-perez');
+  if (hasSergioPerez) {
+    return entries;
+  }
+
+  const leaderPoints = Number(entries[0]?.value);
+  const badge = await badgeFor({
+    name: 'Sergio Perez',
+    team: 'Cadillac Formula 1 Team',
+    useDriverPortrait: true,
+  });
+  badge.imagePath = '/f1/drivers/cadillac-formula-1-team-sergio-perez.png';
+
+  return sortByPosition([
+    ...entries,
+    {
+      position: 23,
+      name: 'Sergio Perez',
+      team: 'Cadillac Formula 1 Team',
+      badge,
+      value: '0',
+      secondaryValue: Number.isFinite(leaderPoints) ? `+${leaderPoints}` : '',
+      driverNumber: '11',
+      accentColor: resolveTeamColor('Cadillac Formula 1 Team'),
+    },
+  ]);
 };
 
 const invalidResultStatusPattern = /dns|dnf|dsq|ret|withdrawn|excluded|not started|no start|did not start|retired/i;
@@ -1667,6 +2814,24 @@ const mergeQualifyingStagesIntoGrid = ({q1Rows = [], q2Rows = [], q3Rows = []}) 
   return mergedRows;
 };
 
+const appendMissingGridRows = (gridRows = [], fallbackRows = []) => {
+  const known = new Set(gridRows.map((row) => rankingDriverKey(row)).filter(Boolean));
+  const missing = sortByPosition(fallbackRows).filter((row) => {
+    const key = rankingDriverKey(row);
+    return key && !known.has(key);
+  });
+
+  return [
+    ...gridRows,
+    ...missing.map((row, index) => ({
+      ...row,
+      position: gridRows.length + index + 1,
+      rank: gridRows.length + index + 1,
+      status: row.status || 'Sem tempo classificatório',
+    })),
+  ];
+};
+
 const isInvalidStatusRow = (row) => invalidResultStatusPattern.test(resultStatusText(row));
 
 const isDnfStatusRow = (row) => dnfResultStatusPattern.test(resultStatusText(row));
@@ -1683,16 +2848,6 @@ const raceHeadToHeadOutcome = (rowA, rowB) => {
   const invalidA = isInvalidStatusRow(rowA);
   const invalidB = isInvalidStatusRow(rowB);
 
-  if (invalidA && invalidB) {
-    return null;
-  }
-  if (invalidA && !invalidB) {
-    return 'b';
-  }
-  if (!invalidA && invalidB) {
-    return 'a';
-  }
-
   if (hasPosA && hasPosB) {
     if (posA < posB) {
       return 'a';
@@ -1701,6 +2856,16 @@ const raceHeadToHeadOutcome = (rowA, rowB) => {
       return 'b';
     }
     return null;
+  }
+
+  if (invalidA && invalidB) {
+    return null;
+  }
+  if (invalidA && !invalidB) {
+    return 'b';
+  }
+  if (!invalidA && invalidB) {
+    return 'a';
   }
 
   if (hasPosA && !hasPosB) {
@@ -1786,6 +2951,56 @@ const normalizeDriverRankingRow = (row = {}) => {
     wins: Number.isFinite(Number(row.wins)) ? Number(row.wins) : 0,
     raw: row,
   };
+};
+
+const applyRaceResultPatches = (rows = [], raceId, raceResultPatches = {}) => {
+  const patches = raceResultPatches[String(raceId)] ?? [];
+  if (patches.length === 0) {
+    return rows;
+  }
+
+  const patchedDriverRows = new Map(
+    patches
+      .filter((row) => Number.isFinite(Number(row?.driver?.id)))
+      .map((row) => [Number(row.driver.id), row])
+  );
+  const mergedRows = rows.map((row) => {
+    const driverId = Number(row?.driver?.id ?? row?.competitor?.id);
+    const patch = patchedDriverRows.get(driverId);
+    if (!patch) {
+      return row;
+    }
+
+    return {
+      ...row,
+      ...patch,
+      race: row.race ?? {id: Number(raceId)},
+      driver: {
+        ...(row.driver ?? row.competitor ?? {}),
+        ...patch.driver,
+      },
+      team: {
+        ...(row.team ?? {}),
+        ...patch.team,
+      },
+    };
+  });
+
+  const existingDriverIds = new Set(
+    mergedRows
+      .map((row) => Number(row?.driver?.id ?? row?.competitor?.id))
+      .filter((driverId) => Number.isFinite(driverId) && driverId > 0)
+  );
+  return mergedRows
+    .concat(
+      patches
+        .filter((row) => !existingDriverIds.has(Number(row?.driver?.id)))
+        .map((row) => ({
+          race: {id: Number(raceId)},
+          ...row,
+        }))
+    )
+    .sort((a, b) => parsePosition(a) - parsePosition(b));
 };
 
 const normalizeRaceResultRow = (row = {}, raceId) => {
@@ -1984,8 +3199,10 @@ const isComparableRaceRow = (row) => {
   return Number.isFinite(totalRaceMs) && totalRaceMs > 0;
 };
 
-const buildRacePaceEntries = async (rows = []) => {
-  const comparableRows = rows.filter((row) => isComparableRaceRow(row));
+const buildRacePaceEntries = async (rows = [], context = {}) => {
+  const comparableRows = rows
+    .map((row) => applyDutchWeekendDriverOverride(row, context))
+    .filter((row) => isComparableRaceRow(row));
   const paceRows = comparableRows
     .map((row) => {
       const laps = Number(row?.laps ?? row?.lap ?? 0);
@@ -2008,18 +3225,22 @@ const buildRacePaceEntries = async (rows = []) => {
       const name = driver.name ?? `Posição ${index + 1}`;
       const teamName = team.name ?? '';
       const deltaPerLap = row.paceMs - leaderPace;
+      const badge = await badgeFor({
+        name,
+        team: teamName || name,
+        driverImageUrl: driver.image,
+        teamLogoUrl: team.logo,
+        useDriverPortrait: true,
+      });
+      if (row.driverImagePathOverride) {
+        badge.imagePath = row.driverImagePathOverride;
+      }
 
       return {
         position: index + 1,
         name,
         team: teamName,
-        badge: await badgeFor({
-          name,
-          team: teamName || name,
-          driverImageUrl: driver.image,
-          teamLogoUrl: team.logo,
-          useDriverPortrait: true,
-        }),
+        badge,
         value: formatPaceMs(row.paceMs),
         secondaryValue: index === 0 ? '--' : `+${(deltaPerLap / 1000).toFixed(3)}s/volta`,
         driverNumber:
@@ -2057,6 +3278,7 @@ const buildTeammateBattleData = async ({
   ).catch(() => ({response: []}));
   const seasonDrivers = Array.isArray(driversPayload.response) ? driversPayload.response : [];
   const warnings = [];
+  const raceResultPatches = await loadRaceResultPatches();
   const normalizedRaces = races
     .map(normalizeF1Race)
     .filter((race) => race.id > 0 && /^race$/i.test(race.type) && String(race.status).toLowerCase() === 'completed')
@@ -2077,8 +3299,11 @@ const buildTeammateBattleData = async ({
         apiKey,
         apiHost
       );
-      const raceRows = Array.isArray(racePayload.response)
-        ? racePayload.response.map((row) => normalizeRaceResultRow(row, race.id))
+      const rawRaceRows = Array.isArray(racePayload.response)
+        ? applyRaceResultPatches(racePayload.response, race.id, raceResultPatches)
+        : [];
+      const raceRows = rawRaceRows.length > 0
+        ? rawRaceRows.map((row) => normalizeRaceResultRow(row, race.id))
         : [];
       if (raceRows.length === 0) {
         skippedRaceIds.add(race.id);
@@ -2197,7 +3422,7 @@ const buildTeammateBattleData = async ({
       bestGrid: gridPositions.length ? Math.min(...gridPositions) : null,
       averageGrid: averagePosition(gridPositions),
       racesStarted: gridPositions.length,
-      classifiedResults: classifiedResultRows.length,
+      classifiedResults: resultRows.length,
       dnfCount: resultRows.filter(countDnfRaceResult).length,
       dnsCount: resultRows.filter(countDnsRaceResult).length,
       dsqCount: resultRows.filter(countDsqRaceResult).length,
@@ -2458,6 +3683,247 @@ const findWinnerNameFromRaceRanking = (rows = []) => {
   return String(driver.name ?? '').trim();
 };
 
+const buildOfficialScheduleJob = async ({
+  season,
+  category = 'f1',
+  raceId,
+  brandName,
+  competitionName,
+  labelOverride,
+  soundtrackPath,
+  soundtrackVolume,
+}) => {
+  const categoryConfig = officialCategory(category);
+  const categoryColors = {
+    f1: ['#E10600', '#FF6B5F'],
+    f2: ['#0057FF', '#6EDCFF'],
+    f3: ['#FF7A00', '#FFD166'],
+    'f1-academy': ['#FF4FA3', '#6EDCFF'],
+  }[category] ?? ['#E10600', '#FF6B5F'];
+  const categoryBackgroundPaths = {
+    f1: '/f1/backgrounds/f1-schedule-background.png',
+    f2: '/f1/backgrounds/f1-schedule-background-f2.png',
+    f3: '/f1/backgrounds/f1-schedule-background-f3.png',
+    'f1-academy': '/f1/backgrounds/f1-schedule-background-f1-academy.png',
+  };
+  const competitionConfigs = await loadCompetitionPresets();
+  const gpNameTranslations = await loadGpNameTranslations();
+  const competitionConfig = competitionConfigs[0];
+  const template = 'weekend-schedule';
+  const templateConfig = await loadTemplateConfig(template);
+  const themeConfig = {...await loadThemeConfig(templateConfig.themeVariant), accent: categoryColors[0], secondaryAccent: categoryColors[1]};
+  const calendarHtml = await fetchOfficialHtml(`${categoryConfig.baseUrl}${categoryConfig.calendar(season)}`);
+  const links = officialRaceLinksFromCalendar(calendarHtml, season, category);
+  const races = await Promise.all(links.map(async (link) => {
+    const slug = category === 'f1-academy' ? link.match(/raceid=(\d+)/)?.[1] : link.split('/').pop();
+    try {
+      return await loadOfficialRace(season, slug, category, link);
+    } catch {
+      return null;
+    }
+  }));
+  const selected = selectOfficialRace(races.filter(Boolean), typeof raceId === 'string' ? raceId : undefined);
+  if (!selected) {
+    throw new Error(`No official Formula 1 weekend found for season ${season}.`);
+  }
+  const location = selected.location;
+  const raceName = category === 'f1' ? translatedGpName(selected.country, gpNameTranslations) : `GP de ${selected.location}`;
+  const competition = {
+    ...competitionConfig,
+    label: competitionName?.trim() || categoryConfig.name,
+  };
+  return {
+    ...createBaseJob({
+      template,
+      templateConfig,
+      themeConfig,
+      competitionConfig: competition,
+      season,
+      brandName,
+      soundtrackPath,
+      soundtrackLabel: f1SoundtrackPresets.find((preset) => preset.value === soundtrackPath)?.label,
+      soundtrackVolume,
+      raceType: 'Official weekend',
+      raceId: selected.slug,
+      raceName,
+      countryCode: countryCodeFromName(selected.country),
+      circuitName: location,
+      backgroundImagePath: categoryBackgroundPaths[category] ?? categoryBackgroundPaths.f1,
+      brandLogoPath: pickBrandLogoPath(themeConfig.variant),
+      dataSource: categoryConfig.source,
+      title: `Horários da ${categoryConfig.name}`,
+      subtitle: labelOverride?.trim() || raceName,
+      outputName: `${sanitize(raceName)}-schedule-${season}.mp4`,
+    }),
+    sessions: selected.sessions,
+    category,
+    categoryLabel: categoryConfig.label,
+    sourceLabel: categoryConfig.source,
+    manualAdjustments: [
+      `Fonte oficial: ${selected.sourceUrl}`,
+      `Horários convertidos para ${officialF1TimeZone}.`,
+    ],
+  };
+};
+
+const buildOfficialResultJob = async ({
+  season,
+  raceId,
+  session = 'race',
+  brandName,
+  labelOverride,
+  soundtrackPath,
+  soundtrackVolume,
+  outputName,
+}) => {
+  const races = await loadOfficialResultRaceOptions(season);
+  const selectedRace = races.find((race) => String(race.id) === String(raceId)) ?? races[0];
+  if (!selectedRace) throw new Error(`No official result race found for season ${season}.`);
+  const officialSession = session === 'starting-grid' ? 'starting-grid' : session;
+  if (!selectedRace.sessions.includes(officialSession)) {
+    throw new Error(`The official Formula1.com page is not published for ${officialSession} at ${selectedRace.label}.`);
+  }
+  const {rows, sourceUrl} = await loadOfficialResult({season, race: selectedRace, session: officialSession});
+  const template = officialSession === 'starting-grid' ? 'qualifying-grid' : 'race-results';
+  const templateConfig = await loadTemplateConfig(template);
+  const themeConfig = await loadThemeConfig(templateConfig.themeVariant);
+  const competitionConfigs = await loadCompetitionPresets();
+  const competitionConfig = competitionConfigs[0];
+  const raceName = labelOverride?.trim() || `GP de ${selectedRace.label}`;
+  const numberedRows = rows.map((row, index) => ({...row, position: row.position ?? rows.length - rows.slice(index).filter((item) => item.position === null).length + 1}));
+  const entries = await Promise.all(numberedRows.map(async (row) => {
+    const badge = await badgeFor({name: row.driver, team: row.team});
+    badge.imagePath = await localDriverImageFor(row.driver) ?? badge.imagePath;
+    const isGrid = officialSession === 'starting-grid';
+    const status = row.time || '—';
+    return {
+      position: row.position,
+      name: row.driver,
+      team: row.team,
+      badge,
+      value: status,
+      secondaryValue: isGrid ? undefined : `${row.points || '0'} pts`,
+      driverNumber: row.number,
+      accentColor: badge.accentColor,
+    };
+  }));
+  const podium = entries.slice(0, 3).map((entry) => ({
+    position: entry.position,
+    name: entry.name,
+    team: entry.team ?? '',
+    badge: entry.badge,
+    value: entry.value,
+    secondaryValue: entry.secondaryValue,
+    stat: entry.secondaryValue || entry.value,
+    accentColor: entry.accentColor,
+  }));
+  const label = officialSession === 'sprint' ? 'Resultado da Sprint' : officialSession === 'starting-grid' ? 'Classificação de Largada' : 'Resultado da Corrida';
+  return {
+    ...createBaseJob({
+      template,
+      templateConfig,
+      themeConfig,
+      competitionConfig,
+      season,
+      brandName,
+      soundtrackPath,
+      soundtrackLabel: f1SoundtrackPresets.find((preset) => preset.value === soundtrackPath)?.label,
+      soundtrackVolume,
+      raceType: officialSession === 'sprint' ? 'Sprint' : 'Race',
+      raceId: selectedRace.id,
+      raceName,
+      title: raceName,
+      subtitle: label,
+      countryCode: '',
+      circuitName: selectedRace.label,
+      brandLogoPath: pickBrandLogoPath(themeConfig.variant),
+      backgroundImagePath: template === 'race-results' ? pickResultsBackground(officialSession === 'sprint' ? 'Sprint' : 'Race') : undefined,
+      dataSource: 'formula1.com',
+      sourceUrl,
+      outputName: outputName?.trim() || `${sanitize(selectedRace.label)}-${officialSession}-${season}.mp4`,
+    }),
+    podium,
+    entries: entries.slice(3),
+    manualAdjustments: [`Fonte oficial: ${sourceUrl}`],
+  };
+};
+
+const sourceResultEventName = (eventUrl = '') => {
+  const parts = String(eventUrl).split('/').filter(Boolean);
+  const raw = parts.at(-1) === 'race-result' ? parts.at(-2) : parts.at(-1);
+  return sourceEventLabel('', raw || 'etapa oficial');
+};
+
+const buildSourceResultsJob = async ({season, category = 'f1', eventUrl, session = 'race', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName}) => {
+  const result = await loadOfficialSourceResults({season, category, eventUrl, session});
+  if (!result.rows.length) throw new Error(result.warning || 'Nenhum resultado publicado foi encontrado.');
+  const isGrid = ['starting-grid', 'qualifying', 'practice'].includes(session);
+  const template = isGrid ? 'qualifying-grid' : 'race-results';
+  const templateConfig = await loadTemplateConfig(template);
+  const colors = {f1: ['#E10600', '#FF6B5F'], f2: ['#0057FF', '#6EDCFF'], f3: ['#FF7A00', '#FFD166'], 'f1-academy': ['#FF4FA3', '#6EDCFF']}[category] ?? ['#E10600', '#FF6B5F'];
+  const themeConfig = {...await loadThemeConfig(templateConfig.themeVariant), accent: colors[0], secondaryAccent: colors[1]};
+  const baseCompetition = (await loadCompetitionPresets())[0];
+  const competitionConfig = {...baseCompetition, label: competitionName?.trim() || sourceCategory(category).label};
+  const eventName = sourceResultEventName(eventUrl);
+  const entries = await Promise.all(result.rows.map(async (row) => {
+    const driver = String(row.driver).replace(/\s+[A-Z]{3}$/i, '').trim();
+    const team = row.values?.[3] && !/^\d|[:+−-]\d/.test(row.values[3]) ? row.values[3] : '';
+    const badge = await badgeFor({name: driver, team});
+    badge.imagePath = await localDriverImageFor(driver) ?? badge.imagePath;
+    const value = row.values?.at(-2) || '—';
+    const points = row.values?.at(-1) || '0';
+    return {position: row.position, name: driver, team, badge, value, secondaryValue: isGrid ? undefined : `${points} pts`, driverNumber: row.number, accentColor: badge.accentColor};
+  }));
+  const podium = entries.slice(0, 3).map((entry) => ({...entry, stat: entry.secondaryValue || entry.value}));
+  return {
+    ...createBaseJob({template, templateConfig, themeConfig, competitionConfig, season, brandName, soundtrackPath, soundtrackVolume, raceType: session, raceName: eventName, title: labelOverride?.trim() || eventName, subtitle: isGrid ? 'Classificação de Largada' : session === 'sprint' ? 'Resultado da Sprint' : 'Resultado da Corrida', countryCode: '', circuitName: eventName, brandLogoPath: pickBrandLogoPath(themeConfig.variant), dataSource: sourceCategory(category).site, sourceUrl: result.sourceUrl, outputName: outputName?.trim() || `${category}-${sanitize(eventName)}-${session}-${season}.mp4`}),
+    podium,
+    entries: entries.slice(3),
+    category,
+    sourceLabel: sourceCategory(category).site,
+    manualAdjustments: [`Fonte oficial: ${result.sourceUrl}`, `Dados extraídos em ${result.extractedAt}.`],
+  };
+};
+
+const buildFiaStandingsJob = async ({season, category = 'f1', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName}) => {
+  const result = await loadFiaClassificationDocuments({season, category});
+  if (!result.standingsRows?.length) throw new Error(result.warning || 'A FIA não publicou uma tabela de classificação extraível para esta categoria.');
+  const rows = result.standingsRows.slice(1).filter((row) => row.length > 1);
+  const ptsIndex = result.standingsRows[0].findIndex((cell) => /pts|points/i.test(cell));
+  const template = 'driver-standings';
+  const templateConfig = await loadTemplateConfig(template);
+  const themeConfig = await loadThemeConfig(templateConfig.themeVariant);
+  const baseCompetition = (await loadCompetitionPresets())[0];
+  const competitionConfig = {...baseCompetition, label: competitionName?.trim() || sourceCategory(category).label};
+  const entries = await Promise.all(rows.map(async (row, index) => {
+    const name = String(row[1] || row[0]).trim();
+    const value = String(row[ptsIndex >= 0 ? ptsIndex : row.length - 1] || '0').trim();
+    const badge = await badgeFor({name, team: ''});
+    badge.imagePath = await localDriverImageFor(name) ?? badge.imagePath;
+    return {position: Number(row[0]) || index + 1, name, team: '', badge, value, secondaryValue: `${value} pts`, accentColor: badge.accentColor};
+  }));
+  return {...createBaseJob({template, templateConfig, themeConfig, competitionConfig, season, brandName, soundtrackPath, soundtrackVolume, title: 'Mundial de Pilotos', subtitle: labelOverride?.trim() || `${sourceCategory(category).label} ${season}`, brandLogoPath: pickBrandLogoPath(themeConfig.variant), dataSource: 'fia', sourceUrl: result.sourceUrl, outputName: outputName?.trim() || `${category}-fia-driver-standings-${season}.mp4`}), leader: entries[0] ? {...entries[0], stat: `${entries[0].value} pts`} : undefined, entries: entries.slice(1, 23), category, sourceLabel: 'fia.com', manualAdjustments: [`Fonte FIA: ${result.sourceUrl}`]};
+};
+
+const loadOfficialEditorialArticle = async ({season, category = 'f1', articleUrl}) => {
+  if (!articleUrl) throw new Error('Missing official article URL.');
+  const html = await fetchOfficialHtml(articleUrl);
+  const title = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)/i)?.[1] || html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] || sourceEventLabel('', articleUrl.split('/').filter(Boolean).at(-1));
+  const description = html.match(/<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]+content=["']([^"']+)/i)?.[1];
+  const paragraphs = [...html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((match) => htmlFragmentText(match[1])).filter((text) => text.length > 40).slice(0, 3);
+  return {season, category, articleUrl, sourceUrl: articleUrl, sourceLabel: sourceCategory(category).site, headline: htmlFragmentText(title), deck: htmlFragmentText(description || ''), body: paragraphs.join(' '), extractedAt: new Date().toISOString()};
+};
+
+const buildEditorialJob = async ({season, category = 'f1', articleUrl, brandName, competitionName, soundtrackPath, soundtrackVolume, outputName}) => {
+  const article = await loadOfficialEditorialArticle({season, category, articleUrl});
+  const template = 'editorial';
+  const templateConfig = await loadTemplateConfig(template);
+  const themeConfig = await loadThemeConfig(templateConfig.themeVariant);
+  const baseCompetition = (await loadCompetitionPresets())[0];
+  const competitionConfig = {...baseCompetition, label: competitionName?.trim() || sourceCategory(category).label};
+  return {...createBaseJob({template, templateConfig, themeConfig, competitionConfig, season, brandName, soundtrackPath, soundtrackVolume, title: article.headline, subtitle: article.sourceLabel, brandLogoPath: pickBrandLogoPath(themeConfig.variant), dataSource: article.sourceLabel, sourceUrl: article.sourceUrl, outputName: outputName?.trim() || `${category}-editorial-${season}.mp4`}), ...article};
+};
+
 const buildApiJob = async ({
   template,
   apiKey,
@@ -2479,6 +3945,7 @@ const buildApiJob = async ({
   introTitle,
   introSubtitle,
   voiceoverText,
+  manualAdjustments,
   outputName,
 }) => {
   const competitionConfigs = await loadCompetitionPresets();
@@ -2580,12 +4047,22 @@ const buildApiJob = async ({
     circuitName: meta.circuitName,
     brandLogoPath: pickBrandLogoPath(themeConfig.variant),
   };
+  const dutchWeekendContext = {
+    ...meta,
+    dutchWeekendDriverOverride: true,
+  };
 
   if (template === 'race-predictions') {
     const normalizedAuthor = normalizePredictionAuthor(predictionAuthor);
     const normalizedType = normalizePredictionType(predictionType);
     const author = predictionAuthors[normalizedAuthor];
-    const driverOptions = await loadF1DriverOptions({apiKey, apiHost, season, competitionId});
+    const driverOptions = await loadF1DriverOptions({
+      apiKey,
+      apiHost,
+      season,
+      competitionId,
+      context: dutchWeekendContext,
+    });
     const driverNames = selectedPredictionDriverNames(predictionDrivers);
     const entries = await predictionEntriesFromOptions(driverNames, driverOptions.drivers);
     const displayRaceName = labelOverride?.trim() || meta.raceName;
@@ -2813,7 +4290,9 @@ const buildApiJob = async ({
         fetchRaceRankingRows(sessionByExactType('3rd Qualifying')),
       ]);
       const mergedQualifyingGrid = mergeQualifyingStagesIntoGrid({q1Rows, q2Rows, q3Rows});
-      rankingRows = mergedQualifyingGrid.length > 0 ? mergedQualifyingGrid : referenceDetailRows;
+      rankingRows = mergedQualifyingGrid.length > 0
+        ? appendMissingGridRows(mergedQualifyingGrid, referenceDetailRows)
+        : referenceDetailRows;
     } else if (referenceDetailRows.length > 0) {
       const detailByDriverId = new Map(
         referenceDetailRows
@@ -2854,11 +4333,12 @@ const buildApiJob = async ({
           gap: row.gap || detailRow.gap || '',
         };
       });
+      rankingRows = appendMissingGridRows(rankingRows, referenceDetailRows);
     }
   }
 
   if (template === 'race-pace') {
-    const paceEntries = await buildRacePaceEntries(rankingRows);
+    const paceEntries = await buildRacePaceEntries(rankingRows, dutchWeekendContext);
     if (paceEntries.length === 0) {
       throw new Error('No comparable race pace rows returned for race-pace.');
     }
@@ -2878,13 +4358,22 @@ const buildApiJob = async ({
     };
   }
 
-  const entries = sortByPosition(await normalizeRankingEntries(rankingRows, template));
+  const rankingContext = ['race-results', 'qualifying-grid'].includes(template)
+    ? dutchWeekendContext
+    : meta;
+  const normalizedEntries = sortByPosition(await normalizeRankingEntries(rankingRows, template, rankingContext));
+  const entries =
+    template === 'constructor-standings'
+      ? await completeConstructorStandingsEntries(normalizedEntries)
+      : normalizedEntries;
 
   if (entries.length === 0) {
     throw new Error(`No live rows returned for F1 template ${template}.`);
   }
 
   if (template === 'race-results' || template === 'qualifying-grid') {
+    const adjusted = applyManualClassificationAdjustments(entries, template, manualAdjustments);
+    const displayEntries = adjusted.entries;
     const displayRaceName = labelOverride?.trim() || meta.raceName;
     const templateSubtitle =
       template === 'race-results' ? 'Resultado da Corrida' : 'Classificação de Largada';
@@ -2892,7 +4381,7 @@ const buildApiJob = async ({
       ? (await buildFastestLapData(fastestLapRows, {includeTime: true})) ??
         (await buildFastestLapData(rankingRows))
       : undefined;
-    const podium = entries.slice(0, 3).map((entry) => ({
+    const podium = displayEntries.slice(0, 3).map((entry) => ({
       position: entry.position,
       name: entry.name,
       team: entry.team ?? '',
@@ -2915,12 +4404,14 @@ const buildApiJob = async ({
           `${sanitize(meta.raceName)}-${template}-${season}.mp4`,
       }),
       podium,
-      entries: template === 'race-results' ? entries.slice(3) : entries.slice(3),
+      entries: displayEntries.slice(3),
       ...(fastestLap ? {fastestLap} : {}),
+      ...(adjusted.appliedAdjustments.length > 0 ? {manualAdjustments: adjusted.appliedAdjustments} : {}),
     };
   }
 
   if (template === 'driver-standings') {
+    const standingsEntries = await completeDriverStandingsEntries(entries);
     return {
       ...createBaseJob({
         ...common,
@@ -2928,17 +4419,17 @@ const buildApiJob = async ({
         subtitle: labelOverride?.trim() || `Formula 1 ${season}`,
         outputName: outputName?.trim() || `f1-driver-standings-${season}.mp4`,
       }),
-      leader: entries[0]
+      leader: standingsEntries[0]
         ? {
-            position: entries[0].position,
-            name: entries[0].name,
-            team: entries[0].team ?? '',
-            badge: entries[0].badge,
-            stat: entries[0].value ? `${entries[0].value} pts` : undefined,
-            accentColor: entries[0].accentColor,
+            position: standingsEntries[0].position,
+            name: standingsEntries[0].name,
+            team: standingsEntries[0].team ?? '',
+            badge: standingsEntries[0].badge,
+            stat: standingsEntries[0].value ? `${standingsEntries[0].value} pts` : undefined,
+            accentColor: standingsEntries[0].accentColor,
           }
         : undefined,
-      entries: entries.slice(0, 22),
+      entries: standingsEntries.slice(0, 23),
     };
   }
 
@@ -2959,9 +4450,23 @@ const buildApiJob = async ({
           accentColor: entries[0].accentColor,
         }
       : undefined,
-    entries: entries.slice(0, 10),
+    entries: entries.slice(0, 11),
   };
 };
+
+export const loadF1SourceEvents = async ({season, category = 'f1'}) => sourceEventsForSeason(Number(season), category);
+
+export const loadF1SourceResults = async ({season, category = 'f1', eventUrl, session = 'race'}) =>
+  loadOfficialSourceResults({season: Number(season), category, eventUrl, session});
+
+export const loadFiaSourceDocuments = async ({season, category = 'f1'}) =>
+  loadFiaClassificationDocuments({season: Number(season), category});
+
+export const loadF1Editorial = async ({season, category = 'f1'}) =>
+  loadOfficialEditorial({season: Number(season), category});
+
+export const loadF1EditorialArticle = async ({season, category = 'f1', articleUrl}) =>
+  loadOfficialEditorialArticle({season: Number(season), category, articleUrl});
 
 export const f1Templates = async () => {
   const configs = await Promise.all(templateFileNames.map((fileName) =>
@@ -2987,7 +4492,15 @@ export const loadF1RaceOptions = async ({
   competitionId = 1,
   template = 'race-results',
   raceType = '',
+  category = 'f1',
 }) => {
+  if (template === 'official-results') {
+    return loadOfficialResultRaceOptions(season);
+  }
+  if (template === 'weekend-schedule') {
+    return loadOfficialRaceOptions(season, category);
+  }
+
   if (!apiKey) {
     throw new Error('Missing Formula 1 API key.');
   }
@@ -3080,6 +4593,7 @@ export const loadF1DriverOptions = async ({
   apiHost = 'v1.formula-1.api-sports.io',
   season,
   competitionId = 1,
+  context = {},
 } = {}) => {
   if (!apiKey) {
     return {
@@ -3096,7 +4610,7 @@ export const loadF1DriverOptions = async ({
       apiHost
     );
     const standingsRows = Array.isArray(standingsPayload.response) ? standingsPayload.response : [];
-    const entries = await normalizeRankingEntries(standingsRows, 'driver-standings');
+    const entries = await normalizeRankingEntries(standingsRows, 'driver-standings', context);
     const drivers = entries
       .map((entry) => ({
         id: sanitize(entry.name),
@@ -3152,7 +4666,11 @@ export const prepareF1Job = async ({
   voiceoverEnabled = true,
   soundtrackPath,
   soundtrackVolume,
+  manualAdjustments,
   outputName,
+  category = 'f1',
+  eventUrl,
+  articleUrl,
 }) => {
   await ensureGeneratedDir();
 
@@ -3161,10 +4679,38 @@ export const prepareF1Job = async ({
   let fallbackReason = null;
 
   try {
-    if (!apiKey) {
+    if (template === 'official-results') {
+      job = await buildOfficialResultJob({
+        season,
+        raceId,
+        session: raceType || 'race',
+        brandName,
+        labelOverride,
+        soundtrackPath,
+        soundtrackVolume,
+        outputName,
+      });
+    } else if (template === 'weekend-schedule') {
+      job = await buildOfficialScheduleJob({
+        season,
+        category,
+        raceId,
+        brandName,
+        competitionName,
+        labelOverride,
+        soundtrackPath,
+        soundtrackVolume,
+      });
+    } else if (template === 'source-results') {
+      job = await buildSourceResultsJob({season, category, eventUrl, session: raceType || 'race', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName});
+    } else if (template === 'fia-standings') {
+      job = await buildFiaStandingsJob({season, category, brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName});
+    } else if (template === 'editorial') {
+      job = await buildEditorialJob({season, category, articleUrl, brandName, competitionName, soundtrackPath, soundtrackVolume, outputName});
+    } else if (!apiKey) {
       throw new Error('Missing Formula 1 API key.');
-    }
-    job = await buildApiJob({
+    } else {
+      job = await buildApiJob({
       template,
       apiKey,
       apiHost,
@@ -3186,13 +4732,32 @@ export const prepareF1Job = async ({
       introSubtitle,
       voiceoverText,
       voiceoverEnabled,
+      manualAdjustments,
       outputName,
-    });
+      });
+    }
   } catch (error) {
     if (error instanceof F1PreparationError) {
       throw error;
     }
     const reason = error instanceof Error ? error.message : String(error);
+    if (template === 'official-results') {
+      throw new F1PreparationError(
+        'Não foi possível obter esse resultado oficial no Formula1.com. Verifique se a sessão já foi publicada.',
+        'official_results_unavailable',
+        reason
+      );
+    }
+    if (template === 'weekend-schedule') {
+      throw new F1PreparationError(
+        'Não foi possível obter a agenda oficial da categoria selecionada.',
+        'official_schedule_unavailable',
+        reason
+      );
+    }
+    if (template === 'source-results' || template === 'fia-standings' || template === 'editorial') {
+      throw new F1PreparationError('Não foi possível transformar esta fonte oficial em Short.', `${template.replaceAll('-', '_')}_unavailable`, reason);
+    }
     if (template === 'teammate-battle') {
       const cleanReason = summarizeFailureReason(reason);
       throw new F1PreparationError(
@@ -3204,6 +4769,7 @@ export const prepareF1Job = async ({
     fallbackReason = reason;
     job = await buildSampleJob({
       template,
+      category,
       season,
       competitionId,
       competitionName,
@@ -3221,6 +4787,7 @@ export const prepareF1Job = async ({
       introSubtitle,
       voiceoverText,
       voiceoverEnabled,
+      manualAdjustments,
       outputName,
       warning: `Fallback sample data used because real API data failed: ${reason}`,
     });
@@ -3250,6 +4817,6 @@ export const getF1Options = async () => {
     soundtrackPresets: f1SoundtrackPresets,
     currentJob,
     statusMessage:
-      'Formula 1 workspace ready. If API-Sports data is unavailable, the dashboard will fall back to sample data.',
+      'Formula 1 workspace ready. Horários usam o Formula1.com; os demais templates usam API-Sports.',
   };
 };

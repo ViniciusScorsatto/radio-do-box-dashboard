@@ -1,6 +1,7 @@
 import {Composition} from 'remotion';
 import {F1CircuitInsightsComposition} from './compositions/F1CircuitInsightsComposition';
 import {F1GridComposition} from './compositions/F1GridComposition';
+import {F1EditorialComposition} from './compositions/F1EditorialComposition';
 import {F1LargeVideosComposition} from './compositions/F1LargeVideosComposition';
 import {F1RacePaceComposition} from './compositions/F1RacePaceComposition';
 import {F1RacePredictionsComposition} from './compositions/F1RacePredictionsComposition';
@@ -21,6 +22,7 @@ const constructorStandingsJob = currentF1Jobs.constructorStandings;
 const weekendScheduleJob = currentF1Jobs.weekendSchedule;
 const circuitInsightsJob = currentF1Jobs.circuitInsights;
 const racePredictionsJob = currentF1Jobs.racePredictions;
+const editorialJob = currentF1Job.template === 'editorial' ? currentF1Job : ({} as Partial<F1VideoJob>);
 
 const f1IntroOverrideByTemplate: Partial<
   Record<F1VideoJob['template'], {introTitle: string; introSubtitle: string}>
@@ -169,6 +171,11 @@ const scheduleProps = {
   subtitle: weekendScheduleJob.subtitle ?? sampleF1Jobs.weekendSchedule.subtitle,
   themeConfig: weekendScheduleJob.themeConfig ?? sampleF1Jobs.weekendSchedule.themeConfig,
   sessions: weekendScheduleJob.sessions ?? sampleF1Jobs.weekendSchedule.sessions,
+  category: weekendScheduleJob.category ?? sampleF1Jobs.weekendSchedule.category,
+  categoryLabel: weekendScheduleJob.categoryLabel ?? sampleF1Jobs.weekendSchedule.categoryLabel,
+  sourceLabel: weekendScheduleJob.sourceLabel ?? sampleF1Jobs.weekendSchedule.sourceLabel,
+  circuitName: weekendScheduleJob.circuitName ?? sampleF1Jobs.weekendSchedule.circuitName,
+  countryCode: weekendScheduleJob.countryCode ?? sampleF1Jobs.weekendSchedule.countryCode,
   ...f1MediaProps(weekendScheduleJob, sampleF1Jobs.weekendSchedule),
   backgroundImagePath:
     weekendScheduleJob.backgroundImagePath ?? sampleF1Jobs.weekendSchedule.backgroundImagePath,
@@ -203,6 +210,19 @@ const racePredictionsProps = {
   ...f1MediaProps(racePredictionsJob, sampleF1Jobs.racePredictions),
   backgroundImagePath:
     racePredictionsJob.backgroundImagePath ?? sampleF1Jobs.racePredictions.backgroundImagePath,
+};
+
+const editorialProps = {
+  title: editorialJob.title ?? 'Notícia Oficial',
+  subtitle: editorialJob.subtitle ?? 'Formula 1',
+  themeConfig: editorialJob.themeConfig ?? sampleF1Jobs.raceResults.themeConfig,
+  headline: (editorialJob.template === 'editorial' ? editorialJob.headline : undefined) ?? 'As principais notícias do paddock',
+  deck: (editorialJob.template === 'editorial' ? editorialJob.deck : undefined) ?? 'Informação publicada pela fonte oficial',
+  body: (editorialJob.template === 'editorial' ? editorialJob.body : undefined) ?? 'Prepare o Short a partir da matéria oficial selecionada no painel de fontes.',
+  sourceLabel: (editorialJob.template === 'editorial' ? editorialJob.sourceLabel : undefined) ?? 'formula1.com',
+  articleUrl: (editorialJob.template === 'editorial' ? editorialJob.articleUrl : undefined) ?? 'https://www.formula1.com/',
+  ...f1MediaProps(editorialJob as F1VideoJob, sampleF1Jobs.raceResults),
+  backgroundImagePath: editorialJob.backgroundImagePath ?? sampleF1Jobs.raceResults.backgroundImagePath,
 };
 
 const largeVideosJob =
@@ -295,6 +315,15 @@ export const RemotionRoot = () => {
         defaultProps={scheduleProps}
       />
       <Composition
+        id="F1WeekendScheduleLandscape"
+        component={F1ScheduleComposition}
+        durationInFrames={F1_DURATION_IN_FRAMES}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={scheduleProps}
+      />
+      <Composition
         id="F1CircuitInsightsShort"
         component={F1CircuitInsightsComposition}
         durationInFrames={F1_DURATION_IN_FRAMES}
@@ -311,6 +340,15 @@ export const RemotionRoot = () => {
         width={1080}
         height={1920}
         defaultProps={racePredictionsProps}
+      />
+      <Composition
+        id="F1EditorialShort"
+        component={F1EditorialComposition}
+        durationInFrames={F1_DURATION_IN_FRAMES}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={editorialProps}
       />
     </>
   );

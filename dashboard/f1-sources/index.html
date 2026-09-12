@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fontes Oficiais • Rádio do Box</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell sources-shell">
+      <nav class="top-nav dashboard-top-nav">
+        <a class="back-link" href="/">All dashboards</a>
+        <div class="dashboard-status">
+          <span class="chip subtle">Radio do Box</span>
+          <span class="chip" id="source-category-chip">F1</span>
+          <span class="chip subtle">fontes oficiais</span>
+        </div>
+      </nav>
+
+      <section class="dashboard-header sources-header">
+        <div>
+          <p class="eyebrow">Data room • fontes oficiais</p>
+          <h1>Fontes para Shorts</h1>
+        </div>
+        <p class="quick-status">Resultados, homologação FIA e editorial separados por origem para evitar misturar dado provisório com resultado final.</p>
+      </section>
+
+      <section class="sources-controls panel">
+        <div class="two-up">
+          <label>Categoria
+            <select id="category-select">
+              <option value="f1">Formula 1</option>
+              <option value="f2">Formula 2</option>
+              <option value="f3">Formula 3</option>
+              <option value="f1-academy">F1 Academy</option>
+            </select>
+          </label>
+          <label>Temporada
+            <input id="season-input" type="number" min="1950" max="2100" step="1" />
+          </label>
+        </div>
+        <div class="source-tabs" role="tablist" aria-label="Fontes de dados">
+          <button class="source-tab active" data-source-tab="results" role="tab">1 · Resultados das categorias</button>
+          <button class="source-tab" data-source-tab="fia" role="tab">2 · Classificação FIA</button>
+          <button class="source-tab" data-source-tab="editorial" role="tab">3 · Notícias e editorial</button>
+        </div>
+        <p id="sources-status" class="sources-status" aria-live="polite"></p>
+      </section>
+
+      <section class="source-panel active" data-source-panel="results">
+        <div class="source-grid">
+          <article class="panel">
+            <div class="panel-header">
+              <div><p class="eyebrow">Site da categoria</p><h2>Resultados publicados</h2></div>
+              <span class="chip" id="results-source-chip">carregando</span>
+            </div>
+            <label>Etapa
+              <select id="event-select"><option>Buscando etapas…</option></select>
+            </label>
+            <label>Sessão
+              <select id="session-select">
+                <option value="race">Resultado da corrida / Feature</option>
+                <option value="sprint">Sprint</option>
+                <option value="starting-grid">Classificação de largada</option>
+                <option value="qualifying">Classificação</option>
+                <option value="practice">Treino livre</option>
+              </select>
+            </label>
+            <button id="load-results-button" type="button">Ler resultado publicado</button>
+            <div class="source-action-row"><button id="prepare-source-result-button" type="button">Preparar Short</button><button id="render-source-result-button" type="button" class="secondary-action">Renderizar MP4</button></div>
+            <p class="panel-help">A tabela abaixo é identificada como publicada pelo site da categoria. Para o resultado definitivo, confira a seção FIA.</p>
+          </article>
+          <article class="panel source-result-panel">
+            <div class="panel-header"><div><p class="eyebrow">Tabela extraída</p><h2 id="results-heading">Nenhuma sessão carregada</h2></div><a id="results-source-link" class="source-link" target="_blank" rel="noreferrer" hidden>abrir fonte</a></div>
+            <div id="results-table-wrap" class="table-wrap"><p class="source-empty">Escolha uma etapa para carregar os dados.</p></div>
+            <p id="results-warning" class="source-warning"></p>
+          </article>
+        </div>
+      </section>
+
+      <section class="source-panel" data-source-panel="fia" hidden>
+        <article class="panel">
+          <div class="panel-header"><div><p class="eyebrow">FIA Official Documents</p><h2>Classificação final homologada</h2></div><a id="fia-source-link" class="source-link" target="_blank" rel="noreferrer" hidden>abrir arquivo FIA</a></div>
+          <p class="panel-help">Documentos finais, grids e campeonatos publicados pela FIA. O PDF é a referência de homologação após decisões e penalidades.</p>
+          <div class="source-action-row"><button id="prepare-fia-button" type="button">Preparar Short FIA</button><button id="render-fia-button" type="button" class="secondary-action">Renderizar MP4</button></div>
+          <div id="fia-documents" class="document-list"><p class="source-empty">Carregando documentos FIA…</p></div>
+          <p id="fia-warning" class="source-warning"></p>
+        </article>
+      </section>
+
+      <section class="panel source-output-panel">
+        <div class="panel-header"><div><p class="eyebrow">Saída</p><h2>Preview do Short</h2></div><span class="chip" id="source-output-chip">aguardando job</span></div>
+        <div class="source-studio-row"><input id="source-studio-url" placeholder="URL do Remotion Studio" value="http://localhost:3000" /><button id="load-source-preview-button" type="button">Abrir preview</button><a id="open-source-studio-link" class="source-link" target="_blank" rel="noreferrer">abrir studio</a></div>
+        <iframe id="source-preview-frame" title="Preview do Short" loading="lazy"></iframe>
+        <p id="source-output-status" class="sources-status" aria-live="polite">Prepare um resultado, classificação FIA ou notícia para atualizar o job atual.</p>
+      </section>
+
+      <section class="source-panel" data-source-panel="editorial" hidden>
+        <article class="panel">
+          <div class="panel-header"><div><p class="eyebrow">Conteúdo oficial</p><h2>Notícias e editorial</h2></div><a id="editorial-source-link" class="source-link" target="_blank" rel="noreferrer" hidden>abrir site</a></div>
+          <p class="panel-help">Préviews, notícias, coletivas e histórias publicadas pelos sites oficiais. Use esta lista como ponto de partida para o roteiro do Short.</p>
+          <div id="editorial-list" class="editorial-list"><p class="source-empty">Carregando notícias…</p></div>
+        </article>
+      </section>
+    </main>
+    <script type="module" src="/f1-sources/app.js"></script>
+  </body>
+</html>

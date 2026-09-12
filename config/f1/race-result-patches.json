@@ -1,0 +1,100 @@
+{
+  "2541": [
+    {
+      "source": "F1 official race result audit - Miami GP 2026",
+      "reason": "API-Sports omits P21/P22 from /rankings/races?race=2541.",
+      "driver": {
+        "id": 36,
+        "name": "Pierre Gasly",
+        "abbr": "GAS",
+        "number": 10,
+        "image": "https://media.api-sports.io/formula-1/drivers/36.png"
+      },
+      "team": {
+        "id": 13,
+        "name": "Alpine F1 Team",
+        "logo": "https://media.api-sports.io/formula-1/teams/13.png"
+      },
+      "position": 21,
+      "time": "DNF",
+      "laps": 6,
+      "grid": "22",
+      "pits": 0,
+      "gap": null,
+      "status": ""
+    },
+    {
+      "source": "F1 official race result audit - Miami GP 2026",
+      "reason": "API-Sports omits P21/P22 from /rankings/races?race=2541.",
+      "driver": {
+        "id": 100,
+        "name": "Isack Hadjar",
+        "abbr": "HAD",
+        "number": 6,
+        "image": "https://media.api-sports.io/formula-1/drivers/100.png"
+      },
+      "team": {
+        "id": 1,
+        "name": "Red Bull Racing",
+        "logo": "https://media.api-sports.io/formula-1/teams/1.png"
+      },
+      "position": 22,
+      "time": "DNF",
+      "laps": 0,
+      "grid": "20",
+      "pits": 0,
+      "gap": null,
+      "status": ""
+    }
+  ],
+  "2546": [
+    {
+      "source": "F1 official race result audit - Canada GP 2026",
+      "reason": "API-Sports marks Arvid Lindblad as DNF, while the official F1 result lists him as DNS.",
+      "driver": {
+        "id": 114,
+        "name": "Arvid Lindblad",
+        "abbr": "LIN",
+        "number": 41,
+        "image": "https://media.api-sports.io/formula-1/drivers/114.png"
+      },
+      "team": {
+        "id": 7,
+        "name": "Racing Bulls",
+        "logo": "https://media.api-sports.io/formula-1/teams/7.png"
+      },
+      "position": 22,
+      "time": "DNS",
+      "laps": 0,
+      "grid": "9",
+      "pits": null,
+      "gap": null,
+      "status": ""
+    }
+  ],
+  "2554": [
+    {
+      "source": "F1 official race result audit - Barcelona-Catalunya GP 2026",
+      "reason": "API-Sports gives Alexander Albon a lap deficit, while the official F1 result lists him as DNF.",
+      "driver": {
+        "id": 50,
+        "name": "Alexander Albon",
+        "abbr": "ALB",
+        "number": 23,
+        "image": "https://media.api-sports.io/formula-1/drivers/50.png"
+      },
+      "team": {
+        "id": 12,
+        "name": "Williams F1 Team",
+        "logo": "https://media.api-sports.io/formula-1/teams/12.png"
+      },
+      "position": 18,
+      "time": "DNF",
+      "laps": 55,
+      "grid": "18",
+      "pits": 3,
+      "gap": null,
+      "status": ""
+    }
+  ]
+}

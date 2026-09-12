@@ -1,4 +1,3 @@
-import {F1ColdOpen} from './F1ColdOpen';
 import {SoundtrackBed} from './SoundtrackBed';
 import {VoiceoverBed} from './VoiceoverBed';
 import type {F1ThemeConfig} from '../lib/types';
@@ -15,14 +14,9 @@ type F1ProductionBedProps = {
 };
 
 export const F1ProductionBed = ({
-  theme,
-  brandName,
-  brandLogoPath,
   soundtrackPath,
   soundtrackVolume,
   voiceoverPath,
-  introTitle,
-  introSubtitle,
 }: F1ProductionBedProps) => (
   <div style={{position: 'absolute', inset: 0, zIndex: 9999, pointerEvents: 'none'}}>
     <SoundtrackBed
@@ -33,13 +27,5 @@ export const F1ProductionBed = ({
       duckVolumeMultiplier={0.25}
     />
     <VoiceoverBed voiceoverPath={voiceoverPath} volume={1} />
-    <F1ColdOpen
-      accentColor={theme.accent}
-      secondaryAccent={theme.secondaryAccent}
-      brandName={brandName}
-      brandLogoPath={brandLogoPath}
-      introTitle={introTitle}
-      introSubtitle={introSubtitle}
-    />
   </div>
 );

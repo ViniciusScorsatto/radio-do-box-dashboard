@@ -29,22 +29,22 @@
     "durationInFrames": 360
   },
   "title": "Mundial de Construtores",
-  "subtitle": "Classificação",
-  "raceType": "Race",
-  "raceId": 2622,
+  "subtitle": "GP da Itália",
+  "raceType": "1st Practice",
+  "raceId": 2619,
   "raceName": "GP de Abu Dhabi",
   "countryCode": "UNI",
   "circuitName": "Yas Marina Circuit",
   "brandName": "Radio do Box",
   "brandLogoPath": "/branding/radio-do-box/yellow.png",
-  "soundtrackPath": "/audio/f1/country-rough-everet-almond.mp3",
-  "soundtrackLabel": "Country Rough - Everet Almond",
-  "soundtrackVolume": 0.3,
+  "soundtrackPath": "/audio/f1/Rádio do Box - Jornalistico.mp3",
+  "soundtrackLabel": "Rádio do Box - Jornalístico",
+  "soundtrackVolume": 0.2,
   "introTitle": "Mundial de Construtores",
   "introSubtitle": "Formula 1 2026",
   "voiceoverText": "Fala, galera do box. Mundial de construtores atualizado da Formula 1 2026.",
   "voiceoverEnabled": false,
-  "outputName": "palpites-emeline-classificacao-gp-do-japao-2026.mp4",
+  "outputName": "f1-constructor-standings-2026.mp4",
   "durationInFrames": 360,
   "dataSource": "api",
   "warnings": [],
@@ -59,7 +59,7 @@
       "logoPath": "/f1/teams/custom/mercedes.png",
       "sublabel": "Mercedes-AMG Petronas"
     },
-    "stat": "262 pts",
+    "stat": "468 pts",
     "accentColor": "#65e1c6"
   },
   "entries": [
@@ -74,7 +74,7 @@
         "logoPath": "/f1/teams/custom/mercedes.png",
         "sublabel": "Mercedes-AMG Petronas"
       },
-      "value": "262",
+      "value": "468",
       "secondaryValue": "",
       "accentColor": "#65e1c6"
     },
@@ -89,7 +89,7 @@
         "logoPath": "/f1/teams/custom/ferrari.png",
         "sublabel": "Scuderia Ferrari"
       },
-      "value": "190",
+      "value": "346",
       "secondaryValue": "",
       "accentColor": "#ff5546"
     },
@@ -104,7 +104,7 @@
         "logoPath": "/f1/teams/custom/mclaren.png",
         "sublabel": "McLaren Racing"
       },
-      "value": "141",
+      "value": "287",
       "secondaryValue": "",
       "accentColor": "#ff9a3d"
     },
@@ -119,27 +119,12 @@
         "logoPath": "/f1/teams/custom/red-bull.png",
         "sublabel": "Red Bull Racing"
       },
-      "value": "89",
+      "value": "204",
       "secondaryValue": "",
       "accentColor": "#5d74ff"
     },
     {
       "position": 5,
-      "name": "Alpine F1 Team",
-      "team": "",
-      "badge": {
-        "label": "AF",
-        "accentColor": "#ff76db",
-        "imagePath": "/f1/teams/custom/alpine.png",
-        "logoPath": "/f1/teams/custom/alpine.png",
-        "sublabel": "Alpine F1 Team"
-      },
-      "value": "60",
-      "secondaryValue": "",
-      "accentColor": "#ff76db"
-    },
-    {
-      "position": 6,
       "name": "Racing Bulls",
       "team": "",
       "badge": {
@@ -149,9 +134,24 @@
         "logoPath": "/f1/teams/custom/racing-bulls.png",
         "sublabel": "Racing Bulls"
       },
-      "value": "38",
+      "value": "75",
       "secondaryValue": "",
       "accentColor": "#7b94ff"
+    },
+    {
+      "position": 6,
+      "name": "Alpine F1 Team",
+      "team": "",
+      "badge": {
+        "label": "AF",
+        "accentColor": "#ff76db",
+        "imagePath": "/f1/teams/custom/alpine.png",
+        "logoPath": "/f1/teams/custom/alpine.png",
+        "sublabel": "Alpine F1 Team"
+      },
+      "value": "62",
+      "secondaryValue": "",
+      "accentColor": "#ff76db"
     },
     {
       "position": 7,
@@ -170,6 +170,21 @@
     },
     {
       "position": 8,
+      "name": "Audi Revolut F1 Team",
+      "team": "",
+      "badge": {
+        "label": "AR",
+        "accentColor": "#d4d7df",
+        "imagePath": "/f1/teams/custom/audi.png",
+        "logoPath": "/f1/teams/custom/audi.png",
+        "sublabel": "Audi Revolut F1 Team"
+      },
+      "value": "16",
+      "secondaryValue": "",
+      "accentColor": "#d4d7df"
+    },
+    {
+      "position": 9,
       "name": "Williams F1 Team",
       "team": "",
       "badge": {
@@ -184,21 +199,6 @@
       "accentColor": "#6fb4ff"
     },
     {
-      "position": 9,
-      "name": "Audi Revolut F1 Team",
-      "team": "",
-      "badge": {
-        "label": "AR",
-        "accentColor": "#d4d7df",
-        "imagePath": "/f1/teams/custom/audi.png",
-        "logoPath": "/f1/teams/custom/audi.png",
-        "sublabel": "Audi Revolut F1 Team"
-      },
-      "value": "2",
-      "secondaryValue": "",
-      "accentColor": "#d4d7df"
-    },
-    {
       "position": 10,
       "name": "Aston Martin F1 Team",
       "team": "",
@@ -209,9 +209,24 @@
         "logoPath": "/f1/teams/custom/aston-martin.png",
         "sublabel": "Aston Martin F1 Team"
       },
-      "value": "1",
+      "value": "3",
       "secondaryValue": "",
       "accentColor": "#59b28c"
+    },
+    {
+      "position": 11,
+      "name": "Cadillac Formula 1 Team",
+      "team": "",
+      "badge": {
+        "label": "CF",
+        "accentColor": "#8fd1ff",
+        "imagePath": "/f1/teams/custom/cadillac.png",
+        "logoPath": "/f1/teams/custom/cadillac.png",
+        "sublabel": "Cadillac Formula 1 Team"
+      },
+      "value": "0",
+      "secondaryValue": "",
+      "accentColor": "#8fd1ff"
     }
   ]
 }

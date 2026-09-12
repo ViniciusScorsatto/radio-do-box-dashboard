@@ -14,8 +14,11 @@ const logOutput = document.getElementById('log-output');
 const errorBanner = document.getElementById('error-banner');
 const errorBannerText = document.getElementById('error-banner-text');
 const dashboardQuickStatus = document.getElementById('dashboard-quick-status');
+const manualAdjustmentsBuilder = document.getElementById('manual-adjustments-builder');
+let manualAdjustmentsDraft = '';
 
 const apiBase = '/api/f1';
+const MANUAL_ADJUSTMENTS_KEY = 'f1-large-stills-manual-adjustments';
 const supportedTemplates = new Set(['race-results', 'driver-standings', 'constructor-standings']);
 const defaultOutputPrefixByTemplate = {
   'race-results': 'f1-large-race-results',
@@ -30,6 +33,166 @@ const escapeHtml = (value) =>
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+
+const normalizeAdjustmentKey = (value) =>
+  String(value ?? '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '');
+
+const classificationEntriesForJob = (job) => {
+  if (!job || job.template !== 'race-results') {
+    return [];
+  }
+
+  const podium = Array.isArray(job.podium) ? job.podium : [];
+  const entries = Array.isArray(job.entries) ? job.entries : [];
+  return [...podium, ...entries]
+    .filter((entry) => entry?.name)
+    .sort((a, b) => Number(a.position ?? 999) - Number(b.position ?? 999));
+};
+
+const manualAdjustmentMap = () => {
+  const map = new Map();
+  String(
+    manualAdjustmentsDraft ||
+      form.elements.manualAdjustments?.value ||
+      localStorage.getItem(MANUAL_ADJUSTMENTS_KEY) ||
+      ''
+  )
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .forEach((line) => {
+      const timeMatch = line.match(/([+-]?\d+(?:[.,]\d+)?)\s*(?:s|sec|seg|segundo|segundos)\b/i);
+      const positionMatch = line.match(/([+-]?\d+)\s*(?:pos|posicao|posicoes|posição|posições|places?|grid)\b/i);
+      if (!timeMatch && !positionMatch) {
+        return;
+      }
+      const driverName = line
+        .replace(timeMatch?.[0] ?? '', '')
+        .replace(positionMatch?.[0] ?? '', '')
+        .trim();
+      if (driverName) {
+        map.set(normalizeAdjustmentKey(driverName), {
+          seconds: timeMatch?.[1]?.trim() ?? '',
+          positions: positionMatch?.[1]?.replace(/^\+/, '').trim() ?? '',
+        });
+      }
+    });
+  return map;
+};
+
+const syncManualAdjustmentsFromBuilder = () => {
+  if (!manualAdjustmentsBuilder || !form.elements.manualAdjustments) {
+    return;
+  }
+
+  const lines = [...manualAdjustmentsBuilder.querySelectorAll('[data-manual-adjustment-row]')]
+    .map((row) => {
+      const driver = row.dataset.manualAdjustmentRow;
+      const seconds = row.querySelector('[data-manual-adjustment-seconds]')?.value.trim();
+      const positions = row.querySelector('[data-manual-adjustment-positions]')?.value.trim();
+      const parts = [];
+      if (seconds) {
+        parts.push(`+${seconds.replace(/^\+/, '')}s`);
+      }
+      if (positions) {
+        parts.push(`+${positions.replace(/^\+/, '')} pos`);
+      }
+      return parts.length > 0 ? `${driver} ${parts.join(' ')}` : '';
+    })
+    .filter(Boolean);
+  form.elements.manualAdjustments.value = lines.join('\n');
+  manualAdjustmentsDraft = form.elements.manualAdjustments.value;
+  localStorage.setItem(MANUAL_ADJUSTMENTS_KEY, manualAdjustmentsDraft);
+};
+
+const preserveManualAdjustmentsPayload = () => {
+  if (!form.elements.manualAdjustments) {
+    return;
+  }
+  if (!form.elements.manualAdjustments.value && manualAdjustmentsDraft) {
+    form.elements.manualAdjustments.value = manualAdjustmentsDraft;
+  }
+  if (!manualAdjustmentsDraft && form.elements.manualAdjustments.value) {
+    manualAdjustmentsDraft = form.elements.manualAdjustments.value;
+  }
+  if (manualAdjustmentsDraft) {
+    localStorage.setItem(MANUAL_ADJUSTMENTS_KEY, manualAdjustmentsDraft);
+  }
+};
+
+const renderManualAdjustmentsBuilder = (job) => {
+  if (!manualAdjustmentsBuilder) {
+    return;
+  }
+
+  if (!manualAdjustmentsDraft && !form.elements.manualAdjustments?.value) {
+    form.elements.manualAdjustments.value = Array.isArray(job?.manualAdjustments)
+      ? job.manualAdjustments.join('\n')
+      : job?.manualAdjustments ?? localStorage.getItem(MANUAL_ADJUSTMENTS_KEY) ?? '';
+    manualAdjustmentsDraft = form.elements.manualAdjustments.value;
+  }
+
+  const rows = classificationEntriesForJob(job);
+  if (rows.length === 0) {
+    manualAdjustmentsBuilder.innerHTML =
+      '<div class="manual-adjustments-empty">Renderize ou carregue um still de Resultado para listar pilotos ajustáveis.</div>';
+    return;
+  }
+
+  const existing = manualAdjustmentMap();
+  manualAdjustmentsBuilder.innerHTML = `
+    <div class="manual-adjustments-title">
+      <strong>Ajustes manuais</strong>
+      <span>Preencha somente quem recebeu punição. O render recalcula a ordem.</span>
+    </div>
+    <div class="manual-adjustments-header">
+      <span>Pos</span>
+      <span>Piloto</span>
+      <span>Equipe</span>
+      <span>Tempo +s</span>
+      <span>Pos. perdidas</span>
+    </div>
+    ${rows
+      .map((entry) => {
+        const key = normalizeAdjustmentKey(entry.name);
+        const existingValue = existing.get(key) ?? {};
+        return `
+          <div class="manual-adjustments-row" data-manual-adjustment-row="${escapeHtml(entry.name)}">
+            <span class="manual-adjustments-position">P${escapeHtml(String(entry.position ?? ''))}</span>
+            <span class="manual-adjustments-driver">${escapeHtml(entry.name)}</span>
+            <span class="manual-adjustments-team">${escapeHtml(entry.team || entry.badge?.sublabel || '')}</span>
+            <input
+              type="number"
+              step="0.001"
+              min="0"
+              inputmode="decimal"
+              data-manual-adjustment-seconds
+              value="${escapeHtml(existingValue.seconds ?? '')}"
+              placeholder="5.000"
+            />
+            <input
+              type="number"
+              step="1"
+              min="0"
+              inputmode="numeric"
+              data-manual-adjustment-positions
+              value="${escapeHtml(existingValue.positions ?? '')}"
+              placeholder="3"
+            />
+          </div>
+        `;
+      })
+      .join('')}
+  `;
+  manualAdjustmentsBuilder
+    .querySelectorAll('[data-manual-adjustment-seconds], [data-manual-adjustment-positions]')
+    .forEach((input) => input.addEventListener('input', syncManualAdjustmentsFromBuilder));
+};
 
 const log = (message, replace = false) => {
   const timestamp = new Date().toLocaleTimeString();
@@ -87,6 +250,7 @@ const renderCurrentJob = (job) => {
   if (!job) {
     currentJobRoot.innerHTML =
       '<div class="job-status-card"><div><strong>Nenhum still renderizado</strong><span>Escolha o tipo de still e gere o PNG.</span></div></div>';
+    renderManualAdjustmentsBuilder(null);
     return;
   }
 
@@ -107,6 +271,7 @@ const renderCurrentJob = (job) => {
       </div>
     </div>
   `;
+  renderManualAdjustmentsBuilder(job);
 };
 
 const setRenderDownload = (job, render) => {
@@ -225,6 +390,10 @@ const loadOptions = async () => {
   form.elements.raceId.value = currentJob?.raceId ?? '';
   form.elements.labelOverride.value =
     currentJob?.template === 'race-results' ? currentJob?.raceName ?? '' : currentJob?.subtitle ?? '';
+  form.elements.manualAdjustments.value = Array.isArray(currentJob?.manualAdjustments)
+    ? currentJob.manualAdjustments.join('\n')
+    : currentJob?.manualAdjustments ?? localStorage.getItem(MANUAL_ADJUSTMENTS_KEY) ?? '';
+  manualAdjustmentsDraft = form.elements.manualAdjustments.value;
   form.elements.outputName.value = '';
 
   applyTemplateVisibility();
@@ -237,6 +406,8 @@ const loadOptions = async () => {
 
 const renderStill = async () => {
   try {
+    syncManualAdjustmentsFromBuilder();
+    preserveManualAdjustmentsPayload();
     const payload = formDataToObject();
     payload.template = supportedTemplates.has(payload.template) ? payload.template : 'race-results';
     payload.season = payload.season || String(new Date().getFullYear());

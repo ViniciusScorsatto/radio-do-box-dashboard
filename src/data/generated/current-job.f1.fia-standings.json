@@ -1,0 +1,347 @@
+{
+  "sport": "f1",
+  "template": "driver-standings",
+  "compositionId": "F1DriverStandingsShort",
+  "season": 2026,
+  "competitionId": 1,
+  "competitionName": "Formula 1",
+  "competitionConfig": {
+    "competitionId": 1,
+    "label": "Formula 1",
+    "shortLabel": "F1",
+    "countryCode": "INT"
+  },
+  "themeConfig": {
+    "variant": "light",
+    "background": "linear-gradient(180deg, #d7e4ff 0%, #c9d7ef 55%, #b2bfd5 100%)",
+    "accent": "#e1b244",
+    "secondaryAccent": "#ffffff",
+    "panelFill": "linear-gradient(180deg, rgba(255,255,255,0.78), rgba(219,226,237,0.84))",
+    "panelStroke": "rgba(255, 255, 255, 0.86)",
+    "text": "#16233b",
+    "mutedText": "#34415d"
+  },
+  "templateConfig": {
+    "template": "driver-standings",
+    "label": "Mundial de Pilotos",
+    "compositionId": "F1DriverStandingsShort",
+    "themeVariant": "light",
+    "durationInFrames": 360
+  },
+  "title": "Mundial de Pilotos",
+  "subtitle": "Formula 1 2026",
+  "brandName": "Radio do Box",
+  "brandLogoPath": "/branding/radio-do-box/black.png",
+  "soundtrackPath": "/audio/f1/country-rough-everet-almond.mp3",
+  "soundtrackLabel": "Country Rough - Everet Almond",
+  "soundtrackVolume": 0.3,
+  "introTitle": "Mundial de Pilotos",
+  "introSubtitle": "Formula 1 2026",
+  "voiceoverText": "Fala, galera do box. Mundial de pilotos atualizado da Formula 1 2026.",
+  "voiceoverEnabled": false,
+  "outputName": "f1-fia-driver-standings-2026.mp4",
+  "durationInFrames": 360,
+  "dataSource": "fia",
+  "sourceUrl": "https://www.fia.com/events/fia-formula-one-world-championship/season-2026/2026-classifications",
+  "warnings": [],
+  "leader": {
+    "position": 1,
+    "name": "Andrea Kimi Antonelli IT ITA",
+    "team": "",
+    "badge": {
+      "label": "AK",
+      "accentColor": "#ffffff",
+      "sublabel": ""
+    },
+    "value": "219 pts",
+    "secondaryValue": "219 pts pts",
+    "accentColor": "#ffffff",
+    "stat": "219 pts pts"
+  },
+  "entries": [
+    {
+      "position": 2,
+      "name": "Lewis Hamilton GB GBR",
+      "team": "",
+      "badge": {
+        "label": "LH",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "169 pts",
+      "secondaryValue": "169 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 3,
+      "name": "George Russell GB GBR",
+      "team": "",
+      "badge": {
+        "label": "GR",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "160 pts",
+      "secondaryValue": "160 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 4,
+      "name": "Charles Leclerc MC MON",
+      "team": "",
+      "badge": {
+        "label": "CL",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "138 pts",
+      "secondaryValue": "138 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 5,
+      "name": "Lando Norris GB GBR",
+      "team": "",
+      "badge": {
+        "label": "LN",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "128 pts",
+      "secondaryValue": "128 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 6,
+      "name": "Max Verstappen NL NED",
+      "team": "",
+      "badge": {
+        "label": "MV",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "109 pts",
+      "secondaryValue": "109 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 7,
+      "name": "Oscar Piastri AU AUS",
+      "team": "",
+      "badge": {
+        "label": "OP",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "92 pts",
+      "secondaryValue": "92 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 8,
+      "name": "Isack Hadjar FR FRA",
+      "team": "",
+      "badge": {
+        "label": "IH",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
+        "sublabel": ""
+      },
+      "value": "68 pts",
+      "secondaryValue": "68 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 9,
+      "name": "Liam Lawson NZ NZL",
+      "team": "",
+      "badge": {
+        "label": "LL",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "43 pts",
+      "secondaryValue": "43 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 10,
+      "name": "Pierre Gasly FR FRA",
+      "team": "",
+      "badge": {
+        "label": "PG",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
+        "sublabel": ""
+      },
+      "value": "42 pts",
+      "secondaryValue": "42 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 11,
+      "name": "Arvid Lindblad",
+      "team": "",
+      "badge": {
+        "label": "AL",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/racing-bulls-arvid-lindblad.png",
+        "sublabel": ""
+      },
+      "value": "23 pts",
+      "secondaryValue": "23 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 12,
+      "name": "Franco Colapinto",
+      "team": "",
+      "badge": {
+        "label": "FC",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
+        "sublabel": ""
+      },
+      "value": "19 pts",
+      "secondaryValue": "19 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 13,
+      "name": "Oliver Bearman GB GBR",
+      "team": "",
+      "badge": {
+        "label": "OB",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "18 pts",
+      "secondaryValue": "18 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 14,
+      "name": "Gabriel Bortoleto BR BRA",
+      "team": "",
+      "badge": {
+        "label": "GB",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "10 pts",
+      "secondaryValue": "10 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 15,
+      "name": "Carlos Sainz ES ESP",
+      "team": "",
+      "badge": {
+        "label": "CS",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "6 pts",
+      "secondaryValue": "6 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 16,
+      "name": "Alexander Albon TH THA",
+      "team": "",
+      "badge": {
+        "label": "AA",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "5 pts",
+      "secondaryValue": "5 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 17,
+      "name": "Esteban Ocon FR FRA",
+      "team": "",
+      "badge": {
+        "label": "EO",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
+        "sublabel": ""
+      },
+      "value": "3 pts",
+      "secondaryValue": "3 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 18,
+      "name": "Nico Hulkenberg DE GER",
+      "team": "",
+      "badge": {
+        "label": "NH",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/mercedes-amg-petronas-george-russell.png",
+        "sublabel": ""
+      },
+      "value": "2 pts",
+      "secondaryValue": "2 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 19,
+      "name": "Fernando Alonso ES ESP",
+      "team": "",
+      "badge": {
+        "label": "FA",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "1 pts",
+      "secondaryValue": "1 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 20,
+      "name": "Lance Stroll CA CAN",
+      "team": "",
+      "badge": {
+        "label": "LS",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "0 pts",
+      "secondaryValue": "0 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 21,
+      "name": "Valtteri Bottas FI FIN",
+      "team": "",
+      "badge": {
+        "label": "VB",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "0 pts",
+      "secondaryValue": "0 pts pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 22,
+      "name": "Sergio Perez MX MEX",
+      "team": "",
+      "badge": {
+        "label": "SP",
+        "accentColor": "#ffffff",
+        "sublabel": ""
+      },
+      "value": "0 pts",
+      "secondaryValue": "0 pts pts",
+      "accentColor": "#ffffff"
+    }
+  ],
+  "category": "f1",
+  "sourceLabel": "fia.com",
+  "manualAdjustments": [
+    "Fonte FIA: https://www.fia.com/events/fia-formula-one-world-championship/season-2026/2026-classifications"
+  ]
+}
