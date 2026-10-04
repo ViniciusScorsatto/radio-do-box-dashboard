@@ -5,7 +5,9 @@ import path from 'node:path';
 import {projectRoot} from './video-system.mjs';
 import {loadStockStandings} from './stock-standings.mjs';
 
-const generatedDir = path.join(projectRoot, 'src', 'data', 'generated');
+const generatedDir = process.env.APP_ONLINE === 'true'
+  ? path.join(process.env.APP_DATA_DIR, 'generated')
+  : path.join(projectRoot, 'src', 'data', 'generated');
 const configRoot = path.join(projectRoot, 'config', 'f1');
 const gpTranslationsFile = path.join(configRoot, 'translations', 'gp-names.pt-br.json');
 const currentJobFile = path.join(generatedDir, 'current-job.f1.json');
@@ -340,7 +342,12 @@ const fetchJson = async (url, apiKey, apiHost) => {
 };
 
 const fetchOfficialHtml = async (url) => {
+  if (process.env.APP_ONLINE === 'true') {
+    const target = new URL(url);
+    if (target.protocol !== 'https:' || target.port || target.username || target.password || !['www.formula1.com', 'www.fiaformula2.com', 'www.fiaformula3.com', 'www.f1academy.com'].includes(target.hostname)) throw new Error('invalid_source_url');
+  }
   const response = await fetch(url, {
+    ...(process.env.APP_ONLINE === 'true' ? {redirect: 'error'} : {}),
     headers: {
       accept: 'text/html,application/xhtml+xml',
       'user-agent': 'RadioDoBox/1.0 (+https://www.formula1.com)',
@@ -4832,8 +4839,9 @@ export const prepareF1Job = async ({
   category = 'f1',
   eventUrl,
   articleUrl,
+  persist = true,
 }) => {
-  await ensureGeneratedDir();
+  if (persist) await ensureGeneratedDir();
 
   let job;
   let message = 'Current F1 job prepared. Refresh Remotion Studio to preview it.';
@@ -4966,8 +4974,10 @@ export const prepareF1Job = async ({
   });
 
   const templateJobFile = currentTemplateJobFile(template);
-  await fs.writeFile(currentJobFile, `${JSON.stringify(job, null, 2)}\n`, 'utf8');
-  await fs.writeFile(templateJobFile, `${JSON.stringify(job, null, 2)}\n`, 'utf8');
+  if (persist) {
+    await fs.writeFile(currentJobFile, `${JSON.stringify(job, null, 2)}\n`, 'utf8');
+    await fs.writeFile(templateJobFile, `${JSON.stringify(job, null, 2)}\n`, 'utf8');
+  }
   return {job, files: {currentJobFile, templateJobFile}, message, fallbackReason};
 };
 

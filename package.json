@@ -9,17 +9,27 @@
     "dev": "node scripts/dev.mjs",
     "studio": "remotion studio src/index.ts",
     "build": "remotion bundle src/index.ts",
-    "render": "SPORT=f1 node --env-file=.env scripts/render-current-job.mjs"
+    "render": "SPORT=f1 node --env-file=.env scripts/render-current-job.mjs",
+    "build:online": "node scripts/online/build.mjs",
+    "start:online": "node scripts/online/start.mjs",
+    "test:online": "node --test tests/online/*.test.mjs",
+    "backup:online": "node scripts/online/backup.mjs"
   },
   "dependencies": {
+    "@remotion/bundler": "4.0.438",
+    "@remotion/player": "4.0.438",
+    "@remotion/renderer": "4.0.438",
+    "jose": "6.1.3",
+    "openid-client": "6.8.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "remotion": "^4.0.271"
+    "remotion": "4.0.438"
   },
   "devDependencies": {
-    "@remotion/cli": "^4.0.271",
+    "@remotion/cli": "4.0.438",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "esbuild": "0.25.12",
     "typescript": "^5.6.3"
   }
 }

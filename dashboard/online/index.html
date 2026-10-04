@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Rádio do Box · Shorts</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script defer src="/player.js"></script>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <header>
+      <a href="/" data-nav class="brand">RÁDIO <span>DO BOX</span></a
+      ><span class="tag">ESTÚDIO DE SHORTS</span>
+      <form action="/auth/logout" method="post"><button>Sair</button></form>
+    </header>
+    <nav aria-label="Principal">
+      <a data-nav href="/">Criar vídeo</a
+      ><a data-nav href="/videos">Meus vídeos</a
+      ><a data-nav href="/settings">Configurações</a>
+    </nav>
+    <main>
+      <p id="status" role="status" aria-live="polite"></p>
+      <section id="create">
+        <div class="heading">
+          <span class="eyebrow">FONTES OFICIAIS · SEU ESTÚDIO</span>
+          <h1>Seu próximo Short.</h1>
+          <p>Prepare os dados, confira a prévia e gere o vídeo.</p>
+        </div>
+        <div class="workspace">
+          <form id="create-form" class="panel">
+            <h2>01 / Dados do vídeo</h2>
+            <label
+              >Template<select name="template">
+                <option value="source-results">Resultado de sessão</option>
+                <option value="source-driver-standings">
+                  Mundial de pilotos
+                </option>
+                <option value="source-constructor-standings">
+                  Mundial de construtores · F1
+                </option>
+                <option value="editorial">Notícia oficial</option>
+              </select></label
+            >
+            <div class="fields">
+              <label
+                >Categoria<select name="category">
+                  <option value="f1">Formula 1</option>
+                  <option value="f2">Formula 2</option>
+                  <option value="f3">Formula 3</option>
+                  <option value="f1-academy">F1 Academy</option>
+                </select></label
+              ><label
+                >Temporada<input
+                  name="season"
+                  type="number"
+                  min="1950"
+                  max="2100"
+                  required
+              /></label>
+            </div>
+            <div id="event-fields">
+              <button type="button" id="load-events">Buscar eventos</button
+              ><label
+                >Evento<select name="eventUrl">
+                  <option value="">Busque os eventos da temporada</option>
+                </select></label
+              ><label
+                >Sessão<select name="raceType">
+                  <option value="race">Corrida / Feature</option>
+                  <option value="sprint">Sprint</option>
+                  <option value="qualifying">Classificação</option>
+                  <option value="starting-grid">Grid de largada</option>
+                  <option value="practice">Treino livre</option>
+                </select></label
+              >
+            </div>
+            <div id="article-fields" hidden>
+              <button type="button" id="load-editorial">Buscar notícias</button
+              ><label
+                >Notícia<select name="articleUrl">
+                  <option value="">Busque notícias da fonte oficial</option>
+                </select></label
+              >
+            </div>
+            <details>
+              <summary>Trilha sonora</summary>
+              <label
+                >Música<select
+                  name="soundtrackPath"
+                  id="soundtrack"
+                ></select></label
+              ><label
+                >Volume<input
+                  name="soundtrackVolume"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value="0.2"
+              /></label>
+              <p>A prévia e o MP4 usam a mesma trilha. Narração desligada.</p>
+            </details>
+            <details>
+              <summary>Texto de abertura</summary>
+              <label
+                >Título do vídeo<input
+                  name="labelOverride"
+                  maxlength="160" /></label
+              ><label
+                >Título de abertura<input
+                  name="introTitle"
+                  maxlength="160" /></label
+              ><label
+                >Subtítulo de abertura<input
+                  name="introSubtitle"
+                  maxlength="160"
+              /></label>
+            </details>
+            <div class="actions">
+              <button type="submit" class="primary" id="prepare">
+                Preparar prévia</button
+              ><button type="button" id="render" disabled>Gerar MP4</button>
+            </div>
+          </form>
+          <div class="panel preview">
+            <h2>02 / Prévia</h2>
+            <div id="player">
+              <div class="empty">
+                <strong>O vídeo começa aqui.</strong>
+                <p>Selecione a fonte e prepare a prévia.</p>
+                <span>1080 × 1920 · 30 FPS · 12 segundos</span>
+              </div>
+            </div>
+            <p id="preview-note">
+              O MP4 será gerado a partir dos dados desta prévia.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section id="videos" hidden>
+        <div class="heading">
+          <span class="eyebrow">SUA PRODUÇÃO</span>
+          <h1>Meus vídeos</h1>
+          <p>A fila continua trabalhando quando você fecha esta página.</p>
+        </div>
+        <div class="actions">
+          <p id="storage"></p>
+          <button id="delete-all">Excluir todos os MP4 concluídos</button>
+        </div>
+        <div id="video-list"></div>
+      </section>
+      <section id="settings" hidden>
+        <div class="heading">
+          <span class="eyebrow">ESTÚDIO PRIVADO</span>
+          <h1>Configurações</h1>
+        </div>
+        <div class="panel">
+          <p id="account"></p>
+          <p>Acesso permitido somente às contas configuradas no Railway.</p>
+          <dl>
+            <dt>Fonte de dados</dt>
+            <dd>Sites oficiais, usando os coletores existentes.</dd>
+            <dt>Renderização</dt>
+            <dd>
+              Um vídeo por vez. Até 20 na fila; limite de 30 minutos por render.
+            </dd>
+            <dt>Retenção</dt>
+            <dd>
+              MP4 disponível por 48 horas após a conclusão. Os dados ficam
+              salvos para gerar novamente.
+            </dd>
+            <dt>Áudio</dt>
+            <dd>
+              Trilhas incluídas no projeto. Narração e integrações de IA
+              desativadas online.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <footer>RÁDIO DO BOX · Produção privada</footer>
+  </body>
+</html>
