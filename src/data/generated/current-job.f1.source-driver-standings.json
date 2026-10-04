@@ -1,0 +1,619 @@
+{
+  "sport": "f1",
+  "template": "driver-standings",
+  "compositionId": "F1DriverStandingsShort",
+  "season": 2026,
+  "competitionId": 1,
+  "competitionName": "Stock Car Pro Series",
+  "competitionConfig": {
+    "competitionId": 1,
+    "label": "Stock Car Pro Series",
+    "shortLabel": "F1",
+    "countryCode": "INT"
+  },
+  "themeConfig": {
+    "variant": "light",
+    "background": "linear-gradient(180deg, #d7e4ff 0%, #c9d7ef 55%, #b2bfd5 100%)",
+    "accent": "#e1b244",
+    "secondaryAccent": "#ffffff",
+    "panelFill": "linear-gradient(180deg, rgba(255,255,255,0.78), rgba(219,226,237,0.84))",
+    "panelStroke": "rgba(255, 255, 255, 0.86)",
+    "text": "#16233b",
+    "mutedText": "#34415d"
+  },
+  "templateConfig": {
+    "template": "driver-standings",
+    "label": "Mundial de Pilotos",
+    "compositionId": "F1DriverStandingsShort",
+    "themeVariant": "light",
+    "durationInFrames": 360
+  },
+  "title": "Campeonato de Pilotos",
+  "subtitle": "Stock Car Pro Series 2026",
+  "brandName": "Radio do Box",
+  "brandLogoPath": "/branding/radio-do-box/black.png",
+  "soundtrackPath": "/audio/f1/radio-do-box.mp3",
+  "soundtrackLabel": "Country Rough - Everet Almond",
+  "soundtrackVolume": 0.3,
+  "introTitle": "Mundial de Pilotos",
+  "introSubtitle": "Formula 1 2026",
+  "voiceoverText": "Fala, galera do box. Mundial de pilotos atualizado da Formula 1 2026.",
+  "voiceoverEnabled": false,
+  "outputName": "stock-pro-official-driver-standings-2026.mp4",
+  "durationInFrames": 360,
+  "dataSource": "velocigroup.com.br",
+  "sourceUrl": "https://velocigroup.com.br/#/stock-pro-series",
+  "warnings": [],
+  "leader": {
+    "position": 1,
+    "name": "FELIPE FRAGA",
+    "team": "EUROFARMA RC",
+    "manufacturer": "Mitsubishi",
+    "badge": {
+      "label": "FF",
+      "sublabel": "EUROFARMA RC · Mitsubishi",
+      "accentColor": "#0057FF",
+      "hideSublabel": false,
+      "imagePath": "/f1/drivers/stock-pro-2026-felipe-fraga.png",
+      "plainSublabel": true
+    },
+    "value": "789",
+    "secondaryValue": "789 pts",
+    "accentColor": "#0057FF",
+    "stat": "789 pts"
+  },
+  "entries": [
+    {
+      "position": 1,
+      "name": "FELIPE FRAGA",
+      "team": "EUROFARMA RC",
+      "manufacturer": "Mitsubishi",
+      "badge": {
+        "label": "FF",
+        "sublabel": "EUROFARMA RC · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-felipe-fraga.png",
+        "plainSublabel": true
+      },
+      "value": "789",
+      "secondaryValue": "789 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 2,
+      "name": "GAETANO DI MAURO",
+      "team": "EUROFARMA RC",
+      "manufacturer": "Mitsubishi",
+      "badge": {
+        "label": "GDM",
+        "sublabel": "EUROFARMA RC · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-gaetano-di-mauro.png",
+        "plainSublabel": true
+      },
+      "value": "679",
+      "secondaryValue": "679 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 3,
+      "name": "GABRIEL CASAGRANDE",
+      "team": "A. MATTHEIS VOGEL MOTORSPORTS",
+      "manufacturer": "Chevrolet",
+      "badge": {
+        "label": "GC",
+        "sublabel": "A. MATTHEIS VOGEL MOTORSPORTS · Chevrolet",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-gabriel-casagrande.png",
+        "plainSublabel": true
+      },
+      "value": "647",
+      "secondaryValue": "647 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 4,
+      "name": "GUILHERME SALAS",
+      "team": "VALDA CAVALEIRO SPORTS",
+      "manufacturer": "Chevrolet",
+      "badge": {
+        "label": "GS",
+        "sublabel": "VALDA CAVALEIRO SPORTS · Chevrolet",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-guilherme-salas.png",
+        "plainSublabel": true
+      },
+      "value": "638",
+      "secondaryValue": "638 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 5,
+      "name": "SERGIO SETTE CAMARA",
+      "team": "TEAM RC",
+      "manufacturer": "Mitsubishi",
+      "badge": {
+        "label": "SSC",
+        "sublabel": "TEAM RC · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-sergio-sette-camara.png",
+        "plainSublabel": true
+      },
+      "value": "623",
+      "secondaryValue": "623 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 6,
+      "name": "RAFAEL SUZUKI",
+      "team": "FULL TIME SPORTS",
+      "manufacturer": "Chevrolet",
+      "badge": {
+        "label": "RS",
+        "sublabel": "FULL TIME SPORTS · Chevrolet",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-rafael-suzuki.png",
+        "plainSublabel": true
+      },
+      "value": "621",
+      "secondaryValue": "621 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 7,
+      "name": "ENZO ELIAS",
+      "team": "A.MATTHEIS / TMG",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "EE",
+        "sublabel": "A.MATTHEIS / TMG · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-enzo-elias.png",
+        "plainSublabel": true
+      },
+      "value": "578",
+      "secondaryValue": "578 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 8,
+      "name": "ARTHUR LEIST",
+      "team": "CROWN RACING",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "AL",
+        "sublabel": "CROWN RACING · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-arthur-leist.png",
+        "plainSublabel": true
+      },
+      "value": "572",
+      "secondaryValue": "572 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 9,
+      "name": "FELIPE MASSA",
+      "team": "TIME LUBRAX TMG",
+      "manufacturer": "Chevrolet",
+      "badge": {
+        "label": "FM",
+        "sublabel": "TIME LUBRAX TMG · Chevrolet",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-felipe-massa.png",
+        "plainSublabel": true
+      },
+      "value": "532",
+      "secondaryValue": "532 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 10,
+      "name": "FELIPE BAPTISTA",
+      "team": "STERLING RACING",
+      "manufacturer": "Mitsubishi",
+      "badge": {
+        "label": "FB",
+        "sublabel": "STERLING RACING · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-felipe-baptista.png",
+        "plainSublabel": true
+      },
+      "value": "499",
+      "secondaryValue": "499 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 11,
+      "name": "JULIO CAMPOS",
+      "team": "TIME LUBRAX TMG",
+      "manufacturer": "Chevrolet",
+      "badge": {
+        "label": "JC",
+        "sublabel": "TIME LUBRAX TMG · Chevrolet",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-julio-campos.png",
+        "plainSublabel": true
+      },
+      "value": "499",
+      "secondaryValue": "499 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 12,
+      "name": "CESAR RAMOS",
+      "team": "MERCADO LIVRE RACING",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "CR",
+        "sublabel": "MERCADO LIVRE RACING · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-cesar-ramos.png",
+        "plainSublabel": true
+      },
+      "value": "489",
+      "secondaryValue": "489 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 13,
+      "name": "THIAGO CAMILO",
+      "team": "MERCADO LIVRE RACING TEAM",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "TC",
+        "sublabel": "MERCADO LIVRE RACING TEAM · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-thiago-camilo.png",
+        "plainSublabel": true
+      },
+      "value": "470",
+      "secondaryValue": "470 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 14,
+      "name": "ZEZINHO MUGGIATI",
+      "team": "TEAM RC",
+      "manufacturer": "Mitsubishi",
+      "sourceNote": "Etapa 1 Curvelo: Piloto desclassificado na corrida sprint",
+      "badge": {
+        "label": "ZM",
+        "sublabel": "TEAM RC · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-zezinho-muggiati.png",
+        "plainSublabel": true
+      },
+      "value": "450",
+      "secondaryValue": "450 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 15,
+      "name": "LEONARDO REIS",
+      "team": "CAR RACING",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "LR",
+        "sublabel": "CAR RACING · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-leonardo-reis.png",
+        "plainSublabel": true
+      },
+      "value": "442",
+      "secondaryValue": "442 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 16,
+      "name": "ALLAM KHODAIR",
+      "team": "BLAU MOTORSPORTS",
+      "manufacturer": "Mitsubishi",
+      "badge": {
+        "label": "AK",
+        "sublabel": "BLAU MOTORSPORTS · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-allam-khodair.png",
+        "plainSublabel": true
+      },
+      "value": "411",
+      "secondaryValue": "411 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 17,
+      "name": "ALFREDINHO IBIAPINA",
+      "team": "FT GAZOO RACING",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "AI",
+        "sublabel": "FT GAZOO RACING · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-alfredinho-ibiapina.png",
+        "plainSublabel": true
+      },
+      "value": "392",
+      "secondaryValue": "392 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 18,
+      "name": "DANIEL SERRA",
+      "team": "BLAU MOTORSPORTS",
+      "manufacturer": "Mitsubishi",
+      "badge": {
+        "label": "DS",
+        "sublabel": "BLAU MOTORSPORTS · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-daniel-serra.png",
+        "plainSublabel": true
+      },
+      "value": "387",
+      "secondaryValue": "387 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 19,
+      "name": "CACA BUENO",
+      "team": "SCUDERIA CHIARELLI",
+      "manufacturer": "Chevrolet",
+      "badge": {
+        "label": "CB",
+        "sublabel": "SCUDERIA CHIARELLI · Chevrolet",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-caca-bueno.png",
+        "plainSublabel": true
+      },
+      "value": "380",
+      "secondaryValue": "380 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 20,
+      "name": "NELSON PIQUET JR",
+      "team": "SEM EQUIPE",
+      "manufacturer": "Chevrolet",
+      "sourceNote": "Etapa 3 Interlagos: Piloto desclassificado na corrida sprint e principal",
+      "badge": {
+        "label": "NPJ",
+        "sublabel": "SEM EQUIPE · Chevrolet",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-nelson-piquet-jr.png",
+        "plainSublabel": true
+      },
+      "value": "337",
+      "secondaryValue": "337 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 21,
+      "name": "RUBENS BARRICHELLO",
+      "team": "FULL TIME SPORTS",
+      "manufacturer": "Mitsubishi",
+      "sourceNote": "Etapa 3 Interlagos: Piloto desclassificado na corrida principal",
+      "badge": {
+        "label": "RB",
+        "sublabel": "FULL TIME SPORTS · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-rubens-barrichello.png",
+        "plainSublabel": true
+      },
+      "value": "337",
+      "secondaryValue": "337 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 22,
+      "name": "RICARDO MAURICIO",
+      "team": "VALDA CAVALEIRO SPORTS",
+      "manufacturer": "Chevrolet",
+      "badge": {
+        "label": "RM",
+        "sublabel": "VALDA CAVALEIRO SPORTS · Chevrolet",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-ricardo-mauricio.png",
+        "plainSublabel": true
+      },
+      "value": "316",
+      "secondaryValue": "316 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 23,
+      "name": "RICARDO ZONTA",
+      "team": "FT GAZOO RACING",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "RZ",
+        "sublabel": "FT GAZOO RACING · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-ricardo-zonta.png",
+        "plainSublabel": true
+      },
+      "value": "305",
+      "secondaryValue": "305 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 24,
+      "name": "RAFAEL REIS",
+      "team": "CAR RACING",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "RR",
+        "sublabel": "CAR RACING · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-rafael-reis.png",
+        "plainSublabel": true
+      },
+      "value": "301",
+      "secondaryValue": "301 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 25,
+      "name": "LUCAS FORESTI",
+      "team": "A. MATTHEIS VOGEL MOTORSPORTS",
+      "manufacturer": "Chevrolet",
+      "badge": {
+        "label": "LF",
+        "sublabel": "A. MATTHEIS VOGEL MOTORSPORTS · Chevrolet",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-lucas-foresti.png",
+        "plainSublabel": true
+      },
+      "value": "281",
+      "secondaryValue": "281 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 26,
+      "name": "HELIO CASTRONEVES",
+      "team": "MERCADO LIVRE RACING",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "HC",
+        "sublabel": "MERCADO LIVRE RACING · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-helio-castroneves.png",
+        "plainSublabel": true
+      },
+      "value": "253",
+      "secondaryValue": "253 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 27,
+      "name": "RENAN GUERRA",
+      "team": "A.MATTHEIS / TMG",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "RG",
+        "sublabel": "A.MATTHEIS / TMG · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-renan-guerra.png",
+        "plainSublabel": true
+      },
+      "value": "217",
+      "secondaryValue": "217 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 28,
+      "name": "ATILA ABREU",
+      "team": "SEM EQUIPE",
+      "manufacturer": "Mitsubishi",
+      "badge": {
+        "label": "AA",
+        "sublabel": "SEM EQUIPE · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-atila-abreu.png",
+        "plainSublabel": true
+      },
+      "value": "213",
+      "secondaryValue": "213 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 29,
+      "name": "LUCAS KOHL",
+      "team": "CROWN RACING",
+      "manufacturer": "Toyota",
+      "badge": {
+        "label": "LK",
+        "sublabel": "CROWN RACING · Toyota",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-lucas-kohl.png",
+        "plainSublabel": true
+      },
+      "value": "204",
+      "secondaryValue": "204 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 30,
+      "name": "ANDRE MORAES JR",
+      "team": "SCUDERIA CHIARELLI",
+      "manufacturer": "Chevrolet",
+      "badge": {
+        "label": "AMJ",
+        "sublabel": "SCUDERIA CHIARELLI · Chevrolet",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-andre-moraes-jr.png",
+        "plainSublabel": true
+      },
+      "value": "202",
+      "secondaryValue": "202 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 31,
+      "name": "VICENTE ORIGE",
+      "team": "STERLING RACING",
+      "manufacturer": "Mitsubishi",
+      "badge": {
+        "label": "VO",
+        "sublabel": "STERLING RACING · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-vicente-orige.png",
+        "plainSublabel": true
+      },
+      "value": "179",
+      "secondaryValue": "179 pts",
+      "accentColor": "#0057FF"
+    },
+    {
+      "position": 32,
+      "name": "FELIPE BARRICHELLO BARTZ",
+      "team": "ALBATROZ RACING",
+      "manufacturer": "Mitsubishi",
+      "badge": {
+        "label": "FBB",
+        "sublabel": "ALBATROZ RACING · Mitsubishi",
+        "accentColor": "#0057FF",
+        "hideSublabel": false,
+        "imagePath": "/f1/drivers/stock-pro-2026-felipe-barrichello-bartz.png",
+        "plainSublabel": true
+      },
+      "value": "170",
+      "secondaryValue": "170 pts",
+      "accentColor": "#0057FF"
+    }
+  ],
+  "category": "stock-pro",
+  "sourceLabel": "velocigroup.com.br",
+  "manualAdjustments": [
+    "Fonte velocigroup.com.br: https://velocigroup.com.br/#/stock-pro-series"
+  ]
+}

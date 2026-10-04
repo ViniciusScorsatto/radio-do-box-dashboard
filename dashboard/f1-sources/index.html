@@ -39,9 +39,16 @@
             <input id="season-input" type="number" min="1950" max="2100" step="1" />
           </label>
         </div>
+        <label>Trilha sonora
+          <select id="source-soundtrack-select" disabled>
+            <option value="">Carregando trilhas…</option>
+          </select>
+        </label>
+        <p id="source-soundtrack-status" class="panel-help" aria-live="polite">A trilha selecionada será usada no preview e no MP4.</p>
         <div class="source-tabs" role="tablist" aria-label="Fontes de dados">
           <button class="source-tab active" data-source-tab="results" role="tab">1 · Resultados das categorias</button>
           <button class="source-tab" data-source-tab="fia" role="tab">2 · Classificação FIA</button>
+          <button class="source-tab" data-source-tab="standings" role="tab">Campeonatos</button>
           <button class="source-tab" data-source-tab="editorial" role="tab">3 · Notícias e editorial</button>
         </div>
         <p id="sources-status" class="sources-status" aria-live="polite"></p>
@@ -66,6 +73,9 @@
                 <option value="practice">Treino livre</option>
               </select>
             </label>
+            <label>Título do Short (opcional)
+              <input id="source-title-override" type="text" placeholder="Ex.: GP do Azerbaijão" />
+            </label>
             <button id="load-results-button" type="button">Ler resultado publicado</button>
             <div class="source-action-row"><button id="prepare-source-result-button" type="button">Preparar Short</button><button id="render-source-result-button" type="button" class="secondary-action">Renderizar MP4</button></div>
             <p class="panel-help">A tabela abaixo é identificada como publicada pelo site da categoria. Para o resultado definitivo, confira a seção FIA.</p>
@@ -76,6 +86,17 @@
             <p id="results-warning" class="source-warning"></p>
           </article>
         </div>
+      </section>
+
+      <section class="source-panel" data-source-panel="standings" hidden>
+        <article class="panel">
+          <div class="panel-header"><div><p class="eyebrow" id="standings-source-label">Formula1.com</p><h2>Classificação do Mundial</h2></div><a id="standings-source-link" class="source-link" target="_blank" rel="noreferrer" hidden>abrir fonte</a></div>
+          <p class="panel-help">Classificação oficial para a temporada selecionada. F2 e F3: nomes e pontos publicados pelo site; fotos e equipes não são fornecidas nesta tabela. Os Shorts usam bandeiras de nacionalidade esportiva quando verificadas.</p>
+          <label>Categoria do campeonato<select id="standings-category"><option value="f1">Formula 1</option><option value="f2">Formula 2</option><option value="f3">Formula 3</option><option value="f1-academy">F1 Academy</option><option value="indycar">IndyCar</option><option value="stock-pro">Stock Car Pro Series</option><option value="stock-light">Stock Light</option></select></label>
+          <label>Mundial<select id="standings-type"><option value="drivers">Pilotos</option><option value="constructors">Construtores</option></select></label>
+          <div class="source-action-row"><button id="prepare-standings-button" type="button">Preparar Short</button><button id="render-standings-button" type="button" class="secondary-action">Renderizar MP4</button></div>
+          <div id="standings-table" class="table-wrap"></div>
+        </article>
       </section>
 
       <section class="source-panel" data-source-panel="fia" hidden>
@@ -91,7 +112,11 @@
       <section class="panel source-output-panel">
         <div class="panel-header"><div><p class="eyebrow">Saída</p><h2>Preview do Short</h2></div><span class="chip" id="source-output-chip">aguardando job</span></div>
         <div class="source-studio-row"><input id="source-studio-url" placeholder="URL do Remotion Studio" value="http://localhost:3000" /><button id="load-source-preview-button" type="button">Abrir preview</button><a id="open-source-studio-link" class="source-link" target="_blank" rel="noreferrer">abrir studio</a></div>
-        <iframe id="source-preview-frame" title="Preview do Short" loading="lazy"></iframe>
+        <iframe id="source-preview-frame" title="Preview do Short" loading="lazy" allowfullscreen></iframe>
+        <div id="source-download" class="job-download-card" hidden>
+          <div><strong>MP4 pronto</strong><span id="source-download-name"></span></div>
+          <a id="source-download-link" class="download-link" download>Baixar MP4</a>
+        </div>
         <p id="source-output-status" class="sources-status" aria-live="polite">Prepare um resultado, classificação FIA ou notícia para atualizar o job atual.</p>
       </section>
 

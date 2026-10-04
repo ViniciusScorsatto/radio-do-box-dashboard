@@ -29,7 +29,7 @@
     "durationInFrames": 360
   },
   "title": "Mundial de Pilotos",
-  "subtitle": "GP da Itália",
+  "subtitle": "GP da Espanha",
   "raceType": "Race",
   "raceId": 2622,
   "raceName": "GP de Abu Dhabi",
@@ -39,7 +39,7 @@
   "brandLogoPath": "/branding/radio-do-box/black.png",
   "soundtrackPath": "/audio/f1/Rádio do Box - Jornalistico.mp3",
   "soundtrackLabel": "Rádio do Box - Jornalístico",
-  "soundtrackVolume": 0.2,
+  "soundtrackVolume": 0.15,
   "introTitle": "Mundial de Pilotos",
   "introSubtitle": "Formula 1 2026",
   "voiceoverText": "Fala, galera do box. Mundial de pilotos atualizado da Formula 1 2026.",
@@ -59,7 +59,7 @@
       "logoPath": "/f1/teams/custom/mercedes.png",
       "sublabel": "Mercedes-AMG Petronas"
     },
-    "stat": "267 pts",
+    "stat": "292 pts",
     "accentColor": "#65e1c6"
   },
   "entries": [
@@ -74,8 +74,8 @@
         "logoPath": "/f1/teams/custom/mercedes.png",
         "sublabel": "Mercedes-AMG Petronas"
       },
-      "value": "267",
-      "secondaryValue": "7 vit",
+      "value": "292",
+      "secondaryValue": "8 vit",
       "driverNumber": "12",
       "accentColor": "#65e1c6"
     },
@@ -90,8 +90,8 @@
         "logoPath": "/f1/teams/custom/mercedes.png",
         "sublabel": "Mercedes-AMG Petronas"
       },
-      "value": "201",
-      "secondaryValue": "2 vit • +66",
+      "value": "211",
+      "secondaryValue": "2 vit • +81",
       "driverNumber": "63",
       "accentColor": "#65e1c6"
     },
@@ -107,7 +107,7 @@
         "sublabel": "Scuderia Ferrari"
       },
       "value": "191",
-      "secondaryValue": "1 vit • +76",
+      "secondaryValue": "1 vit • +101",
       "driverNumber": "44",
       "accentColor": "#ff5546"
     },
@@ -122,8 +122,8 @@
         "logoPath": "/f1/teams/custom/mclaren.png",
         "sublabel": "McLaren Racing"
       },
-      "value": "171",
-      "secondaryValue": "2 vit • +96",
+      "value": "186",
+      "secondaryValue": "2 vit • +106",
       "driverNumber": "1",
       "accentColor": "#ff9a3d"
     },
@@ -138,8 +138,8 @@
         "logoPath": "/f1/teams/custom/ferrari.png",
         "sublabel": "Scuderia Ferrari"
       },
-      "value": "155",
-      "secondaryValue": "1 vit • +112",
+      "value": "167",
+      "secondaryValue": "1 vit • +125",
       "driverNumber": "16",
       "accentColor": "#ff5546"
     },
@@ -154,8 +154,8 @@
         "logoPath": "/f1/teams/custom/red-bull.png",
         "sublabel": "Red Bull Racing"
       },
-      "value": "127",
-      "secondaryValue": "+140",
+      "value": "145",
+      "secondaryValue": "+147",
       "driverNumber": "3",
       "accentColor": "#5d74ff"
     },
@@ -170,8 +170,8 @@
         "logoPath": "/f1/teams/custom/mclaren.png",
         "sublabel": "McLaren Racing"
       },
-      "value": "116",
-      "secondaryValue": "+151",
+      "value": "120",
+      "secondaryValue": "+172",
       "driverNumber": "81",
       "accentColor": "#ff9a3d"
     },
@@ -187,7 +187,7 @@
         "sublabel": "Red Bull Racing"
       },
       "value": "71",
-      "secondaryValue": "+196",
+      "secondaryValue": "+221",
       "driverNumber": "6",
       "accentColor": "#5d74ff"
     },
@@ -202,8 +202,8 @@
         "logoPath": "/f1/teams/custom/racing-bulls.png",
         "sublabel": "Racing Bulls"
       },
-      "value": "51",
-      "secondaryValue": "+216",
+      "value": "59",
+      "secondaryValue": "+233",
       "driverNumber": "30",
       "accentColor": "#7b94ff"
     },
@@ -219,7 +219,7 @@
         "sublabel": "Alpine F1 Team"
       },
       "value": "41",
-      "secondaryValue": "+226",
+      "secondaryValue": "+251",
       "driverNumber": "10",
       "accentColor": "#ff76db"
     },
@@ -234,8 +234,8 @@
         "logoPath": "/f1/teams/custom/racing-bulls.png",
         "sublabel": "Racing Bulls"
       },
-      "value": "29",
-      "secondaryValue": "+238",
+      "value": "31",
+      "secondaryValue": "+261",
       "driverNumber": "41",
       "accentColor": "#7b94ff"
     },
@@ -250,8 +250,8 @@
         "logoPath": "/f1/teams/custom/alpine.png",
         "sublabel": "Alpine F1 Team"
       },
-      "value": "21",
-      "secondaryValue": "+246",
+      "value": "27",
+      "secondaryValue": "+265",
       "driverNumber": "43",
       "accentColor": "#ff76db"
     },
@@ -267,7 +267,7 @@
         "sublabel": "Haas F1 Team"
       },
       "value": "18",
-      "secondaryValue": "+249",
+      "secondaryValue": "+274",
       "driverNumber": "87",
       "accentColor": "#f1f1f1"
     },
@@ -283,7 +283,7 @@
         "sublabel": "Audi Revolut F1 Team"
       },
       "value": "10",
-      "secondaryValue": "+257",
+      "secondaryValue": "+282",
       "driverNumber": "5",
       "accentColor": "#d4d7df"
     },
@@ -298,8 +298,8 @@
         "logoPath": "/f1/teams/custom/audi.png",
         "sublabel": "Audi Revolut F1 Team"
       },
-      "value": "6",
-      "secondaryValue": "+261",
+      "value": "7",
+      "secondaryValue": "+285",
       "driverNumber": "27",
       "accentColor": "#d4d7df"
     },
@@ -315,7 +315,7 @@
         "sublabel": "Williams F1 Team"
       },
       "value": "6",
-      "secondaryValue": "+261",
+      "secondaryValue": "+286",
       "driverNumber": "55",
       "accentColor": "#6fb4ff"
     },
@@ -331,7 +331,7 @@
         "sublabel": "Williams F1 Team"
       },
       "value": "5",
-      "secondaryValue": "+262",
+      "secondaryValue": "+287",
       "driverNumber": "23",
       "accentColor": "#6fb4ff"
     },
@@ -347,7 +347,7 @@
         "sublabel": "Haas F1 Team"
       },
       "value": "3",
-      "secondaryValue": "+264",
+      "secondaryValue": "+289",
       "driverNumber": "31",
       "accentColor": "#f1f1f1"
     },
@@ -363,7 +363,7 @@
         "sublabel": "Aston Martin F1 Team"
       },
       "value": "3",
-      "secondaryValue": "+264",
+      "secondaryValue": "+289",
       "driverNumber": "14",
       "accentColor": "#59b28c"
     },
@@ -379,7 +379,7 @@
         "sublabel": "Racing Bulls"
       },
       "value": "1",
-      "secondaryValue": "+266",
+      "secondaryValue": "+291",
       "driverNumber": "22",
       "accentColor": "#7b94ff"
     },
@@ -395,7 +395,7 @@
         "sublabel": "Aston Martin F1 Team"
       },
       "value": "0",
-      "secondaryValue": "+267",
+      "secondaryValue": "+292",
       "driverNumber": "18",
       "accentColor": "#59b28c"
     },
@@ -411,7 +411,7 @@
         "sublabel": "Cadillac Formula 1 Team"
       },
       "value": "0",
-      "secondaryValue": "+267",
+      "secondaryValue": "+292",
       "driverNumber": "77",
       "accentColor": "#8fd1ff"
     },
@@ -427,7 +427,7 @@
         "sublabel": "Cadillac Formula 1 Team"
       },
       "value": "0",
-      "secondaryValue": "+267",
+      "secondaryValue": "+292",
       "driverNumber": "11",
       "accentColor": "#8fd1ff"
     }

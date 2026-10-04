@@ -1,5 +1,6 @@
 import {AbsoluteFill, Img, staticFile} from 'remotion';
 import {BadgeDisk} from '../components/F1Shared';
+import raceResultsTheme from '../../config/f1/themes/orange.json';
 import type {
   F1ConstructorStandingsJob,
   F1DriverStandingsJob,
@@ -110,8 +111,11 @@ const constructorDisplayNameOverrides: Record<string, string> = {
 const constructorDisplayName = (value = '') => constructorDisplayNameOverrides[normalizeKey(value)] ?? value;
 
 export const F1LargeVideosComposition = ({job}: F1LargeVideosCompositionProps) => {
-  const theme = job.themeConfig;
   const isRaceResults = job.template === 'race-results';
+  // The data provider must not change the established large race-results palette.
+  const theme = isRaceResults
+    ? {...job.themeConfig, accent: raceResultsTheme.accent, secondaryAccent: raceResultsTheme.secondaryAccent}
+    : job.themeConfig;
   const isConstructorStandings = job.template === 'constructor-standings';
   const backgroundPath = isRaceResults ? RESULTS_BACKGROUND_PATH : STANDINGS_BACKGROUND_PATH;
 

@@ -1,9 +1,10 @@
-import {AbsoluteFill, Img, staticFile, useCurrentFrame} from 'remotion';
+import {AbsoluteFill, Img, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {F1ProductionBed} from '../components/F1ProductionBed';
 import {F1_DATA_FONT, F1_DISPLAY_FONT, F1FontFaces} from '../components/F1Typography';
 import type {F1PodiumEntry, F1RankingEntry, F1ThemeConfig, TeamBadge} from '../lib/types';
 
 type F1StandingsCompositionProps = {
+  category?: string;
   title: string;
   subtitle: string;
   countryCode?: string;
@@ -85,6 +86,7 @@ const resolveBadgeVisual = (
   options?: {forceConstructorLogos?: boolean; teamName?: string}
 ) => {
   const forceConstructorLogos = options?.forceConstructorLogos ?? false;
+  if (badge.flagPath && !forceConstructorLogos) return {imagePath: badge.flagPath, isLogo: true};
   const normalizedTeam = normalizeTeamKey(options?.teamName ?? badge.sublabel ?? '');
   const customLogoPath = constructorTeamLogoOverrides[normalizedTeam];
   const imagePath = forceConstructorLogos
@@ -109,14 +111,19 @@ const BaseF1StandingsComposition = ({
   introSubtitle,
   forceConstructorLogos,
   maxRows,
+  category,
 }: BaseF1StandingsCompositionProps) => {
   const frame = useCurrentFrame();
+  const {durationInFrames} = useVideoConfig();
+  const isF2 = category === 'f2' || category === 'f3' || category === 'f1-academy' || category === 'indycar' || category === 'stock-pro' || category === 'stock-light';
   const rows = entries.length > 0 ? entries.slice(0, maxRows) : [];
   const headerSubtitle = sanitizeStandingsSubtitle(title, subtitle);
   const pageOneRows = rows.slice(1, 11);
-  const pageTwoRows = rows.slice(11, maxRows);
+  const pageCount = 1 + Math.ceil(Math.max(0, rows.length - 11) / 12);
+  const pageIndex = pageCount > 2 ? Math.min(pageCount - 1, Math.floor(frame / (durationInFrames / pageCount))) : frame >= PAGE_SWITCH_FRAME ? 1 : 0;
+  const pageTwoRows = rows.slice(11 + Math.max(0, pageIndex - 1) * 12, 23 + Math.max(0, pageIndex - 1) * 12);
   const hasSecondPageRows = pageTwoRows.length > 0;
-  const showSecondPage = hasSecondPageRows && frame >= PAGE_SWITCH_FRAME;
+  const showSecondPage = hasSecondPageRows && pageIndex > 0;
   const effectiveLeader =
     leader ??
     (rows[0]
@@ -144,8 +151,8 @@ const BaseF1StandingsComposition = ({
         }}
       >
         <F1FontFaces />
-        <StandingsBackdrop accent={themeConfig.accent} />
-        <StandingsHeader title={title} subtitle={headerSubtitle} />
+        {isF2 ? <F2StandingsBackdrop academy={category === 'f1-academy'} f3={category === 'f3'} indy={category === 'indycar'} stock={category === 'stock-pro' || category === 'stock-light'} light={category === 'stock-light'} /> : <StandingsBackdrop accent={themeConfig.accent} />}
+        <StandingsHeader title={title} subtitle={headerSubtitle} darkBackground={isF2} />
 
         {!showSecondPage ? (
           <StandingsPage
@@ -189,7 +196,7 @@ export const F1DriverStandingsComposition = (props: F1StandingsCompositionProps)
     {...props}
     brandLogoPath="/branding/radio-do-box/red.png"
     forceConstructorLogos={false}
-    maxRows={23}
+    maxRows={props.category === 'f3' || props.category === 'indycar' || props.category === 'stock-pro' || props.category === 'stock-light' ? props.entries.length : 23}
   />
 );
 
@@ -198,6 +205,22 @@ export const F1ConstructorStandingsComposition = (props: F1StandingsCompositionP
 );
 
 export const F1StandingsComposition = F1DriverStandingsComposition;
+
+const F2StandingsBackdrop = ({academy = false, f3 = false, indy = false, stock = false, light = false}: {academy?: boolean; f3?: boolean; indy?: boolean; stock?: boolean; light?: boolean}) => (
+  <AbsoluteFill
+    style={{
+      background: light ? 'linear-gradient(155deg, #825128 0%, #49331f 40%, #1c1812 100%)' : stock ? 'linear-gradient(155deg, #245342 0%, #18362e 40%, #0c1714 100%)' : indy ? 'linear-gradient(155deg, #183950 0%, #142432 40%, #090e15 100%)' : f3 ? 'linear-gradient(155deg, #9e292e 0%, #651f28 32%, #321722 65%, #160f19 100%)' : academy ? 'linear-gradient(155deg, #9b246b 0%, #602259 32%, #351a43 65%, #170f29 100%)' : 'linear-gradient(155deg, #0065ad 0%, #00427a 32%, #062e59 65%, #041a36 100%)',
+    }}
+  >
+    <AbsoluteFill
+      style={{
+        background: 'repeating-linear-gradient(135deg, transparent 0px, transparent 220px, rgba(99,200,255,0.07) 220px, rgba(99,200,255,0.07) 224px, transparent 224px, transparent 440px)',
+      }}
+    />
+    <div style={{position: 'absolute', left: 0, top: 0, width: 12, height: '100%', background: stock ? '#f6c945' : f3 ? '#ef4b50' : academy ? '#ff4fa3' : '#39bfff'}} />
+    <div style={{position: 'absolute', left: 44, right: 44, top: 200, height: 3, background: 'linear-gradient(90deg, #76d6ff, rgba(118,214,255,0))'}} />
+  </AbsoluteFill>
+);
 
 const StandingsBackdrop = ({accent}: {accent: string}) => (
   <>
@@ -255,9 +278,11 @@ const StandingsBackdrop = ({accent}: {accent: string}) => (
 const StandingsHeader = ({
   title,
   subtitle,
+  darkBackground = false,
 }: {
   title: string;
   subtitle: string;
+  darkBackground?: boolean;
 }) => {
   const normalizedSubtitle = String(subtitle ?? '').trim();
   const shouldHideSubtitle = normalizedSubtitle.length === 0 || normalizedSubtitle.toLowerCase() === 'resultado da corrida';
@@ -278,7 +303,7 @@ const StandingsHeader = ({
           lineHeight: 1,
           fontWeight: 900,
           fontFamily: DISPLAY_FONT,
-          color: '#21345f',
+          color: darkBackground ? '#9ee2ff' : '#21345f',
           letterSpacing: 0.3,
           textTransform: 'uppercase',
         }}
@@ -291,7 +316,7 @@ const StandingsHeader = ({
           lineHeight: 0.92,
           fontWeight: 900,
           fontFamily: DISPLAY_FONT,
-          color: '#0a1024',
+          color: darkBackground ? '#ffffff' : '#0a1024',
           textTransform: 'uppercase',
           maxWidth: 700,
         }}
@@ -305,7 +330,7 @@ const StandingsHeader = ({
             lineHeight: 1,
             fontWeight: 500,
             fontFamily: DATA_FONT,
-            color: '#55698f',
+            color: darkBackground ? '#bfdef5' : '#55698f',
             textTransform: 'uppercase',
           }}
         >
@@ -440,10 +465,11 @@ const StandingsLeaderCard = ({
     teamName: leader.team || leader.name,
   });
   const logoOffsetX = forceConstructorLogos ? 24 : 0;
+  const isFlag = Boolean(leader.badge.flagPath);
   const displayLeaderName = forceConstructorLogos ? getConstructorShortName(leader.name) : leader.name;
   const displayLeaderDetail = forceConstructorLogos
     ? leader.badge.sublabel || leader.team || leader.name
-    : leader.team;
+    : leader.badge.plainSublabel ? leader.badge.sublabel : leader.team;
 
   return (
     <div
@@ -471,7 +497,7 @@ const StandingsLeaderCard = ({
     <div
       style={{
         position: 'relative',
-        width: isLogo ? 138 : 178,
+        width: isFlag ? 190 : isLogo ? 138 : 178,
         height: isLogo ? 124 : 128,
         borderRadius: isLogo ? 18 : 28,
         background: isLogo
@@ -480,8 +506,8 @@ const StandingsLeaderCard = ({
         border: isLogo ? 'none' : '3px solid rgba(255, 207, 94, 0.92)',
         overflow: isLogo ? 'visible' : 'hidden',
         display: 'flex',
-        alignItems: isLogo ? 'center' : 'flex-end',
-        justifyContent: 'center',
+        alignItems: isLogo || !imagePath ? 'center' : 'flex-start',
+        justifyContent: isFlag ? 'flex-end' : 'center',
         boxShadow: isLogo ? 'none' : '0 0 28px rgba(255, 199, 82, 0.28)',
         paddingRight: 0,
       }}
@@ -490,12 +516,12 @@ const StandingsLeaderCard = ({
         style={{
           position: 'absolute',
           left: 8,
-          top: -2,
-          fontSize: 106,
+          top: isFlag ? 30 : -2,
+          fontSize: isFlag ? 72 : 106,
           lineHeight: 0.8,
-          color: 'rgba(255, 214, 111, 0.52)',
+          color: isFlag ? '#151d36' : 'rgba(255, 214, 111, 0.52)',
           fontWeight: 900,
-          textShadow: '0 0 24px rgba(255, 214, 111, 0.18)',
+          textShadow: isFlag ? 'none' : '0 0 24px rgba(255, 214, 111, 0.18)',
           zIndex: 1,
         }}
       >
@@ -507,11 +533,13 @@ const StandingsLeaderCard = ({
           style={{
             width: isLogo ? 108 : 140,
             height: isLogo ? 108 : 140,
-            objectFit: isLogo ? 'contain' : 'cover',
+            marginTop: isLogo ? 0 : 4,
+            objectFit: isFlag && imagePath.endsWith('.png') ? 'cover' : isLogo ? 'contain' : 'cover',
+            backgroundColor: imagePath.endsWith('indy-cayman-islands.png') ? '#012169' : undefined,
             objectPosition: isLogo ? 'center center' : 'center top',
-            filter: isLogo ? 'drop-shadow(0 0 14px rgba(255,255,255,0.12))' : undefined,
-            borderRadius: isLogo ? 18 : 0,
-            border: isLogo ? '3px solid rgba(255, 255, 255, 0.72)' : 'none',
+            filter: isLogo && !isFlag ? 'drop-shadow(0 0 14px rgba(255,255,255,0.12))' : undefined,
+            borderRadius: isFlag ? '50%' : isLogo ? 18 : 0,
+            border: isLogo && !isFlag ? '3px solid rgba(255, 255, 255, 0.72)' : 'none',
             transform: isLogo ? `translateX(${logoOffsetX}px)` : 'none',
             zIndex: 2,
           }}
@@ -552,7 +580,7 @@ const StandingsLeaderCard = ({
       </div>
       <div
         style={{
-          fontSize: 26,
+          fontSize: leader.badge.plainSublabel ? 21 : 26,
           lineHeight: 1,
           fontWeight: 600,
           fontFamily: DATA_FONT,
@@ -643,7 +671,7 @@ const StandingsRow = ({
   const displayName = forceConstructorLogos ? getConstructorShortName(entry.name) : entry.name;
   const displayTeamDetail = forceConstructorLogos
     ? entry.badge.sublabel || entry.name || 'Formula 1'
-    : entry.team || entry.badge.sublabel || 'Formula 1';
+    : entry.badge.plainSublabel ? entry.badge.sublabel : entry.team || entry.badge.sublabel || 'Formula 1';
   const medalFill =
     entry.position === 1
       ? 'linear-gradient(180deg, #ffe68d 0%, #ffbd4a 100%)'
@@ -704,7 +732,7 @@ const StandingsRow = ({
           borderRadius: isLogo ? 16 : 20,
           overflow: isLogo ? 'visible' : 'hidden',
           display: 'flex',
-          alignItems: isLogo ? 'center' : 'flex-end',
+          alignItems: isLogo || !imagePath ? 'center' : 'flex-start',
           justifyContent: 'center',
           background: isLogo
             ? 'transparent'
@@ -717,11 +745,13 @@ const StandingsRow = ({
             style={{
               width: isLogo ? 62 : 84,
               height: isLogo ? 62 : 88,
-              objectFit: isLogo ? 'contain' : 'cover',
+              marginTop: isLogo ? 0 : 4,
+              objectFit: entry.badge.flagPath && imagePath.endsWith('.png') ? 'cover' : isLogo ? 'contain' : 'cover',
+              backgroundColor: imagePath.endsWith('indy-cayman-islands.png') ? '#012169' : undefined,
               objectPosition: isLogo ? 'center center' : 'center top',
-              filter: isLogo ? 'drop-shadow(0 0 10px rgba(255,255,255,0.12))' : undefined,
-              borderRadius: isLogo ? 14 : 0,
-              border: isLogo ? '2px solid rgba(255, 255, 255, 0.62)' : 'none',
+              filter: isLogo && !entry.badge.flagPath ? 'drop-shadow(0 0 10px rgba(255,255,255,0.12))' : undefined,
+              borderRadius: entry.badge.flagPath ? '50%' : isLogo ? 14 : 0,
+              border: isLogo && !entry.badge.flagPath ? '2px solid rgba(255, 255, 255, 0.62)' : 'none',
             }}
           />
         ) : (
@@ -792,7 +822,7 @@ const StandingsRow = ({
             {displayName}
           </div>
         </div>
-        <div
+        {!entry.badge.hideSublabel && <div
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -805,23 +835,23 @@ const StandingsRow = ({
               lineHeight: 1,
               fontWeight: 600,
               fontFamily: DATA_FONT,
-              color: chipStyle.color,
+              color: entry.badge.plainSublabel ? '#5f6f92' : chipStyle.color,
               textTransform: 'uppercase',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               alignSelf: 'flex-start',
-              padding: '4px 10px 3px',
+              padding: entry.badge.plainSublabel ? '0' : '4px 10px 3px',
               borderRadius: 999,
-              background: chipStyle.background,
-              boxShadow: chipStyle.boxShadow,
-              border: chipStyle.border,
+              background: entry.badge.plainSublabel ? 'transparent' : chipStyle.background,
+              boxShadow: entry.badge.plainSublabel ? 'none' : chipStyle.boxShadow,
+              border: entry.badge.plainSublabel ? 'none' : chipStyle.border,
               minWidth: 0,
             }}
           >
             {displayTeamDetail}
           </div>
-        </div>
+        </div>}
       </div>
 
       <div
@@ -844,24 +874,6 @@ const StandingsRow = ({
         >
           {displayStandingValue(entry.value)}
         </div>
-        {entry.secondaryValue ? (
-          <div
-            style={{
-              fontSize: 16,
-              lineHeight: 1,
-              fontWeight: 700,
-              fontFamily: DATA_FONT,
-              color: '#ffffff',
-              textTransform: 'uppercase',
-              padding: '4px 10px 3px',
-              borderRadius: 999,
-              background: '#1b2750',
-              boxShadow: '0 0 12px rgba(27, 39, 80, 0.18)',
-            }}
-          >
-            {entry.secondaryValue}
-          </div>
-        ) : null}
         <div
           style={{
             fontSize: pointsLabelFontSize,

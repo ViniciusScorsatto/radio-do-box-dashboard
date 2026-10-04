@@ -29,9 +29,9 @@
     "durationInFrames": 360
   },
   "title": "Mundial de Construtores",
-  "subtitle": "GP da Itália",
-  "raceType": "1st Practice",
-  "raceId": 2619,
+  "subtitle": "GP da Espanha",
+  "raceType": "Race",
+  "raceId": 2622,
   "raceName": "GP de Abu Dhabi",
   "countryCode": "UNI",
   "circuitName": "Yas Marina Circuit",
@@ -39,7 +39,7 @@
   "brandLogoPath": "/branding/radio-do-box/yellow.png",
   "soundtrackPath": "/audio/f1/Rádio do Box - Jornalistico.mp3",
   "soundtrackLabel": "Rádio do Box - Jornalístico",
-  "soundtrackVolume": 0.2,
+  "soundtrackVolume": 0.15,
   "introTitle": "Mundial de Construtores",
   "introSubtitle": "Formula 1 2026",
   "voiceoverText": "Fala, galera do box. Mundial de construtores atualizado da Formula 1 2026.",
@@ -59,7 +59,7 @@
       "logoPath": "/f1/teams/custom/mercedes.png",
       "sublabel": "Mercedes-AMG Petronas"
     },
-    "stat": "468 pts",
+    "stat": "503 pts",
     "accentColor": "#65e1c6"
   },
   "entries": [
@@ -74,7 +74,7 @@
         "logoPath": "/f1/teams/custom/mercedes.png",
         "sublabel": "Mercedes-AMG Petronas"
       },
-      "value": "468",
+      "value": "503",
       "secondaryValue": "",
       "accentColor": "#65e1c6"
     },
@@ -89,7 +89,7 @@
         "logoPath": "/f1/teams/custom/ferrari.png",
         "sublabel": "Scuderia Ferrari"
       },
-      "value": "346",
+      "value": "358",
       "secondaryValue": "",
       "accentColor": "#ff5546"
     },
@@ -104,7 +104,7 @@
         "logoPath": "/f1/teams/custom/mclaren.png",
         "sublabel": "McLaren Racing"
       },
-      "value": "287",
+      "value": "306",
       "secondaryValue": "",
       "accentColor": "#ff9a3d"
     },
@@ -119,7 +119,7 @@
         "logoPath": "/f1/teams/custom/red-bull.png",
         "sublabel": "Red Bull Racing"
       },
-      "value": "204",
+      "value": "230",
       "secondaryValue": "",
       "accentColor": "#5d74ff"
     },
@@ -134,7 +134,7 @@
         "logoPath": "/f1/teams/custom/racing-bulls.png",
         "sublabel": "Racing Bulls"
       },
-      "value": "75",
+      "value": "77",
       "secondaryValue": "",
       "accentColor": "#7b94ff"
     },
@@ -149,7 +149,7 @@
         "logoPath": "/f1/teams/custom/alpine.png",
         "sublabel": "Alpine F1 Team"
       },
-      "value": "62",
+      "value": "68",
       "secondaryValue": "",
       "accentColor": "#ff76db"
     },
@@ -179,7 +179,7 @@
         "logoPath": "/f1/teams/custom/audi.png",
         "sublabel": "Audi Revolut F1 Team"
       },
-      "value": "16",
+      "value": "17",
       "secondaryValue": "",
       "accentColor": "#d4d7df"
     },

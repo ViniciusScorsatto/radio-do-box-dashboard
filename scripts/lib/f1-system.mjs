@@ -3,6 +3,7 @@ import fsSync from 'node:fs';
 import crypto from 'node:crypto';
 import path from 'node:path';
 import {projectRoot} from './video-system.mjs';
+import {loadStockStandings} from './stock-standings.mjs';
 
 const generatedDir = path.join(projectRoot, 'src', 'data', 'generated');
 const configRoot = path.join(projectRoot, 'config', 'f1');
@@ -26,6 +27,9 @@ const officialScheduleCategories = {
 const officialCategory = (category = 'f1') => officialScheduleCategories[category] ?? officialScheduleCategories.f1;
 
 const sourceCategoryConfigs = {
+  'stock-light': {label: 'Stock Light', shortLabel: 'Stock Light', site: 'velocigroup.com.br', home: 'https://velocigroup.com.br/#/stock-light'},
+  'stock-pro': {label: 'Stock Car Pro Series', shortLabel: 'Stock Pro', site: 'velocigroup.com.br', home: 'https://velocigroup.com.br/#/stock-pro-series'},
+  indycar: {label: 'IndyCar', shortLabel: 'Indy', site: 'indycar.com', home: 'https://www.indycar.com/Standings'},
   f1: {
     label: 'Formula 1',
     shortLabel: 'F1',
@@ -422,24 +426,35 @@ const sourceEventsForSeason = async (season, category = 'f1') => {
 const sessionUrlForF1Result = (url, session = 'race') => {
   const suffixes = {
     race: 'race-result',
-    sprint: 'sprint',
+    sprint: 'sprint-results',
     'starting-grid': 'starting-grid',
     qualifying: 'qualifying',
     practice: 'practice-1',
   };
   const suffix = suffixes[session] ?? suffixes.race;
-  return url.replace(/\/(?:race-result|sprint|starting-grid|qualifying|practice-[123])$/i, `/${suffix}`);
+  return url.replace(/\/(?:race-result|sprint-results|sprint|starting-grid|qualifying|practice-[123])$/i, `/${suffix}`);
 };
 
-const normalizeSourceResultRow = (row, index) => {
-  const values = row.map((value) => value.trim()).filter(Boolean);
+const normalizeSourceResultRow = (row, index, header = []) => {
+  // Preserve empty cells: removing them shifts team/time/points columns.
+  const values = row.map((value) => value.trim());
+  const cell = (pattern) => values[header.findIndex((label) => pattern.test(label))] ?? '';
   if (values.length < 2) return null;
-  const position = Number.parseInt(values[0], 10);
-  if (!Number.isFinite(position) || position < 1 || position > 99) return null;
+  const positionText = cell(/^(pos\.?|position)$/i);
+  const isClassified = /^\d+$/.test(positionText);
+  if (!isClassified && !/^(NC|DNF|DNS|DSQ|DQ|RET)$/i.test(positionText)) return null;
+  // The compositions require a numeric display order, including unclassified drivers.
+  // Keep the official label separately rather than dropping NC/DNF rows.
+  const position = isClassified ? Number(positionText) : index + 1;
+  if (position < 1 || position > 99) return null;
   return {
     position,
-    number: values.find((value) => /^\d{1,3}$/.test(value)) ?? '',
-    driver: values.find((value) => /[A-Za-zÀ-ÿ]/.test(value) && !/^(McLaren|Mercedes|Ferrari|Red Bull|PREMA|Campos|ART|Hitech|Rodin|MP Motorsport)/i.test(value)) ?? values[1] ?? '',
+    positionText,
+    number: cell(/^(no\.?|number)$/i),
+    driver: cell(/driver/i),
+    team: cell(/^(team|constructor)$/i),
+    time: cell(/time|retired/i) || cell(/^q3$/i) || cell(/^q2$/i) || cell(/^q1$/i) || (!isClassified ? positionText.toUpperCase() : ''),
+    points: cell(/^(pts?\.?|points)$/i),
     values,
     sourceIndex: index,
   };
@@ -465,8 +480,10 @@ const extractSourceResults = (html, session) => {
   const tableMatches = [...String(html).matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)];
   const tables = tableMatches.map((match) => extractHtmlTableRows(match[1])).filter((rows) => rows.length);
   const selectedRows = selectResultTable(tables, session);
-  const rows = selectedRows
-    .map(normalizeSourceResultRow)
+  const headerIndex = selectedRows.findIndex((row) => row.some((cell) => /driver/i.test(cell)) && row.some((cell) => /^(pos\.?|position)$/i.test(cell)));
+  const header = selectedRows[headerIndex] ?? [];
+  const rows = selectedRows.slice(headerIndex + 1)
+    .map((row, index) => normalizeSourceResultRow(row, index, header))
     .filter((row) => row && row.driver)
     .slice(0, 40);
   return {rows, tableCount: tables.length, rawRows: selectedRows.slice(0, 60)};
@@ -504,7 +521,7 @@ const fiaDocumentLinks = (html = '', baseUrl = 'https://www.fia.com') => {
   return [...links.entries()].map(([url, label]) => ({url, label}));
 };
 
-const loadFiaClassificationDocuments = async ({season, category = 'f1'}) => {
+const loadFiaClassificationDocuments = async ({season, category = 'f1', constructors = false}) => {
   const config = sourceCategory(category);
   if (!config.fia) {
     return {season, category, sourceUrl: null, documents: [], warning: 'Esta categoria não possui um arquivo FIA de classificações equivalente localizado.'};
@@ -519,7 +536,7 @@ const loadFiaClassificationDocuments = async ({season, category = 'f1'}) => {
       const tables = [...classificationHtml.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)]
         .map((match) => extractHtmlTableRows(match[1]))
         .filter((rows) => rows.length);
-      const table = tables.find((rows) => rows[0]?.join(' ').toLowerCase().includes('driver')) ?? tables[0];
+      const table = tables.find((rows) => (constructors ? /constructor|team/i : /driver/i).test(rows[0]?.join(' ') ?? ''));
       standingsRows = table?.slice(0, 30) ?? [];
       if (standingsRows.length) {
         sourceUrl = classificationUrl;
@@ -3866,12 +3883,12 @@ const buildSourceResultsJob = async ({season, category = 'f1', eventUrl, session
   const competitionConfig = {...baseCompetition, label: competitionName?.trim() || sourceCategory(category).label};
   const eventName = sourceResultEventName(eventUrl);
   const entries = await Promise.all(result.rows.map(async (row) => {
-    const driver = String(row.driver).replace(/\s+[A-Z]{3}$/i, '').trim();
-    const team = row.values?.[3] && !/^\d|[:+−-]\d/.test(row.values[3]) ? row.values[3] : '';
+    const driver = String(row.driver).replace(/\s+[A-Z]{3}$/, '').trim();
+    const team = row.team;
     const badge = await badgeFor({name: driver, team});
     badge.imagePath = await localDriverImageFor(driver) ?? badge.imagePath;
-    const value = row.values?.at(-2) || '—';
-    const points = row.values?.at(-1) || '0';
+    const value = row.time || '—';
+    const points = row.points || '0';
     return {position: row.position, name: driver, team, badge, value, secondaryValue: isGrid ? undefined : `${points} pts`, driverNumber: row.number, accentColor: badge.accentColor};
   }));
   const podium = entries.slice(0, 3).map((entry) => ({...entry, stat: entry.secondaryValue || entry.value}));
@@ -3885,24 +3902,168 @@ const buildSourceResultsJob = async ({season, category = 'f1', eventUrl, session
   };
 };
 
-const buildFiaStandingsJob = async ({season, category = 'f1', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName}) => {
-  const result = await loadFiaClassificationDocuments({season, category});
+export const loadFormulaOneStandings = async ({season, constructors = false}) => {
+  if (!Number.isInteger(Number(season)) || Number(season) < 1950 || Number(season) > 2100) throw new Error('Temporada inválida.');
+  const sourceUrl = `${officialF1BaseUrl}/en/results/${Number(season)}/${constructors ? 'team' : 'drivers'}`;
+  const html = await fetchOfficialHtml(sourceUrl);
+  const tables = [...html.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)].map((match) => extractHtmlTableRows(match[1]));
+  for (const table of tables) {
+    const headerIndex = table.findIndex((row) => row.some((cell) => /^(pos\.?|position)$/i.test(cell)) && row.some((cell) => /^(pts?\.?|points)$/i.test(cell)) && row.some((cell) => (constructors ? /^(team|constructor)$/i : /^driver$/i).test(cell)));
+    if (headerIndex < 0) continue;
+    const header = table[headerIndex];
+    const indexOf = (pattern) => header.findIndex((cell) => pattern.test(cell));
+    const rows = table.slice(headerIndex + 1).filter((row) => /^\d+$/.test(row[indexOf(/^(pos\.?|position)$/i)] ?? '')).map((row) => {
+      const position = row[indexOf(/^(pos\.?|position)$/i)];
+      const name = row[indexOf(constructors ? /^(team|constructor)$/i : /^driver$/i)]?.trim();
+      const points = row[indexOf(/^(pts?\.?|points)$/i)]?.trim();
+      const team = constructors ? name : row[indexOf(/^(team|constructor)$/i)]?.trim();
+      if (!name || !team || !/^\d+(?:\.\d+)?$/.test(points ?? '')) throw new Error('Tabela de classificação do Formula1.com incompleta.');
+      return [position, constructors ? name : name.replace(/\s+[A-Z]{3}$/, '').trim(), team, points];
+    });
+    if (rows.length) return {season: Number(season), sourceUrl, sourceLabel: 'formula1.com', standingsRows: [['Pos.', constructors ? 'Team' : 'Driver', 'Equipe', 'Pts.'], ...rows], extractedAt: new Date().toISOString()};
+  }
+  throw new Error('Classificação do mundial não encontrada no Formula1.com.');
+};
+
+export const loadOfficialChampionshipStandings = async ({season, category = 'f1', constructors = false}) => {
+  if (['stock-pro', 'stock-light'].includes(category)) {
+    if (constructors) throw new Error('Stock: disponível apenas o campeonato de pilotos.');
+    return loadStockStandings({season, category});
+  }
+  if (category === 'indycar') {
+    if (constructors) throw new Error('IndyCar: disponível apenas o campeonato de pilotos.');
+    return loadIndyCarStandings({season});
+  }
+  if (category === 'f1') return loadFormulaOneStandings({season, constructors});
+  if (category === 'f1-academy' && !constructors) return loadAcademyStandings({season});
+  if (!['f2', 'f3'].includes(category) || constructors) throw new Error('Disponível para F1 e mundial de pilotos da F2, F3 e F1 Academy.');
+  if (!Number.isInteger(Number(season)) || Number(season) < (category === 'f3' ? 2019 : 2017) || Number(season) > 2100) throw new Error('Temporada inválida.');
+  const sourceLabel = category === 'f3' ? 'fiaformula3.com' : 'fiaformula2.com';
+  const sourceUrl = `https://www.${sourceLabel}/en/standings/${Number(season)}/drivers`;
+  const html = await fetchOfficialHtml(sourceUrl);
+  for (const match of html.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)) {
+    const table = extractHtmlTableRows(match[1]);
+    const headerIndex = table.findIndex((row) => /^Driver$/i.test(row[0]) && /^Points$/i.test(row.at(-1)));
+    if (headerIndex < 0) continue;
+    const rows = table.slice(headerIndex + 1).map((row) => {
+      const driver = row[0]?.match(/^(\d+)\s+(.+)$/);
+      if (!driver) return null;
+      const points = row.at(-1);
+      if (row.length !== table[headerIndex].length || !/^\d+(?:\.\d+)?$/.test(points ?? '')) throw new Error(`Pontuação total ${category.toUpperCase()} indisponível.`);
+      return [driver[1], driver[2], '', points];
+    }).filter(Boolean);
+    if (rows.length) return {season: Number(season), sourceUrl, sourceLabel, standingsRows: [['Pos.', 'Driver', 'Equipe', 'Pts.'], ...rows], extractedAt: new Date().toISOString()};
+  }
+  throw new Error(`Classificação de pilotos não encontrada no site oficial da ${category.toUpperCase()}.`);
+};
+
+const loadIndyCarStandings = async ({season}) => {
+  if (!Number.isInteger(Number(season)) || Number(season) < 2012 || Number(season) > 2100) throw new Error('Temporada IndyCar inválida.');
+  const sourceUrl = `https://www.indycar.com/standings/${Number(season)}`;
+  const html = await fetchOfficialHtml(sourceUrl);
+  if (!new RegExp(`>\\s*${Number(season)}\\s+Standings\\s*<`, 'i').test(html)) throw new Error('Temporada retornada pela IndyCar não corresponde à solicitada.');
+  const flagFiles = {'Spain': 'spain.svg', 'United States': 'united-states-of-america.svg', 'USA': 'united-states-of-america.svg', 'Denmark': 'f3-denmark.svg', 'Mexico': 'mexico.svg', 'New Zealand': 'f3-new-zealand.svg', 'Sweden': 'sweden.svg', 'Netherlands': 'netherlands.svg', 'Australia': 'f3-australia.svg', 'Cayman Islands': 'indy-cayman-islands.png', 'United Kingdom': 'great-britain.svg', 'England': 'great-britain.svg', 'France': 'f3-france.svg', 'Norway': 'norway.svg', 'Germany': 'germany.svg', 'Brazil': 'brazil.svg', 'Japan': 'japan.svg'};
+  for (const tableMatch of html.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)) {
+    const rawRows = [...tableMatch[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map((m) => m[1]);
+    const cells = (row) => [...row.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((m) => m[1]);
+    const header = cells(rawRows[0] ?? '').map(htmlFragmentText);
+    if (!['Rank', 'Driver', 'Team', 'Engine', 'Points'].every((key) => header.includes(key))) continue;
+    const nationalities = {};
+    const rows = rawRows.slice(1).map((raw) => {
+      const row = cells(raw);
+      const value = (key) => htmlFragmentText(row[header.indexOf(key)] ?? '');
+      const position = value('Rank');
+      const points = value('Points');
+      const dataAttribute = raw.match(/data-driver-data=(['"])([\s\S]*?)\1/i)?.[2];
+      if (!dataAttribute || !/^\d+$/.test(position) || Number(position) < 1 || !/^\d+$/.test(points)) throw new Error('Classificação IndyCar incompleta.');
+      const driver = JSON.parse(decodeHtmlEntities(dataAttribute));
+      const name = `${driver.firstName ?? ''} ${driver.lastName ?? ''}`.trim();
+      const team = value('Team').replace(/(?:^|\s+)Logo\s*$/i, '').trim();
+      const engine = value('Engine').replace(/(?:^|\s+)Logo\s*$/i, '').trim();
+      if (!name || !team || !engine || driver.rank !== Number(position) || driver.points !== Number(points)) throw new Error('Dados inconsistentes na classificação IndyCar.');
+      const pointData = raw.match(/data-points-data=(['"])([\s\S]*?)\1/i)?.[2];
+      if (pointData && Number(JSON.parse(decodeHtmlEntities(pointData)).year) !== Number(season)) throw new Error('Temporada dos pontos IndyCar incorreta.');
+      nationalities[name] = {country: driver.countryAbbreviation, flagPath: flagFiles[driver.countryAbbreviation] ? `/f1/flags/${flagFiles[driver.countryAbbreviation]}` : undefined};
+      return [position, name, team, points, engine];
+    });
+    if (!rows.length || new Set(rows.map((row) => row[0])).size !== rows.length) throw new Error('Classificação IndyCar vazia ou com posições duplicadas.');
+    return {season: Number(season), sourceUrl, sourceLabel: 'indycar.com', standingsRows: [['Pos.', 'Driver', 'Equipe', 'Pts.', 'Motor'], ...rows], nationalities, extractedAt: new Date().toISOString()};
+  }
+  throw new Error('Classificação não encontrada no site oficial da IndyCar.');
+};
+
+const loadAcademyStandings = async ({season}) => {
+  if (!Number.isInteger(Number(season)) || Number(season) < 2023 || Number(season) > 2100) throw new Error('Temporada F1 Academy inválida.');
+  let sourceUrl = 'https://www.f1academy.com/Racing-Series/Standings/Driver';
+  const readData = (html) => {
+    const json = html.match(/<script\b[^>]*id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i)?.[1];
+    if (!json) throw new Error('Dados oficiais da F1 Academy indisponíveis.');
+    return JSON.parse(json).props?.pageProps;
+  };
+  let data = readData(await fetchOfficialHtml(sourceUrl));
+  const selected = data?.seasonData?.find((item) => String(item.SeasonName).startsWith(`${season} `));
+  if (!selected) throw new Error('Temporada não publicada pela F1 Academy.');
+  if (data.pageData?.SeasonId !== selected.SeasonId) {
+    sourceUrl += `?seasonId=${encodeURIComponent(selected.SeasonId)}`;
+    data = readData(await fetchOfficialHtml(sourceUrl));
+  }
+  if (data.pageData?.SeasonId !== selected.SeasonId || !String(data.pageData?.Season).startsWith(`${season} `)) throw new Error('Temporada retornada pela F1 Academy não corresponde à solicitada.');
+  const standings = data.pageData.Standings;
+  if (!Array.isArray(standings) || !standings.length) throw new Error('Classificação F1 Academy indisponível.');
+  const nationalities = {};
+  const rows = standings.map((driver) => {
+    if (!Number.isInteger(driver.Position) || driver.Position < 1 || !driver.DisplayName?.trim() || typeof driver.TotalPoints !== 'number' || !Number.isFinite(driver.TotalPoints) || driver.TotalPoints < 0) throw new Error('Classificação F1 Academy incompleta.');
+    const name = driver.DisplayName.trim();
+    nationalities[name] = {country: driver.CountryCode, flagPath: /^[A-Z]{2}$/.test(driver.CountryCode) && ['GB', 'AT', 'NL', 'DK', 'US', 'DE', 'ES', 'BR', 'CH', 'FR', 'CA', 'RO', 'CN', 'SE'].includes(driver.CountryCode) ? `/f1/flags/academy-${driver.CountryCode.toLowerCase()}.png` : undefined};
+    return [String(driver.Position), name, driver.TeamName || '', String(driver.TotalPoints)];
+  }).sort((a, b) => Number(a[0]) - Number(b[0]));
+  if (new Set(rows.map((row) => row[0])).size !== rows.length) throw new Error('Posições duplicadas na F1 Academy.');
+  return {season: Number(season), sourceUrl, sourceLabel: 'f1academy.com', standingsRows: [['Pos.', 'Driver', 'Equipe', 'Pts.'], ...rows], nationalities, extractedAt: new Date().toISOString()};
+};
+
+const buildFiaStandingsJob = async ({season, category = 'f1', constructors = false, official = false, brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName}) => {
+  const result = official ? await loadOfficialChampionshipStandings({season, category, constructors}) : await loadFiaClassificationDocuments({season, category, constructors});
   if (!result.standingsRows?.length) throw new Error(result.warning || 'A FIA não publicou uma tabela de classificação extraível para esta categoria.');
-  const rows = result.standingsRows.slice(1).filter((row) => row.length > 1);
+  const rows = result.standingsRows.slice(1).filter((row) => /^\d+$/.test(row[0]) && row.length > 1);
   const ptsIndex = result.standingsRows[0].findIndex((cell) => /pts|points/i.test(cell));
-  const template = 'driver-standings';
+  const template = constructors ? 'constructor-standings' : 'driver-standings';
   const templateConfig = await loadTemplateConfig(template);
   const themeConfig = await loadThemeConfig(templateConfig.themeVariant);
   const baseCompetition = (await loadCompetitionPresets())[0];
   const competitionConfig = {...baseCompetition, label: competitionName?.trim() || sourceCategory(category).label};
+  const useFlags = official && ['f2', 'f3', 'f1-academy', 'indycar', 'stock-pro', 'stock-light'].includes(category);
+  const nationalities = ['f2', 'f3'].includes(category) && official ? JSON.parse(await fs.readFile(path.join(configRoot, `${category}-driver-nationalities.json`), 'utf8')) : result.nationalities ?? {};
   const entries = await Promise.all(rows.map(async (row, index) => {
-    const name = String(row[1] || row[0]).trim();
-    const value = String(row[ptsIndex >= 0 ? ptsIndex : row.length - 1] || '0').trim();
-    const badge = await badgeFor({name, team: ''});
-    badge.imagePath = await localDriverImageFor(name) ?? badge.imagePath;
-    return {position: Number(row[0]) || index + 1, name, team: '', badge, value, secondaryValue: `${value} pts`, accentColor: badge.accentColor};
+    const name = String(row[1] || row[0]).replace(/\s+[A-Z]{2}\s+[A-Z]{3}$/, '').trim();
+    const pointsCell = row.find((cell) => /^\d+(?:[.,]\d+)?\s*pts?$/i.test(cell)) ?? row[ptsIndex];
+    if (!pointsCell || !/^\d+(?:[.,]\d+)?(?:\s*pts?)?$/i.test(pointsCell)) throw new Error(`Pontuação FIA indisponível para ${name}.`);
+    const value = pointsCell.replace(/\s*pts?$/i, '').trim();
+    const team = constructors ? name : official ? row[2] : '';
+    const badge = useFlags
+      ? {label: name.split(/\s+/).map((part) => part[0]).join('').slice(0, 3).toUpperCase(), sublabel: '', accentColor: category === 'f1-academy' ? '#FF4FA3' : '#0057FF'}
+      : await badgeFor({name, team, useDriverPortrait: !constructors});
+    if (useFlags) {
+      const nationality = Object.entries(nationalities).find(([driver]) => normalizeTeamKey(driver) === normalizeTeamKey(name))?.[1];
+      badge.hideSublabel = true;
+      badge.sublabel = '';
+      if (nationality) {
+        badge.flagPath = nationality.flagPath;
+        badge.nationality = nationality.country;
+      }
+    }
+    if (!constructors && !useFlags) badge.imagePath = await localDriverImageFor(name) ?? badge.imagePath;
+    if (['stock-pro', 'stock-light'].includes(category) && result.portraits?.[name]) {
+      try { badge.imagePath = await downloadAsset(result.portraits[name], f1DriverImagesDir, `${category}-${season}-${name}`); } catch { /* Keep initials if the official portrait is unavailable. */ }
+    }
+    if (category === 'indycar' || ['stock-pro', 'stock-light'].includes(category)) {
+      badge.hideSublabel = false;
+      badge.plainSublabel = true;
+      badge.sublabel = `${team} · ${row[4]}`;
+    }
+    return {position: Number(row[0]) || index + 1, name, team, ...(category === 'indycar' ? {engine: row[4]} : ['stock-pro', 'stock-light'].includes(category) ? {manufacturer: row[4], sourceNote: result.observations?.[name]} : {}), badge, value, secondaryValue: `${value} pts`, accentColor: badge.accentColor};
   }));
-  return {...createBaseJob({template, templateConfig, themeConfig, competitionConfig, season, brandName, soundtrackPath, soundtrackVolume, title: 'Mundial de Pilotos', subtitle: labelOverride?.trim() || `${sourceCategory(category).label} ${season}`, brandLogoPath: pickBrandLogoPath(themeConfig.variant), dataSource: 'fia', sourceUrl: result.sourceUrl, outputName: outputName?.trim() || `${category}-fia-driver-standings-${season}.mp4`}), leader: entries[0] ? {...entries[0], stat: `${entries[0].value} pts`} : undefined, entries: entries.slice(1, 23), category, sourceLabel: 'fia.com', manualAdjustments: [`Fonte FIA: ${result.sourceUrl}`]};
+  const source = official ? result.sourceLabel : 'fia';
+  return {...createBaseJob({template, templateConfig, themeConfig, competitionConfig, season, brandName, soundtrackPath, soundtrackVolume, title: constructors ? 'Mundial de Construtores' : ['indycar', 'stock-pro', 'stock-light'].includes(category) ? 'Campeonato de Pilotos' : 'Mundial de Pilotos', subtitle: labelOverride?.trim() || `${sourceCategory(category).label} ${season}`, brandLogoPath: pickBrandLogoPath(themeConfig.variant), dataSource: source, sourceUrl: result.sourceUrl, outputName: outputName?.trim() || `${category}-${official ? 'official' : 'fia'}-${template}-${season}.mp4`}), leader: entries[0] ? {...entries[0], stat: `${entries[0].value} pts`} : undefined, entries, category, sourceLabel: official ? source : 'fia.com', manualAdjustments: [`Fonte ${source}: ${result.sourceUrl}`]};
 };
 
 const loadOfficialEditorialArticle = async ({season, category = 'f1', articleUrl}) => {
@@ -4703,8 +4864,10 @@ export const prepareF1Job = async ({
       });
     } else if (template === 'source-results') {
       job = await buildSourceResultsJob({season, category, eventUrl, session: raceType || 'race', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName});
-    } else if (template === 'fia-standings') {
-      job = await buildFiaStandingsJob({season, category, brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName});
+    } else if (template === 'fia-standings' || template === 'fia-constructor-standings') {
+      job = await buildFiaStandingsJob({season, category, constructors: template === 'fia-constructor-standings', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName});
+    } else if (template === 'source-driver-standings' || template === 'source-constructor-standings') {
+      job = await buildFiaStandingsJob({season, category, official: true, constructors: template === 'source-constructor-standings', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName});
     } else if (template === 'editorial') {
       job = await buildEditorialJob({season, category, articleUrl, brandName, competitionName, soundtrackPath, soundtrackVolume, outputName});
     } else if (!apiKey) {
@@ -4755,7 +4918,7 @@ export const prepareF1Job = async ({
         reason
       );
     }
-    if (template === 'source-results' || template === 'fia-standings' || template === 'editorial') {
+    if (template === 'source-results' || template === 'source-driver-standings' || template === 'source-constructor-standings' || template === 'fia-standings' || template === 'fia-constructor-standings' || template === 'editorial') {
       throw new F1PreparationError('Não foi possível transformar esta fonte oficial em Short.', `${template.replaceAll('-', '_')}_unavailable`, reason);
     }
     if (template === 'teammate-battle') {

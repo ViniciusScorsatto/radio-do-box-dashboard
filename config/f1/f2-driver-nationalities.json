@@ -1,0 +1,117 @@
+{
+  "R. Câmara": {
+    "country": "Brazil",
+    "flagPath": "/f1/flags/brazil.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/rafael-camara"
+  },
+  "J. Dürksen": {
+    "country": "Paraguay",
+    "flagPath": "/f1/flags/paraguay.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/joshua-durksen"
+  },
+  "R. Miyata": {
+    "country": "Japan",
+    "flagPath": "/f1/flags/japan.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/ritomo-miyata"
+  },
+  "C. Herta": {
+    "country": "United States of America",
+    "flagPath": "/f1/flags/united-states-of-america.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/colton-herta"
+  },
+  "N. Leon": {
+    "country": "Mexico",
+    "flagPath": "/f1/flags/mexico.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/noel-leon"
+  },
+  "N. Tsolov": {
+    "country": "Bulgaria",
+    "flagPath": "/f1/flags/bulgaria.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/nikola-tsolov"
+  },
+  "D. Beganovic": {
+    "country": "Sweden",
+    "flagPath": "/f1/flags/sweden.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/dino-beganovic"
+  },
+  "R. Bilinski": {
+    "country": "Poland",
+    "flagPath": "/f1/flags/poland.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/roman-bilinski"
+  },
+  "G. Mini": {
+    "country": "Italy",
+    "flagPath": "/f1/flags/italy.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/gabriele-mini"
+  },
+  "O. Goethe": {
+    "country": "Germany",
+    "flagPath": "/f1/flags/germany.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/oliver-goethe"
+  },
+  "S. Montoya": {
+    "country": "Colombia",
+    "flagPath": "/f1/flags/colombia.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/sebastian-montoya"
+  },
+  "M. Boya": {
+    "country": "Spain",
+    "flagPath": "/f1/flags/spain.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/mari-boya"
+  },
+  "M. Stenshorne": {
+    "country": "Norway",
+    "flagPath": "/f1/flags/norway.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/martinius-stenshorne"
+  },
+  "A. Dunne": {
+    "country": "Ireland",
+    "flagPath": "/f1/flags/ireland.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/alexander-dunne"
+  },
+  "K. Maini": {
+    "country": "India",
+    "flagPath": "/f1/flags/india.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/kush-maini"
+  },
+  "T. Inthraphuvasak": {
+    "country": "Thailand",
+    "flagPath": "/f1/flags/thailand.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/tasanapol-inthraphuvasak"
+  },
+  "E. Fittipaldi": {
+    "country": "Brazil",
+    "flagPath": "/f1/flags/brazil.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/emerson-fittipaldi-jr"
+  },
+  "C. Shields": {
+    "country": "Great Britain",
+    "flagPath": "/f1/flags/great-britain.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/cian-shields"
+  },
+  "H. Yamakoshi": {
+    "country": "Japan",
+    "flagPath": "/f1/flags/japan.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/hiyu-yamakoshi"
+  },
+  "R. Villagomez": {
+    "country": "Mexico",
+    "flagPath": "/f1/flags/mexico.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/rafael-villagomez"
+  },
+  "L. van Hoepen": {
+    "country": "Netherlands",
+    "flagPath": "/f1/flags/netherlands.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/laurens-van-hoepen"
+  },
+  "J. Bennett": {
+    "country": "Great Britain",
+    "flagPath": "/f1/flags/great-britain.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/drivers/john-bennett"
+  },
+  "N. Varrone": {
+    "country": "Argentina",
+    "flagPath": "/f1/flags/argentina.svg",
+    "sourceUrl": "https://www.fiaformula2.com/en/latest/article/nicolas-varrone-joins-van-amersfoort-racing-for-the-2026-season.24aYiR79lE33QyXWWvQpu9"
+  }
+}

@@ -280,6 +280,18 @@ h1 {
 
 .source-panel[hidden] { display: none; }
 
+.source-output-panel { min-width: 0; margin-top: 24px; }
+.source-studio-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 18px; }
+.source-studio-row input { flex: 1 1 260px; min-width: 0; }
+#source-preview-frame { display: block; width: 100%; height: clamp(600px, 85vh, 1100px); border: 1px solid var(--muted); border-radius: 16px; background: #090d17; }
+#source-download { margin-top: 18px; }
+#source-download[hidden] { display: none; }
+#source-download-name { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  #source-preview-frame { height: 75vh; min-height: 480px; }
+  #source-download { flex-wrap: wrap; gap: 16px; }
+}
+
 .source-grid {
   display: grid;
   grid-template-columns: minmax(280px, 0.65fr) minmax(0, 1.35fr);

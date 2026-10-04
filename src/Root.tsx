@@ -142,6 +142,7 @@ const teammateBattleProps = {
 };
 
 const driverStandingsProps = {
+  category: driverStandingsJob.category ?? 'f1',
   title: driverStandingsJob.title ?? sampleF1Jobs.driverStandings.title,
   subtitle: driverStandingsJob.subtitle ?? sampleF1Jobs.driverStandings.subtitle,
   countryCode: driverStandingsJob.countryCode ?? sampleF1Jobs.driverStandings.countryCode,

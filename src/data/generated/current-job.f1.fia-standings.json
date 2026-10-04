@@ -46,136 +46,158 @@
   "warnings": [],
   "leader": {
     "position": 1,
-    "name": "Andrea Kimi Antonelli IT ITA",
+    "name": "Andrea Kimi Antonelli",
     "team": "",
     "badge": {
       "label": "AK",
       "accentColor": "#ffffff",
+      "imagePath": "/f1/drivers/mercedes-amg-petronas-andrea-kimi-antonelli.png",
       "sublabel": ""
     },
-    "value": "219 pts",
-    "secondaryValue": "219 pts pts",
+    "value": "292",
+    "secondaryValue": "292 pts",
     "accentColor": "#ffffff",
-    "stat": "219 pts pts"
+    "stat": "292 pts"
   },
   "entries": [
     {
-      "position": 2,
-      "name": "Lewis Hamilton GB GBR",
+      "position": 1,
+      "name": "Andrea Kimi Antonelli",
       "team": "",
       "badge": {
-        "label": "LH",
+        "label": "AK",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/mercedes-amg-petronas-andrea-kimi-antonelli.png",
         "sublabel": ""
       },
-      "value": "169 pts",
-      "secondaryValue": "169 pts pts",
+      "value": "292",
+      "secondaryValue": "292 pts",
       "accentColor": "#ffffff"
     },
     {
-      "position": 3,
-      "name": "George Russell GB GBR",
+      "position": 2,
+      "name": "George Russell",
       "team": "",
       "badge": {
         "label": "GR",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/mercedes-amg-petronas-george-russell.png",
         "sublabel": ""
       },
-      "value": "160 pts",
-      "secondaryValue": "160 pts pts",
+      "value": "211",
+      "secondaryValue": "211 pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 3,
+      "name": "Lewis Hamilton",
+      "team": "",
+      "badge": {
+        "label": "LH",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/scuderia-ferrari-lewis-hamilton.png",
+        "sublabel": ""
+      },
+      "value": "191",
+      "secondaryValue": "191 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 4,
-      "name": "Charles Leclerc MC MON",
-      "team": "",
-      "badge": {
-        "label": "CL",
-        "accentColor": "#ffffff",
-        "sublabel": ""
-      },
-      "value": "138 pts",
-      "secondaryValue": "138 pts pts",
-      "accentColor": "#ffffff"
-    },
-    {
-      "position": 5,
-      "name": "Lando Norris GB GBR",
+      "name": "Lando Norris",
       "team": "",
       "badge": {
         "label": "LN",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/mclaren-racing-lando-norris.png",
         "sublabel": ""
       },
-      "value": "128 pts",
-      "secondaryValue": "128 pts pts",
+      "value": "186",
+      "secondaryValue": "186 pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 5,
+      "name": "Charles Leclerc",
+      "team": "",
+      "badge": {
+        "label": "CL",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/scuderia-ferrari-charles-leclerc.png",
+        "sublabel": ""
+      },
+      "value": "167",
+      "secondaryValue": "167 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 6,
-      "name": "Max Verstappen NL NED",
+      "name": "Max Verstappen",
       "team": "",
       "badge": {
         "label": "MV",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/red-bull-racing-max-verstappen.png",
         "sublabel": ""
       },
-      "value": "109 pts",
-      "secondaryValue": "109 pts pts",
+      "value": "145",
+      "secondaryValue": "145 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 7,
-      "name": "Oscar Piastri AU AUS",
+      "name": "Oscar Piastri",
       "team": "",
       "badge": {
         "label": "OP",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/mclaren-racing-oscar-piastri.png",
         "sublabel": ""
       },
-      "value": "92 pts",
-      "secondaryValue": "92 pts pts",
+      "value": "118",
+      "secondaryValue": "118 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 8,
-      "name": "Isack Hadjar FR FRA",
+      "name": "Isack Hadjar",
       "team": "",
       "badge": {
         "label": "IH",
         "accentColor": "#ffffff",
-        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
+        "imagePath": "/f1/drivers/red-bull-racing-isack-hadjar.png",
         "sublabel": ""
       },
-      "value": "68 pts",
-      "secondaryValue": "68 pts pts",
+      "value": "68",
+      "secondaryValue": "68 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 9,
-      "name": "Liam Lawson NZ NZL",
+      "name": "Liam Lawson",
       "team": "",
       "badge": {
         "label": "LL",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/racing-bulls-liam-lawson.png",
         "sublabel": ""
       },
-      "value": "43 pts",
-      "secondaryValue": "43 pts pts",
+      "value": "57",
+      "secondaryValue": "57 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 10,
-      "name": "Pierre Gasly FR FRA",
+      "name": "Pierre Gasly",
       "team": "",
       "badge": {
         "label": "PG",
         "accentColor": "#ffffff",
-        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
+        "imagePath": "/f1/drivers/alpine-f1-team-pierre-gasly.png",
         "sublabel": ""
       },
-      "value": "42 pts",
-      "secondaryValue": "42 pts pts",
+      "value": "50",
+      "secondaryValue": "50 pts",
       "accentColor": "#ffffff"
     },
     {
@@ -188,8 +210,8 @@
         "imagePath": "/f1/drivers/racing-bulls-arvid-lindblad.png",
         "sublabel": ""
       },
-      "value": "23 pts",
-      "secondaryValue": "23 pts pts",
+      "value": "29",
+      "secondaryValue": "29 pts",
       "accentColor": "#ffffff"
     },
     {
@@ -202,140 +224,162 @@
         "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
         "sublabel": ""
       },
-      "value": "19 pts",
-      "secondaryValue": "19 pts pts",
+      "value": "27",
+      "secondaryValue": "27 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 13,
-      "name": "Oliver Bearman GB GBR",
+      "name": "Oliver Bearman",
       "team": "",
       "badge": {
         "label": "OB",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/haas-f1-team-oliver-bearman.png",
         "sublabel": ""
       },
-      "value": "18 pts",
-      "secondaryValue": "18 pts pts",
+      "value": "18",
+      "secondaryValue": "18 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 14,
-      "name": "Gabriel Bortoleto BR BRA",
+      "name": "Gabriel Bortoleto",
       "team": "",
       "badge": {
         "label": "GB",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/audi-revolut-f1-team-gabriel-bortoleto.png",
         "sublabel": ""
       },
-      "value": "10 pts",
-      "secondaryValue": "10 pts pts",
+      "value": "10",
+      "secondaryValue": "10 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 15,
-      "name": "Carlos Sainz ES ESP",
-      "team": "",
-      "badge": {
-        "label": "CS",
-        "accentColor": "#ffffff",
-        "sublabel": ""
-      },
-      "value": "6 pts",
-      "secondaryValue": "6 pts pts",
-      "accentColor": "#ffffff"
-    },
-    {
-      "position": 16,
-      "name": "Alexander Albon TH THA",
-      "team": "",
-      "badge": {
-        "label": "AA",
-        "accentColor": "#ffffff",
-        "sublabel": ""
-      },
-      "value": "5 pts",
-      "secondaryValue": "5 pts pts",
-      "accentColor": "#ffffff"
-    },
-    {
-      "position": 17,
-      "name": "Esteban Ocon FR FRA",
-      "team": "",
-      "badge": {
-        "label": "EO",
-        "accentColor": "#ffffff",
-        "imagePath": "/f1/drivers/alpine-f1-team-franco-colapinto.png",
-        "sublabel": ""
-      },
-      "value": "3 pts",
-      "secondaryValue": "3 pts pts",
-      "accentColor": "#ffffff"
-    },
-    {
-      "position": 18,
-      "name": "Nico Hulkenberg DE GER",
+      "name": "Nico Hulkenberg",
       "team": "",
       "badge": {
         "label": "NH",
         "accentColor": "#ffffff",
-        "imagePath": "/f1/drivers/mercedes-amg-petronas-george-russell.png",
+        "imagePath": "/f1/drivers/audi-revolut-f1-team-nico-hulkenberg.png",
         "sublabel": ""
       },
-      "value": "2 pts",
-      "secondaryValue": "2 pts pts",
+      "value": "7",
+      "secondaryValue": "7 pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 16,
+      "name": "Carlos Sainz",
+      "team": "",
+      "badge": {
+        "label": "CS",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/williams-f1-team-carlos-sainz-jr.png",
+        "sublabel": ""
+      },
+      "value": "6",
+      "secondaryValue": "6 pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 17,
+      "name": "Alexander Albon",
+      "team": "",
+      "badge": {
+        "label": "AA",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/racing-bulls-alexander-albon.png",
+        "sublabel": ""
+      },
+      "value": "5",
+      "secondaryValue": "5 pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 18,
+      "name": "Esteban Ocon",
+      "team": "",
+      "badge": {
+        "label": "EO",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/haas-f1-team-esteban-ocon.png",
+        "sublabel": ""
+      },
+      "value": "3",
+      "secondaryValue": "3 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 19,
-      "name": "Fernando Alonso ES ESP",
+      "name": "Fernando Alonso",
       "team": "",
       "badge": {
         "label": "FA",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/aston-martin-f1-team-fernando-alonso.png",
         "sublabel": ""
       },
-      "value": "1 pts",
-      "secondaryValue": "1 pts pts",
+      "value": "3",
+      "secondaryValue": "3 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 20,
-      "name": "Lance Stroll CA CAN",
+      "name": "Tsunoda Yuki",
       "team": "",
       "badge": {
-        "label": "LS",
+        "label": "TY",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/racing-bulls-yuki-tsunoda.png",
         "sublabel": ""
       },
-      "value": "0 pts",
-      "secondaryValue": "0 pts pts",
+      "value": "1",
+      "secondaryValue": "1 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 21,
-      "name": "Valtteri Bottas FI FIN",
+      "name": "Lance Stroll",
       "team": "",
       "badge": {
-        "label": "VB",
+        "label": "LS",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/aston-martin-f1-team-lance-stroll.png",
         "sublabel": ""
       },
-      "value": "0 pts",
-      "secondaryValue": "0 pts pts",
+      "value": "0",
+      "secondaryValue": "0 pts",
       "accentColor": "#ffffff"
     },
     {
       "position": 22,
-      "name": "Sergio Perez MX MEX",
+      "name": "Valtteri Bottas",
+      "team": "",
+      "badge": {
+        "label": "VB",
+        "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/cadillac-formula-1-team-valtteri-bottas.png",
+        "sublabel": ""
+      },
+      "value": "0",
+      "secondaryValue": "0 pts",
+      "accentColor": "#ffffff"
+    },
+    {
+      "position": 23,
+      "name": "Sergio Perez",
       "team": "",
       "badge": {
         "label": "SP",
         "accentColor": "#ffffff",
+        "imagePath": "/f1/drivers/cadillac-formula-1-team-sergio-perez.png",
         "sublabel": ""
       },
-      "value": "0 pts",
-      "secondaryValue": "0 pts pts",
+      "value": "0",
+      "secondaryValue": "0 pts",
       "accentColor": "#ffffff"
     }
   ],

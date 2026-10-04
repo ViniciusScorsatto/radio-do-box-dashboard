@@ -14,6 +14,10 @@ export type F1VideoTemplate =
 export type VideoTemplate = F1VideoTemplate;
 
 export type TeamBadge = {
+  flagPath?: string;
+  nationality?: string;
+  hideSublabel?: boolean;
+  plainSublabel?: boolean;
   label: string;
   logoPath?: string;
   imagePath?: string;
@@ -76,6 +80,9 @@ type BaseVideoJob = {
 };
 
 export type F1PodiumEntry = {
+  manufacturer?: string;
+  sourceNote?: string;
+  engine?: string;
   position: number;
   name: string;
   team: string;
@@ -87,6 +94,9 @@ export type F1PodiumEntry = {
 };
 
 export type F1RankingEntry = {
+  manufacturer?: string;
+  sourceNote?: string;
+  engine?: string;
   position: number;
   name: string;
   team?: string;
@@ -242,6 +252,7 @@ export type F1QualifyingGridJob = F1BaseVideoJob & {
 };
 
 export type F1DriverStandingsJob = F1BaseVideoJob & {
+  category?: 'f1' | 'f2' | 'f3' | 'f1-academy' | 'indycar' | 'stock-pro' | 'stock-light';
   template: 'driver-standings';
   compositionId: 'F1DriverStandingsShort';
   leader?: F1PodiumEntry;

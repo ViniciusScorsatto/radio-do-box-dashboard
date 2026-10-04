@@ -12,6 +12,7 @@ import {
   loadF1RaceOptions,
   loadF1SourceEvents,
   loadF1SourceResults,
+  loadOfficialChampionshipStandings,
   loadFiaSourceDocuments,
   loadF1TeamOptions,
   prepareF1Job,
@@ -297,6 +298,13 @@ const prepareFormulaOneLargeStillJob = async (body) => {
 
   return prepareFormulaOneJob({
     ...body,
+    ...(body.dataProvider === 'official' ? {
+      template: template === 'race-results' ? 'source-results' : template === 'constructor-standings' ? 'source-constructor-standings' : 'source-driver-standings',
+      category: 'f1',
+      eventUrl: template === 'race-results' ? body.raceId : undefined,
+      raceId: undefined,
+      raceType: String(body.raceType).toLowerCase() === 'sprint' ? 'sprint' : 'race',
+    } : {}),
     outputName: normalizeLargeStillOutputName({
       template,
       season: Number(body.season),
@@ -820,6 +828,16 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === 'GET' && url.pathname === '/api/f1/sources/fia') {
     await sendFiaSourceDocuments(response, url);
+    return;
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/f1/sources/standings') {
+    try {
+      const result = await loadOfficialChampionshipStandings({season: Number(url.searchParams.get('season')), category: url.searchParams.get('category') || 'f1', constructors: url.searchParams.get('type') === 'constructors'});
+      sendJson(response, 200, {ok: true, result});
+    } catch (error) {
+      sendJson(response, 502, {ok: false, error: error.message});
+    }
     return;
   }
 

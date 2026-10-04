@@ -1,5 +1,7 @@
 const form = document.getElementById('still-form');
 const templateSelect = document.getElementById('template');
+const dataProviderSelect = document.getElementById('data-provider');
+const usesOfficialSources = () => dataProviderSelect.value === 'official';
 const competitionSelect = document.getElementById('competition');
 const raceDataSection = document.getElementById('race-data-section');
 const raceTypeSelect = document.getElementById('race-type-select');
@@ -205,6 +207,7 @@ const log = (message, replace = false) => {
 const setBusy = (busy) => {
   renderButton.disabled = busy;
   templateSelect.disabled = busy;
+  dataProviderSelect.disabled = busy;
   competitionSelect.disabled = busy;
   raceTypeSelect.disabled = busy || templateSelect.value !== 'race-results';
   raceSelect.disabled = busy || templateSelect.value !== 'race-results';
@@ -305,6 +308,9 @@ const setRenderDownload = (job, render) => {
 };
 
 const applyTemplateVisibility = () => {
+  document.getElementById('data-provider-help').textContent = usesOfficialSources()
+    ? 'Resultados e classificações de pilotos e construtores: Formula1.com. Mesma leitura da página de fontes.'
+    : 'Dados da API-Sports.';
   const isRaceResults = templateSelect.value === 'race-results';
   raceDataSection.hidden = !isRaceResults;
   raceTypeSelect.disabled = !isRaceResults;
@@ -316,7 +322,9 @@ const applyTemplateVisibility = () => {
   updateStatus();
 };
 
+let raceOptionsRequest = 0;
 const loadRaceOptions = async (preferredRaceId) => {
+  const requestId = ++raceOptionsRequest;
   if (templateSelect.value !== 'race-results') {
     return;
   }
@@ -335,17 +343,22 @@ const loadRaceOptions = async (preferredRaceId) => {
       template: 'race-results',
       raceType,
     });
-    const response = await fetch(`${apiBase}/races?${params.toString()}`);
+    const response = await fetch(usesOfficialSources()
+      ? `${apiBase}/sources/events?${new URLSearchParams({season: String(season), category: 'f1'})}`
+      : `${apiBase}/races?${params.toString()}`);
     const data = await response.json();
+    if (requestId !== raceOptionsRequest) return;
     if (!response.ok || !data.ok) {
       throw new Error(data.error || 'Falha ao carregar corridas.');
     }
 
-    const races = Array.isArray(data.races) ? data.races : [];
+    const races = usesOfficialSources()
+      ? (data.events ?? []).map((event) => ({id: event.url, label: event.label}))
+      : Array.isArray(data.races) ? data.races : [];
     const raceOptions = races
       .map((race) => `<option value="${escapeHtml(String(race.id))}">${escapeHtml(race.label)}</option>`)
       .join('');
-    raceSelect.innerHTML = `<option value="">Automatico (mais recente)</option>${raceOptions}`;
+    raceSelect.innerHTML = `<option value="">${usesOfficialSources() ? 'Selecione uma etapa' : 'Automatico (mais recente)'}</option>${raceOptions}`;
 
     const selectedRaceId = preferredRaceId ?? form.elements.raceId.value;
     raceSelect.value =
@@ -353,11 +366,14 @@ const loadRaceOptions = async (preferredRaceId) => {
         ? String(selectedRaceId)
         : '';
   } catch (error) {
+    if (requestId !== raceOptionsRequest) return;
     raceSelect.innerHTML = '<option value="">Automatico (lista indisponivel)</option>';
     log(error instanceof Error ? error.message : String(error));
   } finally {
-    raceSelect.disabled = false;
-    updateStatus();
+    if (requestId === raceOptionsRequest) {
+      raceSelect.disabled = false;
+      updateStatus();
+    }
   }
 };
 
@@ -380,13 +396,14 @@ const loadOptions = async () => {
     .join('');
 
   const currentJob = supportedTemplates.has(data.currentJob?.template) ? data.currentJob : null;
+  dataProviderSelect.value = ['formula1.com', 'fia'].includes(currentJob?.dataSource) ? 'official' : 'api';
   form.elements.template.value = currentJob?.template ?? 'race-results';
   competitionSelect.value = String(currentJob?.competitionId ?? '1');
   form.elements.season.value = currentJob?.season ?? new Date().getFullYear();
   form.elements.competitionId.value = currentJob?.competitionId ?? competitionSelect.value ?? '1';
   form.elements.competitionName.value = currentJob?.competitionName ?? selectedCompetitionLabel();
   form.elements.brandName.value = currentJob?.brandName ?? 'Radio do Box';
-  form.elements.raceType.value = currentJob?.raceType ?? 'Race';
+  form.elements.raceType.value = /^sprint$/i.test(currentJob?.raceType ?? '') ? 'Sprint' : 'Race';
   form.elements.raceId.value = currentJob?.raceId ?? '';
   form.elements.labelOverride.value =
     currentJob?.template === 'race-results' ? currentJob?.raceName ?? '' : currentJob?.subtitle ?? '';
@@ -397,7 +414,7 @@ const loadOptions = async () => {
   form.elements.outputName.value = '';
 
   applyTemplateVisibility();
-  await loadRaceOptions(currentJob?.raceId);
+  await loadRaceOptions(usesOfficialSources() ? currentJob?.sourceUrl : currentJob?.raceId);
   renderCurrentJob(currentJob);
   setRenderDownload(null, null);
   setErrorBanner('');
@@ -411,6 +428,9 @@ const renderStill = async () => {
     const payload = formDataToObject();
     payload.template = supportedTemplates.has(payload.template) ? payload.template : 'race-results';
     payload.season = payload.season || String(new Date().getFullYear());
+    if (usesOfficialSources() && payload.template === 'race-results' && !payload.raceId) {
+      throw new Error('Selecione uma etapa da fonte oficial.');
+    }
     setBusy(true);
     setErrorBanner('');
     setRenderDownload(null, null);
@@ -453,6 +473,12 @@ competitionSelect.addEventListener('change', () => {
   form.elements.competitionId.value = competitionSelect.value;
   form.elements.competitionName.value = selected?.textContent ?? 'Formula 1';
   updateStatus();
+  void loadRaceOptions();
+});
+
+dataProviderSelect.addEventListener('change', () => {
+  raceSelect.value = '';
+  applyTemplateVisibility();
   void loadRaceOptions();
 });
 
