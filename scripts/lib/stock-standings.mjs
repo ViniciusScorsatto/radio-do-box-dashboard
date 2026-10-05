@@ -1,3 +1,4 @@
+import { boundedText } from "./bounded-response.mjs";
 // Read-only queries used by the public Veloci Stock championship pages.
 const home = 'https://velocigroup.com.br/';
 const endpoint = 'https://wv.paddockfan.com.br/api/Radio/phpRadio.php';
@@ -9,9 +10,9 @@ export const loadStockStandings = async ({season, category = 'stock-pro'}) => {
   const expectedName = light ? 'STOCK LIGHT' : 'STOCK CAR PRO SERIES';
   if (!Number.isInteger(Number(season)) || Number(season) < 1979 || Number(season) > 2100) throw new Error('Temporada Stock Car inválida.');
   const getText = async (url) => {
-    const response = await fetch(url, {signal: AbortSignal.timeout(20000)});
+    const response = await fetch(url, {redirect: "error", signal: AbortSignal.timeout(20000)});
     if (!response.ok) throw new Error(`Fonte Veloci indisponível (HTTP ${response.status}).`);
-    return response.text();
+    return boundedText(response);
   };
   const html = await getText(home);
   const scriptPath = html.match(/<script\b[^>]*src=["'](\/assets\/index-[^"']+\.js)["']/i)?.[1];
@@ -25,9 +26,9 @@ export const loadStockStandings = async ({season, category = 'stock-pro'}) => {
   if (!query) throw new Error('A consulta de ranking da Veloci mudou; importação interrompida.');
   const championshipId = query[2];
   const read = async (metodo) => {
-    const response = await fetch(endpoint, {method: 'POST', headers: {'Content-Type': 'application/json', Accept: 'application/json', Authorization: query[1]}, body: JSON.stringify({metodo, IDappCampeonato: championshipId, IDappCampeonatoEtapa: '0', AppCampeonatoRankingTipo: 'Piloto'}), signal: AbortSignal.timeout(20000)});
+    const response = await fetch(endpoint, {redirect: 'error', method: 'POST', headers: {'Content-Type': 'application/json', Accept: 'application/json', Authorization: query[1]}, body: JSON.stringify({metodo, IDappCampeonato: championshipId, IDappCampeonatoEtapa: '0', AppCampeonatoRankingTipo: 'Piloto'}), signal: AbortSignal.timeout(20000)});
     if (!response.ok) throw new Error(`Ranking Veloci indisponível (HTTP ${response.status}).`);
-    const data = await response.json();
+    const data = JSON.parse(await boundedText(response, 2 * 1024 * 1024));
     if (data.retorno?.codigo !== 0) throw new Error('A Veloci não retornou uma classificação válida.');
     return data.retorno;
   };
@@ -35,7 +36,7 @@ export const loadStockStandings = async ({season, category = 'stock-pro'}) => {
   const events = calendar.CampeonatoEtapa;
   if (!Array.isArray(events) || !events.length || events.some((event) => Number(event.AppCampeonatoAno) !== Number(season) || String(event.IDappCampeonato) !== championshipId || event.AppCampeonatoNome?.trim().toUpperCase() !== expectedName)) throw new Error('A Veloci disponibiliza outro campeonato/ano nesta página. Não é possível importar a temporada selecionada com segurança.');
   const ranking = (await read(rankingMethod)).CampeonatoRanking;
-  if (!Array.isArray(ranking) || !ranking.length) throw new Error('Ranking Stock Car vazio.');
+  if (!Array.isArray(ranking) || !ranking.length || ranking.length > 100) throw new Error('Ranking Stock Car vazio.');
   const portraits = {};
   const observations = {};
   const rows = ranking.map((driver) => {

@@ -1,3 +1,4 @@
+import { boundedText } from "./bounded-response.mjs";
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
 import crypto from 'node:crypto';
@@ -360,7 +361,7 @@ const fetchOfficialHtml = async (url) => {
     throw new Error(`Formula1.com returned ${response.status} ${response.statusText} for ${url}`);
   }
 
-  return response.text();
+  return boundedText(response);
 };
 
 const decodeHtmlEntities = (value = '') => String(value)

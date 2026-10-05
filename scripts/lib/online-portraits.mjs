@@ -1,4 +1,6 @@
 import fs from "node:fs/promises";
+import { readdirSync, lstatSync } from "node:fs";
+let reservedBytes = 0;
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 
@@ -56,11 +58,20 @@ export async function persistOnlinePortrait(value) {
   try {
     await fs.access(destination);
   } catch {
+    // Reservations include concurrent downloads in this single preparation process.
+    const used = readdirSync(directory).reduce((sum, name) => {
+      const stat = lstatSync(path.join(directory, name));
+      return sum + (stat.isFile() ? stat.size : 0);
+    }, 0);
+    if (used + reservedBytes + bytes.length > 512 * 1024 * 1024)
+      throw new Error("portrait_storage_quota");
+    reservedBytes += bytes.length;
     const temporary = path.join(directory, `${randomUUID()}.tmp`);
     try {
       await fs.writeFile(temporary, bytes);
       await fs.rename(temporary, destination);
     } finally {
+      reservedBytes -= bytes.length;
       await fs.rm(temporary, { force: true });
     }
   }

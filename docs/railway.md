@@ -167,13 +167,53 @@ Configuração operacional no Railway (não é alterada pelo código):
 Limites desta revisão: inspeção de código, testes locais e requisições públicas
 somente de leitura; não houve teste de invasão nem teste de carga em produção.
 A proteção contra DDoS volumétrico depende da borda/provedor e não desses limites.
-O container ainda executa como root: migrar para usuário sem privilégios exige
-planejar permissões do volume existente e validar o Chrome no Railway. As respostas
-dos sites de origem ainda dependem do isolamento/timeout do coletor; limitar bytes
-em todos os fetches é uma melhoria adicional. Revisar esses itens antes de ampliar
-acesso ou disponibilizar o produto a terceiros.
+Os itens de execução sem privilégios, respostas de origem e crescimento de dados
+foram tratados na complementação abaixo. Antes de ampliar o acesso a terceiros,
+reavaliar o modelo de permissões compartilhadas e as cotas para múltiplos usuários.
 
 Validação desta alteração: 33 testes passaram, build online e TypeScript online
 passaram, dependências Remotion alinhadas em 4.0.532 e npm audit sem alertas no
 momento da revisão. A imagem Docker compilou e concluiu um render real de Stock Pro
 com o supervisor e os ambientes restritos. Isso não garante ausência de vulnerabilidades desconhecidas.
+
+
+### Complementação da segurança
+
+- O comando de início permanece `node scripts/online/start.mjs`, inclusive no Railway.
+  Em Linux, quando iniciado como root, ele aceita somente `APP_DATA_DIR=/data`,
+  ajusta o proprietário desse volume sem seguir symlinks nem atravessar outros
+  dispositivos e muda definitivamente para UID/GID 1000, removendo grupos extras.
+  Isso ocorre antes de abrir o banco ou iniciar servidor, worker e Chrome. O código
+  em `/app` continua pertencendo a root e não pode ser sobrescrito pela aplicação.
+  O bootstrap precisa começar como root porque o Railway monta volumes como root;
+  não configurar um start command que execute `http.mjs` ou `worker.mjs` diretamente.
+  A criação de arquivos usa `umask 077`; dados anteriores e seus conteúdos são preservados.
+- HTML e JavaScript das fontes têm limite de 8 MiB; JSON das consultas públicas Stock,
+  2 MiB. Contamos bytes do stream decodificado e abortamos ao ultrapassar o limite,
+  mesmo sem Content-Length ou com compressão. Redirecionamentos das fontes online
+  são recusados, incluindo Stock. Rankings Stock têm no máximo 100 entradas.
+- Cada snapshot pode ter até 1 MiB, com orçamento total de 256 MiB de JSON salvo.
+  O histórico admite 50.000 renders. Ao atingir essas cotas, novas gravações são
+  bloqueadas sem apagar o histórico; exportação/arquivamento exige intervenção do
+  administrador. Esses valores limitam payloads/registros, não o tamanho físico
+  exato do SQLite, que inclui índices, páginas livres e WAL.
+- Retratos têm cota conservadora de 512 MiB, contando arquivos temporários e
+  reservas para gravações concorrentes. Quando a foto não puder ser armazenada,
+  o template mantém o fallback de iniciais. Referências dos snapshots existentes
+  são preservadas. Retratos sem referência e temporários com mais de sete dias
+  são removidos na inicialização e na manutenção horária. A coleta e essa manutenção
+  não se sobrepõem para evitar apagar uma foto em preparação.
+- “Meus vídeos” retorna 30 registros por página, com total e armazenamento global.
+  Os botões Anterior/Próxima permitem consultar todo o histórico sem carregar tudo
+  no navegador. A exclusão de todos os MP4 e a expiração continuam abrangendo todas
+  as páginas.
+
+Validação complementar: suíte de 37 testes, TypeScript online, build Docker e render
+real de Stock Pro passaram. Foi verificado UID 1000 em execução, escrita em /data,
+recusa de escrita em /app e preservação do destino de symlink durante a migração.
+Coletas reais com UID 1000 passaram para F1 2025 (21 pilotos) e Stock Pro 2026
+(32 pilotos), respeitando os novos limites.
+A paginação foi exercitada no navegador integrado em localhost, com fixture de 65
+vídeos: 30/30/5 registros, avanço/retorno, botão final desabilitado e nenhum erro
+relevante no console. Tela de 390×844 sem transbordamento horizontal. As configurações
+de gastos, MFA e backup da conta Railway continuam sendo ações externas ao código.

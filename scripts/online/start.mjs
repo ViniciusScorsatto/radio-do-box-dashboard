@@ -3,8 +3,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { configuration } from "./auth.mjs";
 import { openStore } from "./store.mjs";
-import { expireVideos } from "./files.mjs";
+import { maintainStorage } from "./maintenance.mjs";
 import { childEnvironment } from "./security.mjs";
+import { initializeRuntime } from "./runtime.mjs";
+initializeRuntime();
 configuration();
 process.env.APP_ONLINE = "true";
 const directory = process.env.APP_DATA_DIR;
@@ -21,7 +23,7 @@ for (const file of await fs.readdir(path.join(directory, "renders"))) {
   )
     await fs.unlink(path.join(directory, "renders", file));
 }
-await expireVideos(store, path.join(directory, "renders"));
+await maintainStorage(store, directory);
 store.db.close();
 const children = [];
 let shutting = false;

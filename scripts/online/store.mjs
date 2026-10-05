@@ -14,6 +14,7 @@ export function openStore(directory) {
     CREATE TABLE IF NOT EXISTS oauth (id TEXT PRIMARY KEY, data TEXT NOT NULL, expires INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS limits (scope TEXT PRIMARY KEY, started INTEGER NOT NULL, used INTEGER NOT NULL);
     CREATE INDEX IF NOT EXISTS renders_created ON renders(created);
+    CREATE INDEX IF NOT EXISTS renders_snapshot ON renders(snapshot);
     PRAGMA user_version=1;`);
   const transaction = (fn) => {
     db.exec("BEGIN IMMEDIATE");
@@ -44,13 +45,24 @@ export function openStore(directory) {
       });
     },
     snapshot(job) {
-      const id = randomUUID();
-      db.prepare("INSERT INTO snapshots VALUES (?, ?, ?)").run(
-        id,
-        JSON.stringify(job),
-        Date.now(),
-      );
-      return id;
+      const serialized = JSON.stringify(job);
+      const bytes = Buffer.byteLength(serialized);
+      if (bytes > 1024 * 1024) throw new Error("snapshot_too_large");
+      return transaction(() => {
+        const used = db
+          .prepare(
+            "SELECT coalesce(sum(length(CAST(job AS BLOB))),0) bytes FROM snapshots",
+          )
+          .get().bytes;
+        if (used + bytes > 256 * 1024 * 1024) throw new Error("storage_quota");
+        const id = randomUUID();
+        db.prepare("INSERT INTO snapshots VALUES (?, ?, ?)").run(
+          id,
+          serialized,
+          Date.now(),
+        );
+        return id;
+      });
     },
     getSnapshot(id) {
       const row = db.prepare("SELECT job FROM snapshots WHERE id=?").get(id);
@@ -74,6 +86,8 @@ export function openStore(directory) {
             .get(Date.now() - 86400_000).n >= 120
         )
           throw new Error("render_daily_limit");
+        if (db.prepare("SELECT count(*) n FROM renders").get().n >= 50000)
+          throw new Error("storage_quota");
         const id = randomUUID();
         db.prepare(
           "INSERT INTO renders(id,snapshot,status,created) VALUES (?,?,'queued',?)",
@@ -110,6 +124,28 @@ export function openStore(directory) {
           "SELECT renders.*, json_extract(snapshots.job,'$.title') title FROM renders JOIN snapshots ON snapshots.id=renders.snapshot ORDER BY created DESC",
         )
         .all();
+    },
+    page(page = 1) {
+      if (!Number.isSafeInteger(page) || page < 1 || page > 1667)
+        throw new Error("invalid_page");
+      const total = db.prepare("SELECT count(*) n FROM renders").get().n;
+      const rows = db
+        .prepare(
+          "SELECT renders.*, json_extract(snapshots.job,'$.title') title FROM renders JOIN snapshots ON snapshots.id=renders.snapshot ORDER BY created DESC, renders.id DESC LIMIT 30 OFFSET ?",
+        )
+        .all((page - 1) * 30);
+      const bytes = db
+        .prepare(
+          "SELECT coalesce(sum(bytes),0) bytes FROM renders WHERE available=1",
+        )
+        .get().bytes;
+      return {
+        rows,
+        total,
+        bytes,
+        page,
+        pages: Math.max(1, Math.ceil(total / 30)),
+      };
     },
     progress(id, value) {
       db.prepare(

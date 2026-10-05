@@ -4,10 +4,11 @@ import { fork } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { configuration, createAuth, cookies, cookie } from "./auth.mjs";
 import { openStore } from "./store.mjs";
-import { serveFile, removeVideos, expireVideos } from "./files.mjs";
+import { serveFile, removeVideos } from "./files.mjs";
 import { f1SoundtrackPresets } from "../lib/f1-system.mjs";
 import { projectRoot } from "../lib/video-system.mjs";
 import { childEnvironment, requireDiskSpace } from "./security.mjs";
+import { maintainStorage } from "./maintenance.mjs";
 const config = configuration();
 const store = openStore(process.env.APP_DATA_DIR);
 const renders = path.join(process.env.APP_DATA_DIR, "renders");
@@ -49,7 +50,7 @@ let preparing = false;
 const preparationChildren = new Set();
 function runPreparation(operation, body, requestId) {
   requireDiskSpace(process.env.APP_DATA_DIR);
-  if (preparing) throw new Error("preparation_busy");
+  if (preparing || maintaining) throw new Error("preparation_busy");
   preparing = true;
   log("preparation_started", { requestId, operation });
   const started = Date.now();
@@ -211,13 +212,18 @@ const server = http.createServer(async (req, res) => {
       return json(res, 202, { id });
     }
     if (req.method === "GET" && route === "/api/renders") {
-      const rows = store.list();
+      const { rows, total, bytes, page, pages } = store.page(
+        Number(url.searchParams.get("page") || 1),
+      );
       return json(res, 200, {
         renders: rows.map((row) => ({
           ...row,
           available: Boolean(row.available && row.expires > Date.now()),
         })),
-        bytes: rows.reduce((sum, row) => sum + row.bytes, 0),
+        bytes,
+        total,
+        page,
+        pages,
       });
     }
     if (req.method === "DELETE" && route === "/api/renders/completed") {
@@ -324,14 +330,13 @@ const server = http.createServer(async (req, res) => {
     const busy =
       limited || ["queue_full", "preparation_busy"].includes(error.message);
     json(res, busy ? 429 : 400, {
-      error:
-        error.message === "storage_low"
-          ? "Pouco espaço disponível. Exclua vídeos antes de iniciar outro trabalho."
-          : limited
-            ? "Limite de uso atingido. Aguarde antes de tentar novamente."
-            : busy
-              ? "Há um trabalho em andamento ou a fila está cheia. Tente novamente em instantes."
-              : "Não foi possível concluir. Verifique a seleção e se a fonte já publicou os dados.",
+      error: ["storage_low", "storage_quota"].includes(error.message)
+        ? "Limite de armazenamento atingido. Libere espaço ou consulte o administrador."
+        : limited
+          ? "Limite de uso atingido. Aguarde antes de tentar novamente."
+          : busy
+            ? "Há um trabalho em andamento ou a fila está cheia. Tente novamente em instantes."
+            : "Não foi possível concluir. Verifique a seleção e se a fonte já publicou os dados.",
       requestId,
     });
   }
@@ -341,9 +346,17 @@ server.maxRequestsPerSocket = 100;
 server.maxConnections = 100;
 server.keepAliveTimeout = 5000;
 server.headersTimeout = 15000;
-const cleanup = setInterval(() => {
-  store.cleanupAuth();
-  expireVideos(store, renders).catch(() => log("cleanup_failed"));
+let maintaining = false;
+const cleanup = setInterval(async () => {
+  if (maintaining || preparing) return;
+  maintaining = true;
+  try {
+    await maintainStorage(store, process.env.APP_DATA_DIR);
+  } catch {
+    log("cleanup_failed");
+  } finally {
+    maintaining = false;
+  }
 }, 3600_000);
 server.listen(Number(process.env.PORT || 4321), "0.0.0.0", () =>
   log("http_ready"),

@@ -170,13 +170,18 @@ const labels = {
   cancelled: "Cancelado",
 };
 const date = (value) => new Date(value).toLocaleString("pt-BR");
+let videoPage = 1;
 let lastList = "";
 const videoCards = new Map();
 let latestListRequest = 0;
 async function refreshVideos() {
   const request = ++latestListRequest;
-  const data = await api("/api/renders");
+  const data = await api(`/api/renders?page=${videoPage}`);
   if (request !== latestListRequest) return;
+  $("previous-videos").disabled = data.page <= 1;
+  $("next-videos").disabled = data.page >= data.pages;
+  $("video-page").textContent =
+    `Página ${data.page} de ${data.pages} · ${data.total} vídeos`;
   $("storage").textContent =
     `MP4 armazenados: ${(data.bytes / 1024 / 1024).toFixed(1)} MB`;
   const signature = JSON.stringify(data);
@@ -285,6 +290,25 @@ async function refreshVideos() {
   });
   const ids = new Set(data.renders.map((row) => row.id));
   for (const id of videoCards.keys()) if (!ids.has(id)) videoCards.delete(id);
+}
+for (const [id, delta] of [
+  ["previous-videos", -1],
+  ["next-videos", 1],
+]) {
+  $(id).onclick = async () => {
+    $("previous-videos").disabled = true;
+    $("next-videos").disabled = true;
+    videoPage += delta;
+    lastList = "";
+    try {
+      await refreshVideos();
+    } catch (error) {
+      videoPage -= delta;
+      status(error.message, true);
+      $("previous-videos").disabled = videoPage <= 1;
+      $("next-videos").disabled = false;
+    }
+  };
 }
 $("delete-all").onclick = () =>
   action($("delete-all"), async () => {
