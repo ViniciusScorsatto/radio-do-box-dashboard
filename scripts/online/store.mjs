@@ -12,6 +12,8 @@ export function openStore(directory) {
     CREATE TABLE IF NOT EXISTS renders (id TEXT PRIMARY KEY, snapshot TEXT NOT NULL, status TEXT NOT NULL, progress REAL NOT NULL DEFAULT 0, created INTEGER NOT NULL, completed INTEGER, expires INTEGER, bytes INTEGER NOT NULL DEFAULT 0, available INTEGER NOT NULL DEFAULT 0, error TEXT);
     CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, email TEXT NOT NULL, expires INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS oauth (id TEXT PRIMARY KEY, data TEXT NOT NULL, expires INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS limits (scope TEXT PRIMARY KEY, started INTEGER NOT NULL, used INTEGER NOT NULL);
+    CREATE INDEX IF NOT EXISTS renders_created ON renders(created);
     PRAGMA user_version=1;`);
   const transaction = (fn) => {
     db.exec("BEGIN IMMEDIATE");
@@ -26,6 +28,21 @@ export function openStore(directory) {
   };
   return {
     db,
+    consumeLimit(scope, maximum, windowMs, now = Date.now()) {
+      return transaction(() => {
+        const row = db.prepare("SELECT * FROM limits WHERE scope=?").get(scope);
+        if (row && now < row.started + windowMs && row.used >= maximum) {
+          const error = new Error("rate_limited");
+          error.retryAfter = Math.ceil((row.started + windowMs - now) / 1000);
+          throw error;
+        }
+        db.prepare("INSERT OR REPLACE INTO limits VALUES (?,?,?)").run(
+          scope,
+          row && now < row.started + windowMs ? row.started : now,
+          row && now < row.started + windowMs ? row.used + 1 : 1,
+        );
+      });
+    },
     snapshot(job) {
       const id = randomUUID();
       db.prepare("INSERT INTO snapshots VALUES (?, ?, ?)").run(
@@ -51,6 +68,12 @@ export function openStore(directory) {
             .get().n >= 20
         )
           throw new Error("queue_full");
+        if (
+          db
+            .prepare("SELECT count(*) n FROM renders WHERE created>?")
+            .get(Date.now() - 86400_000).n >= 120
+        )
+          throw new Error("render_daily_limit");
         const id = randomUUID();
         db.prepare(
           "INSERT INTO renders(id,snapshot,status,created) VALUES (?,?,'queued',?)",
@@ -131,6 +154,9 @@ export function openStore(directory) {
       db.prepare("DELETE FROM sessions WHERE id=?").run(hash(token));
     },
     addOAuth(token, data) {
+      db.prepare("DELETE FROM oauth WHERE expires<=?").run(Date.now());
+      if (db.prepare("SELECT count(*) n FROM oauth").get().n >= 100)
+        throw new Error("rate_limited");
       db.prepare("INSERT INTO oauth VALUES (?,?,?)").run(
         hash(token),
         JSON.stringify(data),
@@ -147,6 +173,9 @@ export function openStore(directory) {
       });
     },
     cleanupAuth() {
+      db.prepare(
+        "DELETE FROM snapshots WHERE created<? AND id NOT IN (SELECT snapshot FROM renders)",
+      ).run(Date.now() - 7 * 86400_000);
       db.prepare("DELETE FROM sessions WHERE expires<=?").run(Date.now());
       db.prepare("DELETE FROM oauth WHERE expires<=?").run(Date.now());
     },

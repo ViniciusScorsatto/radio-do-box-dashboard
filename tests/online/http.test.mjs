@@ -66,7 +66,11 @@ test("HTTP auth wall, direct login, CSRF, queue, streaming, logout and expiry", 
     });
   });
   const base = `http://127.0.0.1:${number}`;
-  const headers = { cookie: "__Host-session=test-session", origin };
+  const headers = {
+    cookie: "__Host-session=test-session",
+    origin,
+    "content-type": "application/json",
+  };
   for (const route of ["/", "/videos", "/settings", "/f1-sources"]) {
     const r = await fetch(base + route);
     assert.equal(r.status, 200);
@@ -117,6 +121,48 @@ test("HTTP auth wall, direct login, CSRF, queue, streaming, logout and expiry", 
     ).status,
     404,
   );
+  const secured = await fetch(base + "/", { headers });
+  assert.equal(
+    secured.headers.get("strict-transport-security"),
+    "max-age=31536000",
+  );
+  assert.match(
+    secured.headers.get("content-security-policy"),
+    /object-src 'none'/,
+  );
+  assert.equal(
+    (
+      await fetch(base + "/api/events", {
+        headers: { ...headers, "sec-fetch-site": "cross-site" },
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await fetch(base + "/api/renders", {
+        method: "POST",
+        headers: { ...headers, "content-type": "text/plain" },
+        body: "{}",
+      })
+    ).status,
+    400,
+  );
+  for (let i = 0; i < 29; i++) {
+    assert.equal(
+      (
+        await fetch(base + "/auth/google/callback?code=fake", {
+          headers: { "x-forwarded-for": `192.0.2.${i}` },
+        })
+      ).status,
+      401,
+    );
+  }
+  const throttled = await fetch(base + "/auth/google/callback?code=fake", {
+    headers: { "x-forwarded-for": "198.51.100.1" },
+  });
+  assert.equal(throttled.status, 429);
+  assert.ok(Number(throttled.headers.get("retry-after")) > 0);
   const snapshot = store.snapshot({ title: "Test", template: "race-results" });
   const queued = await fetch(base + "/api/renders", {
     method: "POST",

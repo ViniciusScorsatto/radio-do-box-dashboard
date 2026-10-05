@@ -4,6 +4,7 @@ import path from "node:path";
 import { configuration } from "./auth.mjs";
 import { openStore } from "./store.mjs";
 import { expireVideos } from "./files.mjs";
+import { childEnvironment } from "./security.mjs";
 configuration();
 process.env.APP_ONLINE = "true";
 const directory = process.env.APP_DATA_DIR;
@@ -53,6 +54,7 @@ function stop(code) {
 function launch(file) {
   const child = fork(new URL(file, import.meta.url), [], {
     stdio: ["inherit", "inherit", "inherit", "ipc"],
+    env: file === "./worker.mjs" ? childEnvironment() : process.env,
   });
   children.push(child);
   child.on("error", () => stop(1));

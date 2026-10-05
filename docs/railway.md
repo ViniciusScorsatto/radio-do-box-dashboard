@@ -120,3 +120,60 @@ O check TypeScript online é separado porque a base já tem três erros em `F1La
 IndyCar, Stock Car Pro Series e Stock Light estão disponíveis em **Categoria**, usando **Mundial / Campeonato de pilotos**. As três passam pelos coletores que já existiam localmente, sem API-Sports. Resultados de sessões e notícias continuam limitados às categorias que têm esses coletores.
 
 A coleta real e a renderização PNG foram verificadas em Linux para IndyCar (33 pilotos), Stock Pro (32) e Stock Light (20). A suíte completa passou com 30 testes. As fotos Stock usam o host público Paddock também na porta HTTPS 9091; a validação mantém host, porta, caminho, formato e tamanho restritos. O backup agora inclui banco e retratos persistentes.
+
+## Segurança após publicação — revisão de 05/10/2026
+
+A aplicação exige sessão Google de um dos dois e-mails verificados para APIs,
+player, imagens e vídeos. O callback valida state, nonce e PKCE; mutações exigem
+Origin igual a PUBLIC_URL. O proxy não é usado como fonte de identidade para
+limites: X-Forwarded-For enviado pelo cliente não altera os contadores.
+
+Proteções adicionais:
+
+- Login: orçamento global de 10 inícios e 30 callbacks por minuto; estados OAuth
+  pendentes limitados a 100. Um ataque pode esgotar esse orçamento e impedir login
+  temporariamente, mas não cria estados ilimitados. Sessões existentes continuam funcionando.
+- Cada conta: 60 operações de coleta/preparação por hora e 60 pedidos de render
+  por janela de 24 horas. Tentativas inválidas também consomem orçamento.
+- Fila: no máximo 20 ativos e 120 renders criados nas últimas 24 horas no total;
+  cancelar ou repetir não devolve orçamento. Contadores persistem no SQLite.
+- Coleta e renderer recebem somente variáveis necessárias; não recebem segredo
+  Google nem tokens Railway. Coleta tem heap de 384 MiB e prazo de 2 minutos
+  (heap não limita toda a memória nativa). Renderer permanece serializado.
+- Novos trabalhos recusados com menos de 512 MiB livres no volume; isso é uma
+  reserva preventiva, não uma cota de disco ou garantia contra esgotamento.
+- APIs rejeitam navegação cross-site indicada por Fetch Metadata; POSTs com JSON
+  exigem o Content-Type correto, objeto e limite de 32 KiB.
+- HTTPS persistente via HSTS, bloqueio de plugins e permissões de câmera,
+  microfone e localização. Timeouts e conexões HTTP também têm limites.
+- Snapshots sem renders associados são removidos após sete dias; vídeos continuam
+  com retenção de 48 horas. Histórico e retratos ainda precisam de acompanhamento
+  de crescimento do volume em uso prolongado.
+
+Configuração operacional no Railway (não é alterada pelo código):
+
+1. Em Workspace → Usage, definir alerta de gastos e Hard Limit de compute adequado
+   ao orçamento. O hard limit pode desligar os serviços até o próximo ciclo:
+   https://docs.railway.com/pricing/cost-control
+2. Manter apenas uma réplica e volume privado montado em /data. Dimensionar os
+   limites de CPU/memória conforme os renders; validar disponibilidade após ajustá-los.
+3. Ativar MFA nas contas Google, GitHub e Railway. Manter a lista de e-mails restrita
+   às duas pessoas; nenhum segredo deve ser incluído em VITE_* ou arquivos públicos.
+4. Fazer backup periódico do SQLite e do diretório de retratos conforme este guia.
+   Para invalidar todas as sessões em emergência, executar no serviço:
+   `node --input-type=module -e 'import {openStore} from "./scripts/online/store.mjs"; const s=openStore(process.env.APP_DATA_DIR); s.db.exec("DELETE FROM sessions; DELETE FROM oauth;"); s.db.close();'`
+   Remover também o e-mail comprometido de ALLOWED_EMAILS, se necessário.
+
+Limites desta revisão: inspeção de código, testes locais e requisições públicas
+somente de leitura; não houve teste de invasão nem teste de carga em produção.
+A proteção contra DDoS volumétrico depende da borda/provedor e não desses limites.
+O container ainda executa como root: migrar para usuário sem privilégios exige
+planejar permissões do volume existente e validar o Chrome no Railway. As respostas
+dos sites de origem ainda dependem do isolamento/timeout do coletor; limitar bytes
+em todos os fetches é uma melhoria adicional. Revisar esses itens antes de ampliar
+acesso ou disponibilizar o produto a terceiros.
+
+Validação desta alteração: 33 testes passaram, build online e TypeScript online
+passaram, dependências Remotion alinhadas em 4.0.532 e npm audit sem alertas no
+momento da revisão. A imagem Docker compilou e concluiu um render real de Stock Pro
+com o supervisor e os ambientes restritos. Isso não garante ausência de vulnerabilidades desconhecidas.

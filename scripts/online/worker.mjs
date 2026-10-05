@@ -10,6 +10,7 @@ import { openStore } from "./store.mjs";
 import { serveFile } from "./files.mjs";
 import { safeDiagnostic } from "./logging.mjs";
 import { projectRoot } from "../lib/video-system.mjs";
+import { requireDiskSpace } from "./security.mjs";
 const directory = process.env.APP_DATA_DIR;
 const store = openStore(directory);
 const renders = path.join(directory, "renders");
@@ -19,22 +20,27 @@ const log = (event, extra = {}) =>
   console.log(
     JSON.stringify({ timestamp: new Date().toISOString(), event, ...extra }),
   );
-const server = http.createServer((req, res) => {
-  const url = new URL(req.url, "http://localhost");
-  const relative =
-    decodeURIComponent(url.pathname).replace(/^\//, "") || "index.html";
-  const portrait = relative.startsWith("public/online-assets/");
-  serveFile(
-    req,
-    res,
-    portrait
-      ? path.join(directory, "public", "online-assets")
-      : path.join(projectRoot, "build/renderer"),
-    portrait ? relative.slice("public/online-assets/".length) : relative,
-  ).catch(() => {
-    res.writeHead(500);
-    res.end();
-  });
+const server = http.createServer(async (req, res) => {
+  try {
+    const url = new URL(req.url, "http://localhost");
+    const relative =
+      decodeURIComponent(url.pathname).replace(/^\//, "") || "index.html";
+    const portrait = relative.startsWith("public/online-assets/");
+    await serveFile(
+      req,
+      res,
+      portrait
+        ? path.join(directory, "public", "online-assets")
+        : path.join(projectRoot, "build/renderer"),
+      portrait ? relative.slice("public/online-assets/".length) : relative,
+    );
+  } catch {
+    if (res.headersSent) res.destroy();
+    else {
+      res.writeHead(400);
+      res.end();
+    }
+  }
 });
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const serveUrl = `http://127.0.0.1:${server.address().port}`;
@@ -73,6 +79,7 @@ while (!stopping) {
   }, 500);
   log("render_started", { renderId: row.id });
   try {
+    requireDiskSpace(directory);
     const inputProps = { job: store.getSnapshot(row.snapshot) };
     const composition = await selectComposition({
       serveUrl,

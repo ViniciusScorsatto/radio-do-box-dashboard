@@ -7,6 +7,7 @@ import { openStore } from "./store.mjs";
 import { serveFile, removeVideos, expireVideos } from "./files.mjs";
 import { f1SoundtrackPresets } from "../lib/f1-system.mjs";
 import { projectRoot } from "../lib/video-system.mjs";
+import { childEnvironment, requireDiskSpace } from "./security.mjs";
 const config = configuration();
 const store = openStore(process.env.APP_DATA_DIR);
 const renders = path.join(process.env.APP_DATA_DIR, "renders");
@@ -30,6 +31,8 @@ const page = (
   );
 };
 async function bodyOf(req) {
+  if (!/^application\/json(?:;|$)/i.test(req.headers["content-type"] || ""))
+    throw new Error("json_required");
   const chunks = [];
   let size = 0;
   for await (const chunk of req) {
@@ -37,11 +40,15 @@ async function bodyOf(req) {
     if (size > 32768) throw new Error("body_too_large");
     chunks.push(chunk);
   }
-  return JSON.parse(Buffer.concat(chunks).toString() || "{}");
+  const body = JSON.parse(Buffer.concat(chunks).toString() || "{}");
+  if (!body || typeof body !== "object" || Array.isArray(body))
+    throw new Error("object_required");
+  return body;
 }
 let preparing = false;
 const preparationChildren = new Set();
 function runPreparation(operation, body, requestId) {
+  requireDiskSpace(process.env.APP_DATA_DIR);
   if (preparing) throw new Error("preparation_busy");
   preparing = true;
   log("preparation_started", { requestId, operation });
@@ -49,6 +56,8 @@ function runPreparation(operation, body, requestId) {
   return new Promise((resolve, reject) => {
     const child = fork(new URL("./prepare.mjs", import.meta.url), [], {
       stdio: ["ignore", "ignore", "ignore", "ipc"],
+      env: childEnvironment(),
+      execArgv: ["--max-old-space-size=384"],
     });
     preparationChildren.add(child);
     const timer = setTimeout(() => {
@@ -92,18 +101,27 @@ const server = http.createServer(async (req, res) => {
   res.setHeader("x-content-type-options", "nosniff");
   res.setHeader("referrer-policy", "no-referrer");
   res.setHeader("x-frame-options", "DENY");
+  res.setHeader("strict-transport-security", "max-age=31536000");
+  res.setHeader(
+    "permissions-policy",
+    "camera=(), microphone=(), geolocation=()",
+  );
   res.setHeader(
     "content-security-policy",
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+    "default-src 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
   );
   try {
     const url = new URL(req.url, config.origin);
     const route = url.pathname;
     if (route === "/healthz" && ["GET", "HEAD"].includes(req.method))
       return json(res, 200, { ok: true });
-    if (route === "/auth/google" && req.method === "GET")
+    if (route === "/auth/google" && req.method === "GET") {
+      // Global budget: forwarded IP headers are client-controlled unless a proxy is trusted.
+      store.consumeLimit("login-start", 10, 60000);
       return await auth.start(res);
+    }
     if (route === "/auth/google/callback" && req.method === "GET") {
+      store.consumeLimit("login-callback", 30, 60000);
       try {
         await auth.callback(req, res, url);
       } catch (error) {
@@ -135,6 +153,22 @@ const server = http.createServer(async (req, res) => {
       req.headers.origin !== config.origin
     )
       return json(res, 403, { error: "Origem inválida.", requestId });
+    if (
+      route.startsWith("/api/") &&
+      req.headers["sec-fetch-site"] === "cross-site"
+    )
+      return json(res, 403, { error: "Origem inválida.", requestId });
+    if (
+      (req.method === "GET" &&
+        ["/api/events", "/api/editorial"].includes(route)) ||
+      (req.method === "POST" && route === "/api/prepare")
+    )
+      store.consumeLimit(`preparation:${session.email}`, 60, 3600_000);
+    if (
+      req.method === "POST" &&
+      (route === "/api/renders" || route.endsWith("/retry"))
+    )
+      store.consumeLimit(`render:${session.email}`, 60, 86400_000);
     if (req.method === "POST" && route === "/auth/logout") {
       store.revoke(cookies(req)["__Host-session"] || "");
       res.writeHead(303, {
@@ -171,6 +205,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "POST" && route === "/api/renders") {
       const body = await bodyOf(req);
+      requireDiskSpace(process.env.APP_DATA_DIR);
       const id = store.enqueue(body.snapshot);
       log("render_queued", { renderId: id, requestId });
       return json(res, 202, { id });
@@ -202,6 +237,7 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, { ok: true });
       }
       if (req.method === "POST" && match[2] === "retry") {
+        requireDiskSpace(process.env.APP_DATA_DIR);
         const id = store.enqueue(row.snapshot);
         log("render_queued", { renderId: id, requestId });
         return json(res, 202, { id });
@@ -268,25 +304,42 @@ const server = http.createServer(async (req, res) => {
     }
     json(res, 404, { error: "Página não encontrada." });
   } catch (error) {
-    log("request_failed", {
-      requestId,
-      code: /^[a-z_]+$/.test(error.message) ? error.message : "internal_error",
-      errorType: error.name,
-    });
+    if (error.message !== "rate_limited")
+      log("request_failed", {
+        requestId,
+        code: /^[a-z_]+$/.test(error.message)
+          ? error.message
+          : "internal_error",
+        errorType: error.name,
+      });
     if (res.headersSent) {
       res.destroy();
       return;
     }
-    const busy = ["queue_full", "preparation_busy"].includes(error.message);
+    const limited = ["rate_limited", "render_daily_limit"].includes(
+      error.message,
+    );
+    if (limited)
+      res.setHeader("retry-after", String(error.retryAfter || 86400));
+    const busy =
+      limited || ["queue_full", "preparation_busy"].includes(error.message);
     json(res, busy ? 429 : 400, {
-      error: busy
-        ? "Há um trabalho em andamento ou a fila está cheia. Tente novamente em instantes."
-        : "Não foi possível concluir. Verifique a seleção e se a fonte já publicou os dados.",
+      error:
+        error.message === "storage_low"
+          ? "Pouco espaço disponível. Exclua vídeos antes de iniciar outro trabalho."
+          : limited
+            ? "Limite de uso atingido. Aguarde antes de tentar novamente."
+            : busy
+              ? "Há um trabalho em andamento ou a fila está cheia. Tente novamente em instantes."
+              : "Não foi possível concluir. Verifique a seleção e se a fonte já publicou os dados.",
       requestId,
     });
   }
 });
-server.requestTimeout = 150000;
+server.requestTimeout = 30000;
+server.maxRequestsPerSocket = 100;
+server.maxConnections = 100;
+server.keepAliveTimeout = 5000;
 server.headersTimeout = 15000;
 const cleanup = setInterval(() => {
   store.cleanupAuth();
