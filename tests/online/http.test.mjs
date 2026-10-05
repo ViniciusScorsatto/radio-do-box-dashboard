@@ -1,3 +1,4 @@
+import sharp from "sharp";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
@@ -71,7 +72,7 @@ test("HTTP auth wall, direct login, CSRF, queue, streaming, logout and expiry", 
     origin,
     "content-type": "application/json",
   };
-  for (const route of ["/", "/videos", "/settings", "/f1-sources"]) {
+  for (const route of ["/", "/images", "/videos", "/settings", "/f1-sources"]) {
     const r = await fetch(base + route);
     assert.equal(r.status, 200);
     assert.match(await r.text(), /Entrar com Google/);
@@ -163,6 +164,65 @@ test("HTTP auth wall, direct login, CSRF, queue, streaming, logout and expiry", 
   });
   assert.equal(throttled.status, 429);
   assert.ok(Number(throttled.headers.get("retry-after")) > 0);
+  // Uploads share the auth/Origin boundary and only normalized files are exposed.
+  assert.equal(
+    (
+      await fetch(base + "/api/uploads/images", {
+        method: "POST",
+        headers: { "content-type": "image/png" },
+        body: "fake",
+      })
+    ).status,
+    401,
+  );
+  assert.equal(
+    (
+      await fetch(base + "/api/uploads/images", {
+        method: "POST",
+        headers: {
+          ...headers,
+          origin: "https://evil.example",
+          "content-type": "image/png",
+        },
+        body: "fake",
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await fetch(base + "/api/uploads/images", {
+        method: "POST",
+        headers: { ...headers, "content-type": "image/png" },
+        body: "<svg/>",
+      })
+    ).status,
+    400,
+  );
+  const png = await sharp({
+    create: { width: 1080, height: 1920, channels: 3, background: "red" },
+  })
+    .png()
+    .toBuffer();
+  const uploadedResponse = await fetch(base + "/api/uploads/images", {
+    method: "POST",
+    headers: { ...headers, "content-type": "image/png" },
+    body: png,
+  });
+  assert.equal(uploadedResponse.status, 201);
+  const uploaded = await uploadedResponse.json();
+  const uploadUrl = base + "/public" + uploaded.path;
+  assert.equal((await fetch(uploadUrl)).status, 401);
+  assert.equal((await fetch(uploadUrl, { headers })).status, 200);
+  const imagePrepared = await fetch(base + "/api/prepare-images", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ mode: "single", images: [{ id: uploaded.id }] }),
+  });
+  assert.equal(imagePrepared.status, 201);
+  assert.equal((await imagePrepared.json()).job.durationInFrames, 360);
+  store.db.prepare("UPDATE uploads SET expires=0").run();
+  assert.equal((await fetch(uploadUrl, { headers })).status, 410);
   const snapshot = store.snapshot({ title: "Test", template: "race-results" });
   const queued = await fetch(base + "/api/renders", {
     method: "POST",

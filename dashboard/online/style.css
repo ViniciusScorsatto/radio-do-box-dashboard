@@ -266,3 +266,47 @@ footer {
     font-size: 20px;
   }
 }
+#image-player {
+  max-width: 360px;
+  margin: 24px auto;
+}
+nav {
+  flex-wrap: wrap;
+}
+.image-list {
+  list-style: none;
+  padding: 0;
+}
+.image-item {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #444;
+}
+.image-item img {
+  width: 80px;
+  aspect-ratio: 9/16;
+  object-fit: contain;
+  background: #000;
+}
+.image-item strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.image-item label {
+  margin: 12px 0;
+}
+.image-item .actions {
+  margin: 8px 0;
+  gap: 6px;
+}
+.image-item button {
+  font-size: 12px;
+  padding: 8px;
+}
+.upload-zone {
+  padding: 16px;
+  border: 1px dashed #777;
+  background: #111;
+}

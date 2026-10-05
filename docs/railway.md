@@ -217,3 +217,55 @@ A paginação foi exercitada no navegador integrado em localhost, com fixture de
 vídeos: 30/30/5 registros, avanço/retorno, botão final desabilitado e nenhum erro
 relevante no console. Tela de 390×844 sem transbordamento horizontal. As configurações
 de gastos, MFA e backup da conta Railway continuam sendo ações externas ao código.
+
+
+## Short com imagens próprias
+
+A área **Short com imagens** (`/images`) aceita artes criadas fora do dashboard.
+
+- **Uma imagem:** vídeo fixo de 12 segundos.
+- **Sequência:** de 2 a 5 imagens, de 1 a 60 segundos inteiros por imagem,
+  respeitando o máximo de 60 segundos no total. Antes/Depois altera a ordem e
+  Remover retira uma imagem da edição.
+- Arquivos JPG ou PNG estáticos, exatamente 1080 × 1920 pixels após aplicar a
+  orientação EXIF, até 8 MiB cada. O servidor decodifica e regrava como PNG,
+  removendo metadados. Nenhuma arte é cortada nem recebe títulos sobrepostos.
+  O nome do vídeo aparece apenas no histórico.
+- A prévia e o MP4 compartilham a mesma composição, ordem e durações. A trilha
+  selecionada toca continuamente, repete quando necessário e tem fade-out no
+  último segundo. Volume zero omite a trilha.
+- O vídeo utiliza a fila existente, os mesmos limites de uso e o download privado.
+  Alterar imagens, ordem, tempos ou música exige preparar uma nova prévia.
+
+Segurança e retenção: uploads exigem sessão e Origin válido, com limite de 60
+arquivos por hora por conta e processamento serial de upload. A decodificação
+usa um subprocesso sem credenciais, prazo de 15 segundos, heap de 192 MiB e
+limite de pixels; o heap não limita toda a memória nativa do decodificador.
+SVG, arquivos animados e formatos diferentes de JPG/PNG são recusados. O volume
+reserva até 200 MiB para imagens normalizadas em `/data/uploads`, indexadas por
+hash do conteúdo, sem aproveitar nomes/caminhos enviados pelo usuário.
+
+Imagens expiram após 48 horas do upload ou da última renovação por render. A fila
+renova esse prazo, e a conclusão o renova novamente para acompanhar a validade
+do MP4. Arquivos de jobs ativos são preservados; a manutenção remove os expirados.
+O histórico continua salvo, mas tentar renderizar com uma imagem expirada solicita
+um novo envio. Rascunhos e arquivos escolhidos no navegador não sobrevivem ao
+recarregamento da página; guarde os originais. O backup opcional anterior de
+retratos não inclui esses uploads temporários.
+
+A nova dependência `sharp` é instalada pelo `npm ci` do Docker. Nenhuma variável
+Railway adicional é necessária. A alteração do SQLite é aditiva e preserva dados
+existentes, criando somente a tabela de uploads.
+
+Validação da área de imagens: 40 testes passaram (incluindo autenticação/Origin,
+limites de bytes, formatos e dimensões, duração máxima e limpeza com jobs ativos),
+build Docker e TypeScript online passaram. Foram gerados pela interface um MP4 de
+imagem única de 12 segundos e outro de cinco imagens de 60 segundos, ambos em
+1080×1920 a 30 FPS, com H.264/AAC. No segundo, os tempos 5/7/11/17/20 foram
+verificados nos frames das transições; uma trilha de teste de três segundos
+comprovou o loop, a continuidade entre imagens e o fade-out. Reordenação, remoção,
+bloqueio de 61 segundos, prévia e acesso ao download foram conferidos no navegador
+integrado. Tela de 390×844 sem transbordamento horizontal e sem erros de console
+(apenas o aviso informativo de licenciamento do Remotion). O TypeScript global
+continua com os três erros anteriores em F1LargeVideosComposition e
+F1RacePredictionsComposition, fora da área online.

@@ -1,3 +1,4 @@
+import { ImageShort, type ImageJob } from "./ImageShort";
 import { F1GridComposition } from "../compositions/F1GridComposition";
 import {
   F1ConstructorStandingsComposition,
@@ -14,9 +15,15 @@ export const videoMetadata = {
   width: 1080,
   height: 1920,
 };
-export type ShortProps = { job?: F1VideoJob };
+export type OnlineJob = F1VideoJob | ImageJob;
+export type ShortProps = { job?: OnlineJob };
+export const shortDuration = (job?: OnlineJob) =>
+  job?.template === "uploaded-images"
+    ? job.durationInFrames
+    : videoMetadata.durationInFrames;
 export function ShortVideo({ job }: ShortProps) {
   if (!job) throw new Error("Prepare uma prévia antes de renderizar.");
+  if (job.template === "uploaded-images") return <ImageShort job={job} />;
   if (job.template === "race-results" || job.template === "qualifying-grid")
     return <F1GridComposition {...job} />;
   if (job.template === "driver-standings")

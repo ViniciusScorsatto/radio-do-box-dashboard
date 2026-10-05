@@ -25,14 +25,21 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, "http://localhost");
     const relative =
       decodeURIComponent(url.pathname).replace(/^\//, "") || "index.html";
+    const upload = relative.startsWith("public/uploads/");
     const portrait = relative.startsWith("public/online-assets/");
     await serveFile(
       req,
       res,
-      portrait
-        ? path.join(directory, "public", "online-assets")
-        : path.join(projectRoot, "build/renderer"),
-      portrait ? relative.slice("public/online-assets/".length) : relative,
+      upload
+        ? path.join(directory, "uploads")
+        : portrait
+          ? path.join(directory, "public", "online-assets")
+          : path.join(projectRoot, "build/renderer"),
+      upload
+        ? relative.slice("public/uploads/".length)
+        : portrait
+          ? relative.slice("public/online-assets/".length)
+          : relative,
     );
   } catch {
     if (res.headersSent) res.destroy();

@@ -2,10 +2,12 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { expireVideos } from "./files.mjs";
 
+import { expireUploads } from "./uploads.mjs";
 const portraitName = /^[a-f0-9]{64}\.(png|jpg|webp)$/;
 export async function maintainStorage(store, directory, now = Date.now()) {
   await expireVideos(store, path.join(directory, "renders"), now);
   store.cleanupAuth();
+  await expireUploads(store, directory, now);
   // Preserve every snapshot asset, including expired MP4s that can be rendered again.
   const referenced = new Set();
   for (const { job } of store.db

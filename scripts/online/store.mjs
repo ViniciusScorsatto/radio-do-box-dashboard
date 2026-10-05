@@ -12,6 +12,7 @@ export function openStore(directory) {
     CREATE TABLE IF NOT EXISTS renders (id TEXT PRIMARY KEY, snapshot TEXT NOT NULL, status TEXT NOT NULL, progress REAL NOT NULL DEFAULT 0, created INTEGER NOT NULL, completed INTEGER, expires INTEGER, bytes INTEGER NOT NULL DEFAULT 0, available INTEGER NOT NULL DEFAULT 0, error TEXT);
     CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, email TEXT NOT NULL, expires INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS oauth (id TEXT PRIMARY KEY, data TEXT NOT NULL, expires INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS uploads (id TEXT PRIMARY KEY, bytes INTEGER NOT NULL, expires INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS limits (scope TEXT PRIMARY KEY, started INTEGER NOT NULL, used INTEGER NOT NULL);
     CREATE INDEX IF NOT EXISTS renders_created ON renders(created);
     CREATE INDEX IF NOT EXISTS renders_snapshot ON renders(snapshot);
@@ -27,8 +28,22 @@ export function openStore(directory) {
       throw error;
     }
   };
+  const requireUploads = (job) => {
+    if (job.template !== "uploaded-images") return;
+    for (const image of job.images) {
+      const row = db
+        .prepare("SELECT expires FROM uploads WHERE id=? AND expires>?")
+        .get(image.id, Date.now());
+      if (
+        !row ||
+        !fs.existsSync(path.join(directory, "uploads", `${image.id}.png`))
+      )
+        throw new Error("upload_expired");
+    }
+  };
   return {
     db,
+    requireUploads,
     consumeLimit(scope, maximum, windowMs, now = Date.now()) {
       return transaction(() => {
         const row = db.prepare("SELECT * FROM limits WHERE scope=?").get(scope);
@@ -88,6 +103,16 @@ export function openStore(directory) {
           throw new Error("render_daily_limit");
         if (db.prepare("SELECT count(*) n FROM renders").get().n >= 50000)
           throw new Error("storage_quota");
+        const job = JSON.parse(
+          db.prepare("SELECT job FROM snapshots WHERE id=?").get(snapshot).job,
+        );
+        requireUploads(job);
+        if (job.template === "uploaded-images")
+          for (const image of job.images)
+            db.prepare("UPDATE uploads SET expires=? WHERE id=?").run(
+              Date.now() + retentionMs,
+              image.id,
+            );
         const id = randomUUID();
         db.prepare(
           "INSERT INTO renders(id,snapshot,status,created) VALUES (?,?,'queued',?)",
@@ -153,6 +178,20 @@ export function openStore(directory) {
       ).run(value, id);
     },
     finish(id, bytes, now = Date.now()) {
+      const jobRow = db
+        .prepare(
+          "SELECT snapshots.job FROM renders JOIN snapshots ON snapshots.id=renders.snapshot WHERE renders.id=? AND status='rendering'",
+        )
+        .get(id);
+      if (jobRow) {
+        const job = JSON.parse(jobRow.job);
+        if (job.template === "uploaded-images")
+          for (const image of job.images)
+            db.prepare("UPDATE uploads SET expires=? WHERE id=?").run(
+              now + retentionMs,
+              image.id,
+            );
+      }
       return db
         .prepare(
           "UPDATE renders SET status='completed', progress=1, completed=?, expires=?, bytes=?, available=1 WHERE id=? AND status='rendering'",

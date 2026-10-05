@@ -327,20 +327,23 @@ $("delete-all").onclick = () =>
     await refreshVideos();
   });
 function route() {
+  window.pausePreviews?.();
   const path = location.pathname;
-  for (const id of ["create", "videos", "settings"])
+  for (const id of ["create", "images", "videos", "settings"])
     $(id).hidden =
       id !==
-      (path === "/videos"
-        ? "videos"
-        : path === "/settings"
-          ? "settings"
-          : "create");
+      (path === "/images"
+        ? "images"
+        : path === "/videos"
+          ? "videos"
+          : path === "/settings"
+            ? "settings"
+            : "create");
   document.querySelectorAll("nav a").forEach((a) => {
     if (a.pathname === path) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });
-  if (path === "/videos")
+  if (path === "/images" ? "images" : path === "/videos")
     refreshVideos().catch((error) => status(error.message, true));
 }
 function navigate(path) {
@@ -360,7 +363,8 @@ setInterval(() => {
   if (location.pathname === "/videos" && !document.hidden)
     refreshVideos().catch((error) => status(error.message, true));
 }, 3000);
-api("/api/options")
+window.onlineOptions = api("/api/options");
+window.onlineOptions
   .then((data) => {
     $("account").textContent = `Conta conectada: ${data.email}`;
     $("soundtrack").replaceChildren(

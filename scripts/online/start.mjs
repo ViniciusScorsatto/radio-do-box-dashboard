@@ -12,6 +12,11 @@ process.env.APP_ONLINE = "true";
 const directory = process.env.APP_DATA_DIR;
 for (const name of ["renders", "tmp", "generated"])
   await fs.mkdir(path.join(directory, name), { recursive: true });
+// Only this supervisor owns these upload temporaries; no worker is started yet.
+for (const file of await fs.readdir(path.join(directory, "tmp"))) {
+  if (/^[a-f0-9-]{36}\.(upload|png)$/.test(file))
+    await fs.rm(path.join(directory, "tmp", file), { force: true });
+}
 const store = openStore(directory);
 store.recover();
 store.cleanupAuth();

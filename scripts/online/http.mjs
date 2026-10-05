@@ -9,6 +9,7 @@ import { f1SoundtrackPresets } from "../lib/f1-system.mjs";
 import { projectRoot } from "../lib/video-system.mjs";
 import { childEnvironment, requireDiskSpace } from "./security.mjs";
 import { maintainStorage } from "./maintenance.mjs";
+import { acceptImage, prepareImages } from "./uploads.mjs";
 const config = configuration();
 const store = openStore(process.env.APP_DATA_DIR);
 const renders = path.join(process.env.APP_DATA_DIR, "renders");
@@ -47,6 +48,7 @@ async function bodyOf(req) {
   return body;
 }
 let preparing = false;
+let uploading = false;
 const preparationChildren = new Set();
 function runPreparation(operation, body, requestId) {
   requireDiskSpace(process.env.APP_DATA_DIR);
@@ -139,9 +141,14 @@ const server = http.createServer(async (req, res) => {
     if (!session) {
       if (
         req.method === "GET" &&
-        ["/", "/videos", "/settings", "/f1-sources", "/f1-sources/"].includes(
-          route,
-        )
+        [
+          "/",
+          "/images",
+          "/videos",
+          "/settings",
+          "/f1-sources",
+          "/f1-sources/",
+        ].includes(route)
       )
         return page(res);
       return json(res, 401, {
@@ -195,6 +202,28 @@ const server = http.createServer(async (req, res) => {
           requestId,
         ),
       });
+    if (req.method === "POST" && route === "/api/uploads/images") {
+      store.consumeLimit(`upload:${session.email}`, 60, 3600_000);
+      if (uploading || maintaining) throw new Error("preparation_busy");
+      uploading = true;
+      try {
+        return json(
+          res,
+          201,
+          await acceptImage(req, store, process.env.APP_DATA_DIR),
+        );
+      } finally {
+        uploading = false;
+      }
+    }
+    if (req.method === "POST" && route === "/api/prepare-images") {
+      requireDiskSpace(process.env.APP_DATA_DIR);
+      if (maintaining) throw new Error("preparation_busy");
+      store.consumeLimit(`preparation:${session.email}`, 60, 3600_000);
+      const job = prepareImages(await bodyOf(req), store);
+      const id = store.snapshot(job);
+      return json(res, 201, { id, job });
+    }
     if (req.method === "POST" && route === "/api/prepare") {
       const job = await runPreparation("prepare", await bodyOf(req), requestId);
       const id = store.snapshot(job);
@@ -269,9 +298,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (["GET", "HEAD"].includes(req.method)) {
       if (
-        ["/", "/videos", "/settings", "/f1-sources", "/f1-sources/"].includes(
-          route,
-        )
+        [
+          "/",
+          "/images",
+          "/videos",
+          "/settings",
+          "/f1-sources",
+          "/f1-sources/",
+        ].includes(route)
       )
         return await serveFile(
           req,
@@ -279,7 +313,7 @@ const server = http.createServer(async (req, res) => {
           path.join(projectRoot, "dashboard/online"),
           "index.html",
         );
-      if (["/app.js", "/style.css"].includes(route))
+      if (["/app.js", "/images.js", "/style.css"].includes(route))
         return await serveFile(
           req,
           res,
@@ -300,6 +334,21 @@ const server = http.createServer(async (req, res) => {
           path.join(process.env.APP_DATA_DIR, "public", "online-assets"),
           decodeURIComponent(route.slice("/public/online-assets/".length)),
         );
+      if (/^\/public\/uploads\/[a-f0-9]{64}\.png$/.test(route)) {
+        const id = route.split("/").at(-1).slice(0, -4);
+        if (
+          !store.db
+            .prepare("SELECT id FROM uploads WHERE id=? AND expires>?")
+            .get(id, Date.now())
+        )
+          return json(res, 410, { error: "Imagem expirada. Envie novamente." });
+        return await serveFile(
+          req,
+          res,
+          path.join(process.env.APP_DATA_DIR, "uploads"),
+          `${id}.png`,
+        );
+      }
       if (route.startsWith("/public/"))
         return await serveFile(
           req,
@@ -322,6 +371,25 @@ const server = http.createServer(async (req, res) => {
       res.destroy();
       return;
     }
+    const imageErrors = {
+      invalid_image: "Envie uma imagem JPG ou PNG válida.",
+      image_dimensions:
+        "A imagem precisa ter 1080 × 1920 pixels e ser estática.",
+      image_too_large: "Cada imagem pode ter até 8 MB.",
+      image_timeout:
+        "Não foi possível processar a imagem no prazo. Tente outro arquivo.",
+      upload_storage_quota:
+        "O espaço para uploads está cheio. Aguarde a limpeza automática das imagens expiradas.",
+      upload_expired:
+        "As imagens expiraram. Envie os arquivos novamente para gerar o vídeo.",
+      invalid_image_sequence:
+        "Use uma imagem no modo único ou de 2 a 5 no modo sequência.",
+      invalid_image_duration:
+        "Escolha entre 1 e 60 segundos inteiros por imagem.",
+      image_duration_limit: "A sequência pode ter no máximo 60 segundos.",
+    };
+    if (imageErrors[error.message])
+      return json(res, 400, { error: imageErrors[error.message], requestId });
     const limited = ["rate_limited", "render_daily_limit"].includes(
       error.message,
     );
@@ -348,7 +416,7 @@ server.keepAliveTimeout = 5000;
 server.headersTimeout = 15000;
 let maintaining = false;
 const cleanup = setInterval(async () => {
-  if (maintaining || preparing) return;
+  if (maintaining || preparing || uploading) return;
   maintaining = true;
   try {
     await maintainStorage(store, process.env.APP_DATA_DIR);

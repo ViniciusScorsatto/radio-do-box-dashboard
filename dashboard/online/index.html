@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/style.css" />
     <script defer src="/player.js"></script>
     <script defer src="/app.js"></script>
+    <script defer src="/images.js"></script>
   </head>
   <body>
     <header>
@@ -16,6 +17,7 @@
     </header>
     <nav aria-label="Principal">
       <a data-nav href="/">Criar vídeo</a
+      ><a data-nav href="/images">Short com imagens</a
       ><a data-nav href="/videos">Meus vídeos</a
       ><a data-nav href="/settings">Configurações</a>
     </nav>
@@ -144,6 +146,94 @@
           </div>
         </div>
       </section>
+      <section id="images" hidden>
+        <div class="heading">
+          <span class="eyebrow">SUA ARTE · SEU SHORT</span>
+          <h1>Short com imagens.</h1>
+          <p>
+            Envie suas artes verticais e transforme-as em um vídeo com trilha.
+          </p>
+        </div>
+        <div class="workspace">
+          <form id="images-form" class="panel">
+            <h2>01 / Suas imagens</h2>
+            <label
+              >Modo<select name="mode" id="image-mode">
+                <option value="single">Uma imagem · 12 segundos</option>
+                <option value="sequence">Sequência · 2 a 5 imagens</option>
+              </select></label
+            >
+            <label
+              >Nome do vídeo<input
+                name="title"
+                maxlength="160"
+                placeholder="Ex.: Resumo do fim de semana"
+            /></label>
+            <p>
+              JPG ou PNG · 1080 × 1920 pixels · até 8 MB por imagem. A arte
+              aparece inteira, sem cortes ou textos extras.
+            </p>
+            <label class="upload-zone"
+              >Adicionar imagens<input
+                id="image-files"
+                type="file"
+                accept="image/jpeg,image/png"
+            /></label>
+            <ol id="image-list" class="image-list"></ol>
+            <p id="image-total" aria-live="polite">
+              Escolha uma imagem para começar.
+            </p>
+            <label
+              >Música<select
+                name="soundtrackPath"
+                id="image-soundtrack"
+              ></select
+            ></label>
+            <label
+              >Volume<input
+                name="soundtrackVolume"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value="0.2"
+            /></label>
+            <p>
+              A música continua entre as imagens e repete quando necessário. O
+              último segundo tem fade-out. Volume zero gera um vídeo sem música.
+            </p>
+            <div class="actions">
+              <button
+                class="primary"
+                id="prepare-images"
+                type="submit"
+                disabled
+              >
+                Preparar prévia</button
+              ><button id="render-images" type="button" disabled>
+                Gerar MP4
+              </button>
+            </div>
+            <p>
+              As imagens expiram após 48 horas sem uso. Cada novo render renova
+              esse prazo. Guarde os originais para gerar novamente depois.
+            </p>
+          </form>
+          <div class="panel preview">
+            <h2>02 / Prévia</h2>
+            <div id="image-player">
+              <div class="empty">
+                <strong>Sua arte em movimento.</strong>
+                <p>Envie as imagens e prepare a prévia.</p>
+                <span>1080 × 1920 · até 60 segundos</span>
+              </div>
+            </div>
+            <p id="image-preview-note">
+              Confira a ordem, os tempos e a música antes de gerar.
+            </p>
+          </div>
+        </div>
+      </section>
       <section id="videos" hidden>
         <div class="heading">
           <span class="eyebrow">SUA PRODUÇÃO</span>
@@ -179,7 +269,8 @@
             <dt>Retenção</dt>
             <dd>
               MP4 disponível por 48 horas após a conclusão. Os dados ficam
-              salvos para gerar novamente.
+              salvos para gerar novamente. Imagens enviadas expiram após 48
+              horas sem novo render; guarde os originais.
             </dd>
             <dt>Áudio</dt>
             <dd>
