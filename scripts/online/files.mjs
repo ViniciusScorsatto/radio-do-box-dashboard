@@ -8,6 +8,7 @@ const types = {
   ".mp4": "video/mp4",
   ".mp3": "audio/mpeg",
   ".png": "image/png",
+  ".webp": "image/webp",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".svg": "image/svg+xml",

@@ -17,6 +17,14 @@ async function port() {
 test("HTTP auth wall, direct login, CSRF, queue, streaming, logout and expiry", async (t) => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "rdb-http-"));
   await fs.mkdir(path.join(directory, "renders"));
+  await fs.mkdir(path.join(directory, "public", "online-assets"), {
+    recursive: true,
+  });
+  const portrait = "b".repeat(64) + ".png";
+  await fs.writeFile(
+    path.join(directory, "public", "online-assets", portrait),
+    "fixture-image",
+  );
   const store = openStore(directory);
   store.addSession("test-session", "a@example.com");
   const number = await port();
@@ -72,6 +80,17 @@ test("HTTP auth wall, direct login, CSRF, queue, streaming, logout and expiry", 
   ])
     assert.equal((await fetch(base + route)).status, 401);
   assert.equal((await fetch(base + "/healthz")).status, 200);
+  assert.equal(
+    (await fetch(base + "/public/online-assets/" + portrait)).status,
+    401,
+  );
+  const portraitResponse = await fetch(
+    base + "/public/online-assets/" + portrait,
+    { headers },
+  );
+  assert.equal(portraitResponse.status, 200);
+  assert.equal(await portraitResponse.text(), "fixture-image");
+
   assert.equal(
     (await fetch(base + "/auth/google/callback?code=invalid&state=invalid"))
       .status,

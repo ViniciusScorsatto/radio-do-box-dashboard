@@ -16,7 +16,11 @@ const domains = {
   f2: "www.fiaformula2.com",
   f3: "www.fiaformula3.com",
   "f1-academy": "www.f1academy.com",
+  indycar: "www.indycar.com",
+  "stock-pro": "velocigroup.com.br",
+  "stock-light": "velocigroup.com.br",
 };
+const standingsOnly = new Set(["indycar", "stock-pro", "stock-light"]);
 export function validateInput(body) {
   const season = Number(body.season);
   const category = body.category || "f1";
@@ -44,6 +48,11 @@ function sourceUrl(value, category) {
 export async function prepare(body) {
   const { season, category } = validateInput(body);
   if (!templates.includes(body.template)) throw new Error("invalid_template");
+  if (
+    standingsOnly.has(category) &&
+    body.template !== "source-driver-standings"
+  )
+    throw new Error("category_standings_only");
   if (body.template === "source-constructor-standings" && category !== "f1")
     throw new Error("constructors_f1_only");
   const raceType = body.raceType || "race";
@@ -98,6 +107,8 @@ if (process.send)
   process.once("message", async ({ operation, body }) => {
     try {
       const selection = validateInput(body);
+      if (operation !== "prepare" && standingsOnly.has(selection.category))
+        throw new Error("category_standings_only");
       const result =
         operation === "events"
           ? await loadF1SourceEvents(selection)

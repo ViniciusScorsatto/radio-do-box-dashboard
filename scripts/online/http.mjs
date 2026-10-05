@@ -251,6 +251,13 @@ const server = http.createServer(async (req, res) => {
           path.join(projectRoot, "build/online"),
           "player.js",
         );
+      if (route.startsWith("/public/online-assets/"))
+        return await serveFile(
+          req,
+          res,
+          path.join(process.env.APP_DATA_DIR, "public", "online-assets"),
+          decodeURIComponent(route.slice("/public/online-assets/".length)),
+        );
       if (route.startsWith("/public/"))
         return await serveFile(
           req,

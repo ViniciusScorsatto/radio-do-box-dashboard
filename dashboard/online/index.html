@@ -34,7 +34,7 @@
               >Template<select name="template">
                 <option value="source-results">Resultado de sessão</option>
                 <option value="source-driver-standings">
-                  Mundial de pilotos
+                  Mundial / Campeonato de pilotos
                 </option>
                 <option value="source-constructor-standings">
                   Mundial de construtores · F1
@@ -49,6 +49,9 @@
                   <option value="f2">Formula 2</option>
                   <option value="f3">Formula 3</option>
                   <option value="f1-academy">F1 Academy</option>
+                  <option value="indycar">IndyCar</option>
+                  <option value="stock-pro">Stock Car Pro Series</option>
+                  <option value="stock-light">Stock Light</option>
                 </select></label
               ><label
                 >Temporada<input
@@ -59,6 +62,9 @@
                   required
               /></label>
             </div>
+            <p id="category-note" hidden>
+              Nesta categoria, está disponível o campeonato de pilotos.
+            </p>
             <div id="event-fields">
               <button type="button" id="load-events">Buscar eventos</button
               ><label

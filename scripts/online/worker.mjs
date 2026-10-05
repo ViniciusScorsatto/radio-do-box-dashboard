@@ -23,12 +23,18 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, "http://localhost");
   const relative =
     decodeURIComponent(url.pathname).replace(/^\//, "") || "index.html";
-  serveFile(req, res, path.join(projectRoot, "build/renderer"), relative).catch(
-    () => {
-      res.writeHead(500);
-      res.end();
-    },
-  );
+  const portrait = relative.startsWith("public/online-assets/");
+  serveFile(
+    req,
+    res,
+    portrait
+      ? path.join(directory, "public", "online-assets")
+      : path.join(projectRoot, "build/renderer"),
+    portrait ? relative.slice("public/online-assets/".length) : relative,
+  ).catch(() => {
+    res.writeHead(500);
+    res.end();
+  });
 });
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const serveUrl = `http://127.0.0.1:${server.address().port}`;

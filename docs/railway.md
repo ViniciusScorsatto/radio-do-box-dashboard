@@ -14,7 +14,7 @@ Implementação na branch `codex/private-railway-dashboard`, criada após `git p
 | `out/` local | MP4 em `/data/renders` | Autenticação, HEAD/Range, expiração após 48h |
 | Uma conta no guia | Lista de uma ou duas contas Google verificadas | `ALLOWED_EMAILS` cobre você e sua irmã |
 
-O fluxo online habilita Formula 1, Formula 2, Formula 3 e F1 Academy já suportados pelos coletores. Construtores ficam limitados à F1. Agenda/PNG, comparações, palpites, importação por texto e outras telas locais continuam nos comandos locais. Não são publicados pelo servidor online.
+O fluxo online habilita Formula 1, Formula 2, Formula 3 e F1 Academy já suportados pelos coletores, além dos campeonatos de pilotos de IndyCar, Stock Car Pro Series e Stock Light. Essas três categorias oferecem somente campeonato de pilotos; o formulário ajusta o template automaticamente. Construtores ficam limitados à F1. Agenda/PNG, comparações, palpites, importação por texto e outras telas locais continuam nos comandos locais. Não são publicados pelo servidor online.
 
 ## Executar e validar
 
@@ -50,7 +50,7 @@ docker build -t radio-do-box-online:test .
 | `APP_DATA_DIR` | `/data` |
 | `PORT` | `4321` |
 
-`APP_ONLINE=true` é definido pelo inicializador. Não configurar `F1_API_KEY`, chaves de IA/TTS ou URLs alternativas de fonte. O fluxo online só permite os hosts oficiais conhecidos e rejeita redirects para impedir que URLs de entrada consultem destinos arbitrários.
+`APP_ONLINE=true` é definido pelo inicializador. Não configurar `F1_API_KEY`, chaves de IA/TTS ou URLs alternativas de fonte. Stock reutiliza as consultas públicas do próprio site Veloci/Paddock, sem exigir uma chave de API sua. O fluxo online só permite os hosts oficiais conhecidos e rejeita redirects para impedir que URLs de entrada consultem destinos arbitrários.
 
 O health check público é `/healthz`. A aplicação inicia HTTP somente depois de o worker ficar pronto. Falha de servidor/worker encerra o serviço para reinício pelo Railway. SIGTERM cancela o render e tem limite de 15 segundos antes de SIGKILL; renders interrompidos viram `failed` na próxima inicialização.
 
@@ -68,7 +68,7 @@ Limites: 20 renders ativos/aguardando; 30 minutos por render (encerramento forç
 
 `/data/app.sqlite` guarda snapshots, fila, sessões e estados OAuth; `/data/renders` guarda arquivos finais/parciais. Os diretórios `tmp` e `generated` são reservados no volume. Banco começa vazio. Nenhum job local é importado e nenhum segredo, banco, vídeo ou arquivo gerado entra na imagem.
 
-Os templates, configurações, trilhas, fontes e imagens distribuídos pertencem à imagem/Git. Não há edição ou upload de assets online nesta versão; não há necessidade de seed mutável ou cache Python/FastF1. O fluxo habilitado lê os assets existentes e não baixa imagens para o repositório. Preserve os arquivos referenciados por snapshots: ao mudar uma imagem/música, use novo nome em vez de sobrescrever. Mudanças de template entre deploys podem alterar a aparência de um render repetido; para reproduzir uma versão antiga exatamente, restaure a mesma revisão da imagem.
+Os templates, configurações, trilhas, fontes e imagens distribuídos pertencem à imagem/Git. Não há edição ou upload de assets online nesta versão; não há necessidade de seed mutável ou cache Python/FastF1. O fluxo habilitado lê os assets distribuídos e guarda as fotos oficiais da Stock em `/data/public/online-assets`, com nomes derivados do conteúdo. Prévia e renderer leem os mesmos arquivos privados. As imagens não são apagadas ao excluir/expirar MP4, preservando os snapshots. Falha no download mantém o fallback visual existente de iniciais. Nenhuma imagem online é gravada no repositório. Preserve os arquivos referenciados por snapshots: ao mudar uma imagem/música, use novo nome em vez de sobrescrever. Mudanças de template entre deploys podem alterar a aparência de um render repetido; para reproduzir uma versão antiga exatamente, restaure a mesma revisão da imagem.
 
 As permissões de uso/republicação dos dados, fontes, músicas e imagens continuam sob responsabilidade do projeto. A migração não adiciona nem concede licenças. Mudanças ou bloqueios dos sites podem exigir manutenção dos coletores.
 
@@ -82,9 +82,9 @@ Logs JSON em stdout contêm evento, timestamp, `requestId`/`renderId`, estado e 
 APP_DATA_DIR=/data npm run backup:online -- /tmp/radio-do-box-backup.sqlite
 ```
 
-O script usa a API SQLite de backup, incluindo conteúdo ainda no WAL; nunca copie `app.sqlite` ativo sozinho. O destino não pode existir. Transfira o backup para armazenamento externo privado; `/tmp` ou o próprio volume não são proteção contra perda do volume. MP4 fica fora por ser temporário; assets/configurações são recuperados da mesma revisão Git/imagem.
+O script usa a API SQLite de backup, incluindo conteúdo ainda no WAL; nunca copie `app.sqlite` ativo sozinho. O destino não pode existir. Transfira o backup para armazenamento externo privado; `/tmp` ou o próprio volume não são proteção contra perda do volume. MP4 fica fora por ser temporário. O comando também cria o diretório `<destino>.sqlite.assets` (para um destino terminado em `.sqlite`) com os retratos persistentes; guarde ambos. Assets/configurações distribuídos são recuperados da mesma revisão Git/imagem.
 
-Para restaurar: parar o serviço, preservar o volume antigo, criar volume vazio e copiar o backup como `/data/app.sqlite`. Antes de reabrir acesso, executar com `node:sqlite`:
+Para restaurar: parar o serviço, preservar o volume antigo, criar volume vazio e copiar o backup como `/data/app.sqlite` e o conteúdo de seu diretório `.assets` para `/data/public/online-assets`. Antes de reabrir acesso, executar com `node:sqlite`:
 
 ```js
 import {DatabaseSync} from 'node:sqlite';
@@ -114,3 +114,9 @@ O check TypeScript online é separado porque a base já tem três erros em `F1La
 - Login Google e Safari/Chrome em dispositivos físicos não foram testados; nenhuma conta/infraestrutura externa foi configurada ou publicada.
 - Serviço completo (supervisor + HTTP + worker) testado com snapshot obtido do site, render serial, MP4 concluído e download autenticado após recriar o container com o mesmo volume. O arquivo persistido tinha 914.552 bytes, vídeo H.264 1080×1920 e áudio AAC.
 - Uma amostra durante esse render usou aproximadamente 980 MiB de memória e 249% de CPU no Docker local. Não representa pico medido nem garantia de capacidade/preço em outra máquina.
+
+### Categorias restauradas no painel online
+
+IndyCar, Stock Car Pro Series e Stock Light estão disponíveis em **Categoria**, usando **Mundial / Campeonato de pilotos**. As três passam pelos coletores que já existiam localmente, sem API-Sports. Resultados de sessões e notícias continuam limitados às categorias que têm esses coletores.
+
+A coleta real e a renderização PNG foram verificadas em Linux para IndyCar (33 pilotos), Stock Pro (32) e Stock Light (20). A suíte completa passou com 30 testes. As fotos Stock usam o host público Paddock também na porta HTTPS 9091; a validação mantém host, porta, caminho, formato e tamanho restritos. O backup agora inclui banco e retratos persistentes.

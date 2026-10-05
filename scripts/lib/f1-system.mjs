@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import path from 'node:path';
 import {projectRoot} from './video-system.mjs';
 import {loadStockStandings} from './stock-standings.mjs';
+import {persistOnlinePortrait} from './online-portraits.mjs';
 
 const generatedDir = process.env.APP_ONLINE === 'true'
   ? path.join(process.env.APP_DATA_DIR, 'generated')
@@ -344,7 +345,7 @@ const fetchJson = async (url, apiKey, apiHost) => {
 const fetchOfficialHtml = async (url) => {
   if (process.env.APP_ONLINE === 'true') {
     const target = new URL(url);
-    if (target.protocol !== 'https:' || target.port || target.username || target.password || !['www.formula1.com', 'www.fiaformula2.com', 'www.fiaformula3.com', 'www.f1academy.com'].includes(target.hostname)) throw new Error('invalid_source_url');
+    if (target.protocol !== 'https:' || target.port || target.username || target.password || !['www.formula1.com', 'www.fiaformula2.com', 'www.fiaformula3.com', 'www.f1academy.com', 'www.indycar.com'].includes(target.hostname)) throw new Error('invalid_source_url');
   }
   const response = await fetch(url, {
     ...(process.env.APP_ONLINE === 'true' ? {redirect: 'error'} : {}),
@@ -4060,7 +4061,9 @@ const buildFiaStandingsJob = async ({season, category = 'f1', constructors = fal
     }
     if (!constructors && !useFlags) badge.imagePath = await localDriverImageFor(name) ?? badge.imagePath;
     if (['stock-pro', 'stock-light'].includes(category) && result.portraits?.[name]) {
-      try { badge.imagePath = await downloadAsset(result.portraits[name], f1DriverImagesDir, `${category}-${season}-${name}`); } catch { /* Keep initials if the official portrait is unavailable. */ }
+      try { badge.imagePath = process.env.APP_ONLINE === 'true'
+        ? await persistOnlinePortrait(result.portraits[name])
+        : await downloadAsset(result.portraits[name], f1DriverImagesDir, `${category}-${season}-${name}`); } catch { /* Keep initials if the official portrait is unavailable. */ }
     }
     if (category === 'indycar' || ['stock-pro', 'stock-light'].includes(category)) {
       badge.hideSublabel = false;

@@ -27,6 +27,18 @@ function saveForm() {
   } catch {}
 }
 function visibility() {
+  const standingsOnly = ["indycar", "stock-pro", "stock-light"].includes(
+    form.elements.category.value,
+  );
+  for (const option of form.elements.template.options) {
+    option.disabled = standingsOnly
+      ? option.value !== "source-driver-standings"
+      : option.value === "source-constructor-standings" &&
+        form.elements.category.value !== "f1";
+  }
+  if (form.elements.template.selectedOptions[0]?.disabled)
+    form.elements.template.value = "source-driver-standings";
+  $("category-note").hidden = !standingsOnly;
   const template = form.elements.template.value;
   $("event-fields").hidden = template !== "source-results";
   $("article-fields").hidden = template !== "editorial";
@@ -37,8 +49,8 @@ function invalidate() {
   $("render").disabled = true;
   $("preview-note").textContent =
     "Os ajustes mudaram. Prepare novamente antes de gerar o MP4.";
-  saveForm();
   visibility();
+  saveForm();
 }
 form.elements.season.value = new Date().getFullYear();
 try {
