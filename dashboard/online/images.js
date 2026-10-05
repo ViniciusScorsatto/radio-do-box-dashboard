@@ -138,9 +138,14 @@
         }
         try {
           const bitmap = await createImageBitmap(file);
-          const correct = bitmap.width === 1080 && bitmap.height === 1920;
+          const correct =
+            Math.abs(bitmap.width * 16 - bitmap.height * 9) <= 16 &&
+            bitmap.width * bitmap.height <= 24_000_000;
           bitmap.close();
-          if (!correct) throw Error("A imagem precisa ter 1080 × 1920 pixels.");
+          if (!correct)
+            throw Error(
+              "A imagem precisa estar em 9:16 (ex.: 720 × 1280 ou 1080 × 1920), com até 24 megapixels.",
+            );
           items.push({
             file,
             url: URL.createObjectURL(file),

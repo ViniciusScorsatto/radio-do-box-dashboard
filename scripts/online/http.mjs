@@ -374,7 +374,7 @@ const server = http.createServer(async (req, res) => {
     const imageErrors = {
       invalid_image: "Envie uma imagem JPG ou PNG válida.",
       image_dimensions:
-        "A imagem precisa ter 1080 × 1920 pixels e ser estática.",
+        "Envie uma imagem estática em 9:16 (ex.: 720 × 1280 ou 1080 × 1920), com até 24 megapixels.",
       image_too_large: "Cada imagem pode ter até 8 MB.",
       image_timeout:
         "Não foi possível processar a imagem no prazo. Tente outro arquivo.",

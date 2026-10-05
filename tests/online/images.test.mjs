@@ -183,3 +183,35 @@ test("oversized uploads are rejected with and without Content-Length before deco
     await fs.rm(directory, { recursive: true, force: true });
   }
 });
+
+test("9:16 images in other resolutions normalize without cropping, including EXIF orientation", async () => {
+  for (const [width, height] of [
+    [720, 1280],
+    [941, 1672],
+    [2160, 3840],
+  ]) {
+    const input = await sharp({
+      create: { width, height, channels: 3, background: "red" },
+    })
+      .png()
+      .toBuffer();
+    const result = await sharp(await normalizeImage(input)).metadata();
+    assert.equal(result.width, 1080);
+    assert.equal(result.height, 1920);
+  }
+  const oriented = await sharp({
+    create: { width: 1280, height: 720, channels: 3, background: "blue" },
+  })
+    .withMetadata({ orientation: 6 })
+    .jpeg()
+    .toBuffer();
+  const result = await sharp(await normalizeImage(oriented)).metadata();
+  assert.equal(result.width, 1080);
+  assert.equal(result.height, 1920);
+  const square = await sharp({
+    create: { width: 1080, height: 1080, channels: 3, background: "red" },
+  })
+    .png()
+    .toBuffer();
+  await assert.rejects(normalizeImage(square), /image_dimensions/);
+});

@@ -17,17 +17,27 @@ export async function normalizeImage(bytes) {
     }
   }
   const image = sharp(bytes, {
-    limitInputPixels: 1080 * 1920,
+    limitInputPixels: 24_000_000,
     failOn: "warning",
   });
   const metadata = await image.metadata();
   const swapped = [5, 6, 7, 8].includes(metadata.orientation);
   const width = swapped ? metadata.height : metadata.width;
   const height = swapped ? metadata.width : metadata.height;
-  if (width !== 1080 || height !== 1920 || (metadata.pages || 1) !== 1)
+  if (
+    !width ||
+    !height ||
+    Math.abs(width * 16 - height * 9) > 16 ||
+    (metadata.pages || 1) !== 1
+  )
     throw new Error("image_dimensions");
   // Decode all pixels and re-encode, stripping EXIF, profiles and trailing data.
-  return image.rotate().toColourspace("srgb").png().toBuffer();
+  return image
+    .rotate()
+    .resize(1080, 1920, { fit: "fill" })
+    .toColourspace("srgb")
+    .png()
+    .toBuffer();
 }
 if (process.send) {
   process.once("message", async ({ input, output }) => {

@@ -227,8 +227,10 @@ A área **Short com imagens** (`/images`) aceita artes criadas fora do dashboard
 - **Sequência:** de 2 a 5 imagens, de 1 a 60 segundos inteiros por imagem,
   respeitando o máximo de 60 segundos no total. Antes/Depois altera a ordem e
   Remover retira uma imagem da edição.
-- Arquivos JPG ou PNG estáticos, exatamente 1080 × 1920 pixels após aplicar a
-  orientação EXIF, até 8 MiB cada. O servidor decodifica e regrava como PNG,
+- Arquivos JPG ou PNG estáticos, proporção 9:16 após aplicar a
+  orientação EXIF, até 8 MiB e 24 megapixels cada. Resoluções como 720×1280
+  e 2160×3840 são ajustadas para 1080×1920 sem cortes. A validação tolera
+  até um pixel de arredondamento na largura proporcional (incluindo 941×1672). O servidor decodifica e regrava como PNG,
   removendo metadados. Nenhuma arte é cortada nem recebe títulos sobrepostos.
   O nome do vídeo aparece apenas no histórico.
 - A prévia e o MP4 compartilham a mesma composição, ordem e durações. A trilha
