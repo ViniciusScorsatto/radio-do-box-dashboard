@@ -62,6 +62,7 @@ test("online Indy standings preserve engine, points and flags without API keys o
 for (const category of ["stock-pro", "stock-light"])
   test(`online ${category} uses its own championship and persists immutable portraits`, async (t) => {
     const directory = await online(t);
+    let portraitDownloads = 0;
     const id = category === "stock-light" ? "17" : "16";
     const method =
       category === "stock-light"
@@ -77,6 +78,7 @@ for (const category of ["stock-pro", "stock-light"])
           `Authorization:"Bearer fixture"},body:JSON.stringify({metodo:"${method}",IDappCampeonato:"${id}",IDappCampeonatoEtapa:"0",AppCampeonatoRankingTipo:"Piloto"`,
         );
       if (url === portraitUrl) {
+        portraitDownloads++;
         assert.equal(options.redirect, "error");
         return new Response(png);
       }
@@ -130,7 +132,16 @@ for (const category of ["stock-pro", "stock-light"])
       await fs.readFile(path.join(directory, "public", image)),
       png,
     );
-    assert.equal(await persistOnlinePortrait(portraitUrl), image);
+    assert.equal(
+      await persistOnlinePortrait(portraitUrl, { category, season: 2026 }),
+      image,
+    );
+    await prepare({
+      category,
+      season: 2026,
+      template: "source-driver-standings",
+    });
+    assert.equal(portraitDownloads, 1);
     const store = openStore(directory);
     store.snapshot(job);
     store.db.close();

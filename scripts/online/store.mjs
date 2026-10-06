@@ -13,6 +13,7 @@ export function openStore(directory) {
     CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, email TEXT NOT NULL, expires INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS oauth (id TEXT PRIMARY KEY, data TEXT NOT NULL, expires INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS uploads (id TEXT PRIMARY KEY, bytes INTEGER NOT NULL, expires INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS portrait_cache (cache_key TEXT PRIMARY KEY, filename TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS limits (scope TEXT PRIMARY KEY, started INTEGER NOT NULL, used INTEGER NOT NULL);
     CREATE INDEX IF NOT EXISTS renders_created ON renders(created);
     CREATE INDEX IF NOT EXISTS renders_snapshot ON renders(snapshot);

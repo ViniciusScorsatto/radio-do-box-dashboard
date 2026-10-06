@@ -110,6 +110,7 @@ test("portrait quota refuses additional files without changing existing assets",
     await assert.rejects(
       persistOnlinePortrait(
         "https://api.paddockfan.com.br/simetraapppaddockfan/imagens/test.png",
+        { category: "stock-pro", season: 2026 },
       ),
       /portrait_storage_quota/,
     );

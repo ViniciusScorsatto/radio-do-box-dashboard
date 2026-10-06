@@ -4,8 +4,73 @@ let reservedBytes = 0;
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 
-// Stock portraits are immutable snapshot assets, stored on the Railway volume.
-export async function persistOnlinePortrait(value) {
+const pending = new Map();
+const portraitName = /^[a-f0-9]{64}\.(png|jpg|webp)$/;
+
+// Cache by selected championship season and source, independently of wall-clock time.
+// Dynamic import keeps the local Node 20 workflow free of node:sqlite.
+export async function persistOnlinePortrait(value, { category, season } = {}) {
+  validateUrl(value);
+  if (
+    !["stock-pro", "stock-light"].includes(category) ||
+    !Number.isInteger(Number(season)) ||
+    Number(season) < 1950 ||
+    Number(season) > 2100
+  )
+    throw new Error("invalid_portrait_season");
+  const directory = process.env.APP_DATA_DIR;
+  if (!directory || !path.isAbsolute(directory))
+    throw new Error("missing_data_directory");
+  const key = createHash("sha256")
+    .update(JSON.stringify([category, Number(season), new URL(value).href]))
+    .digest("hex");
+  const pendingKey = `${directory}:${key}`;
+  if (pending.has(pendingKey)) return pending.get(pendingKey);
+  const operation = (async () => {
+    const { openStore } = await import("../online/store.mjs");
+    const store = openStore(directory);
+    try {
+      const cached = store.db
+        .prepare("SELECT filename FROM portrait_cache WHERE cache_key=?")
+        .get(key);
+      if (cached && portraitName.test(cached.filename)) {
+        const stat = await fs
+          .lstat(
+            path.join(directory, "public", "online-assets", cached.filename),
+          )
+          .catch((error) => {
+            if (error.code === "ENOENT") return null;
+            throw error;
+          });
+        if (stat?.isFile() && stat.size > 0)
+          return `/online-assets/${cached.filename}`;
+      }
+      if (
+        !cached &&
+        store.db.prepare("SELECT count(*) n FROM portrait_cache").get().n >=
+          10000
+      )
+        throw new Error("portrait_cache_quota");
+      const asset = await downloadPortrait(value);
+      store.db
+        .prepare(
+          "INSERT OR REPLACE INTO portrait_cache (cache_key,filename) VALUES (?,?)",
+        )
+        .run(key, path.basename(asset));
+      return asset;
+    } finally {
+      store.db.close();
+    }
+  })();
+  pending.set(pendingKey, operation);
+  try {
+    return await operation;
+  } finally {
+    pending.delete(pendingKey);
+  }
+}
+
+function validateUrl(value) {
   const url = new URL(value);
   if (
     url.protocol !== "https:" ||
@@ -16,8 +81,11 @@ export async function persistOnlinePortrait(value) {
     !/^\/simetraapppaddockfan\/imagens\//i.test(url.pathname)
   )
     throw new Error("invalid_portrait_url");
-  if (!process.env.APP_DATA_DIR || !path.isAbsolute(process.env.APP_DATA_DIR))
-    throw new Error("missing_data_directory");
+}
+
+// Files remain content-addressed so a new season cannot alter old snapshots.
+async function downloadPortrait(value) {
+  const url = new URL(value);
   const response = await fetch(url.href, {
     redirect: "error",
     signal: AbortSignal.timeout(15000),

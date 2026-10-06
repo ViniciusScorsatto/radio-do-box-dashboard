@@ -9,7 +9,12 @@ export async function maintainStorage(store, directory, now = Date.now()) {
   store.cleanupAuth();
   await expireUploads(store, directory, now);
   // Preserve every snapshot asset, including expired MP4s that can be rendered again.
-  const referenced = new Set();
+  const referenced = new Set(
+    store.db
+      .prepare("SELECT filename FROM portrait_cache")
+      .all()
+      .map((row) => row.filename),
+  );
   for (const { job } of store.db
     .prepare("SELECT job FROM snapshots")
     .iterate()) {

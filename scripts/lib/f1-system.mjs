@@ -4063,7 +4063,7 @@ const buildFiaStandingsJob = async ({season, category = 'f1', constructors = fal
     if (!constructors && !useFlags) badge.imagePath = await localDriverImageFor(name) ?? badge.imagePath;
     if (['stock-pro', 'stock-light'].includes(category) && result.portraits?.[name]) {
       try { badge.imagePath = process.env.APP_ONLINE === 'true'
-        ? await persistOnlinePortrait(result.portraits[name])
+        ? await persistOnlinePortrait(result.portraits[name], {category, season})
         : await downloadAsset(result.portraits[name], f1DriverImagesDir, `${category}-${season}-${name}`); } catch { /* Keep initials if the official portrait is unavailable. */ }
     }
     if (category === 'indycar' || ['stock-pro', 'stock-light'].includes(category)) {

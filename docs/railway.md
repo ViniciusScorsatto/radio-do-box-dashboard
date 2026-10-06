@@ -271,3 +271,21 @@ integrado. Tela de 390×844 sem transbordamento horizontal e sem erros de consol
 (apenas o aviso informativo de licenciamento do Remotion). O TypeScript global
 continua com os três erros anteriores em F1LargeVideosComposition e
 F1RacePredictionsComposition, fora da área online.
+
+### Cache de retratos por temporada
+
+Os retratos online da Stock Pro e Stock Light são baixados uma vez por categoria,
+ano selecionado e URL de origem. A associação fica na tabela `portrait_cache` do
+SQLite em `/data`, e as imagens continuam em `/data/public/online-assets`. Não há
+expiração diária: reinícios, deploys e a limpeza de vídeos não removem esse cache.
+Uma temporada diferente, uma URL diferente ou um arquivo ausente exigem novo
+download. Falhas não ficam em cache; o próximo preparo tenta novamente.
+
+Os arquivos usam o hash do conteúdo, preservando os retratos de snapshots antigos
+mesmo quando a fonte muda na temporada seguinte. Permanecem os limites de 8 MiB
+por download e 512 MiB de retratos; o índice aceita até 10 mil associações. A
+migração é automática e aditiva, e o backup opcional do SQLite inclui o índice.
+As imagens já existentes serão associadas no primeiro preparo após o deploy.
+Fotos e logos de F1 incluídos em `public/f1` continuam sendo reutilizados localmente;
+sua atualização depende de substituir os assets do projeto. O cache por temporada
+não altera os uploads temporários da área de Shorts nem os headers privados HTTP.
