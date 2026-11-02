@@ -310,3 +310,32 @@ nav {
   border: 1px dashed #777;
   background: #111;
 }
+
+#penalty-rows {
+  max-height: 420px;
+  overflow-y: auto;
+}
+.penalty-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 95px 105px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #333;
+}
+.penalty-row strong {
+  overflow-wrap: anywhere;
+}
+.penalty-row label {
+  font-size: 12px;
+}
+.penalty-row input {
+  width: 100%;
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  .penalty-row {
+    grid-template-columns: minmax(0, 1fr) 65px 75px;
+    gap: 8px;
+  }
+}

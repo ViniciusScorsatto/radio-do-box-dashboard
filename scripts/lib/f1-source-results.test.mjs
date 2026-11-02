@@ -28,3 +28,33 @@ test('status rows survive empty time cells without admitting notes or malformed 
   assert.deepEqual(result.rows.map((row) => row.time), ['', 'DNF', 'DNS', 'DSQ', 'NC', 'RET', 'DQ']);
   assert.ok(result.rows.every((row) => row.team === 'Team'));
 });
+
+test('source Shorts apply time and grid penalties once, preserve status and allow clearing', async (t) => {
+  const {prepare} = await import('../online/prepare.mjs');
+  const rows = [
+    ['1', '1', 'Driver One', 'Team', '51', '1:30:00.000', '25'],
+    ['2', '2', 'Driver Two', 'Team', '51', '+2.000s', '18'],
+    ['3', '3', 'Driver Three', 'Team', '51', '+4.000s', '15'],
+    ['4', '4', 'Driver Four', 'Team', '50', '+1 lap', '12'],
+    ['NC', '5', 'Driver Five', 'Team', '7', 'DNF', '0'],
+  ];
+  t.mock.method(globalThis, 'fetch', async () => new Response(htmlTable(rows)));
+  const body = {template: 'source-results', category: 'f1', season: 2026, eventUrl: 'https://www.formula1.com/en/results/2026/races/1295/azerbaijan/race-result'};
+  for (const raceType of ['race', 'sprint']) {
+    const adjusted = await prepare({...body, raceType, manualAdjustments: 'Driver Two +5s'});
+    assert.deepEqual(adjusted.podium.map(row => row.name), ['Driver One', 'Driver Three', 'Driver Two']);
+    assert.match(adjusted.podium[2].secondaryValue, /18 pts.*PEN \+5s/);
+    assert.equal(adjusted.entries[0].value, '+1 lap');
+    assert.equal(adjusted.entries[1].value, 'DNF');
+    const repeat = await prepare({...body, raceType, manualAdjustments: 'Driver Two +5s'});
+    assert.deepEqual(repeat.podium, adjusted.podium);
+    const cleared = await prepare({...body, raceType, manualAdjustments: ''});
+    assert.equal(cleared.podium[1].name, 'Driver Two');
+    assert.equal(cleared.podium[1].secondaryValue, '18 pts');
+  }
+  const grid = await prepare({...body, raceType: 'starting-grid', manualAdjustments: 'Driver One +3 pos'});
+  assert.equal(grid.entries[0].name, 'Driver One');
+  assert.equal(grid.entries[0].position, 4);
+  assert.match(grid.entries[0].secondaryValue, /PEN \+3 POS/);
+  await assert.rejects(prepare({...body, manualAdjustments: ['Driver Two +5s']}), /invalid_adjustments/);
+});

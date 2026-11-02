@@ -20,7 +20,64 @@ async function api(url, method = "GET", body) {
     );
   return data;
 }
-const values = () => Object.fromEntries(new FormData(form));
+const penaltyDrafts = new Map();
+const penaltyJobs = new Map();
+let penaltyKey = '';
+const resultKey = () => JSON.stringify(['template', 'category', 'season', 'eventUrl', 'raceType'].map(key => form.elements[key].value));
+function savePenalties() {
+  if (!penaltyKey) return;
+  penaltyDrafts.set(penaltyKey, [...$("penalty-rows").children].map(row => ({
+    name: row.dataset.driver,
+    seconds: row.querySelector('[data-seconds]').value,
+    positions: row.querySelector('[data-positions]').value,
+  })));
+}
+function showPenalties(job) {
+  const key = resultKey();
+  if (job) penaltyJobs.set(key, job);
+  if (penaltyKey === key && !job) return;
+  penaltyKey = key;
+  const current = penaltyJobs.get(key);
+  $("penalty-panel").hidden = form.elements.template.value !== 'source-results' || !current;
+  $("penalty-rows").replaceChildren();
+  if ($("penalty-panel").hidden) return;
+  const drafts = new Map((penaltyDrafts.get(key) || []).map(row => [row.name, row]));
+  const timed = ['race', 'sprint'].includes(form.elements.raceType.value);
+  for (const entry of [...(current.podium || []), ...(current.entries || [])]) {
+    const row = document.createElement('div');
+    row.className = 'penalty-row';
+    row.dataset.driver = entry.name;
+    const name = document.createElement('strong');
+    name.textContent = entry.name;
+    row.append(name);
+    for (const [type, label, max, step] of [['seconds', 'Tempo +s', 3600, '0.001'], ['positions', 'Posições perdidas', 100, '1']]) {
+      const wrapper = document.createElement('label');
+      wrapper.textContent = label;
+      const input = document.createElement('input');
+      input.type = 'number'; input.min = '0'; input.max = String(max); input.step = step;
+      input.dataset[type] = ''; input.value = drafts.get(entry.name)?.[type] || '';
+      input.setAttribute('aria-label', `${label}: ${entry.name}`);
+      input.disabled = type === 'seconds' && !timed;
+      wrapper.append(input); row.append(wrapper);
+    }
+    $("penalty-rows").append(row);
+  }
+}
+function manualAdjustments() {
+  if (form.elements.template.value !== 'source-results') return '';
+  return (penaltyDrafts.get(resultKey()) || []).map(row => {
+    const parts = [];
+    if (['race', 'sprint'].includes(form.elements.raceType.value) && Number(row.seconds) > 0) parts.push(`+${row.seconds}s`);
+    if (Number(row.positions) > 0) parts.push(`+${row.positions} pos`);
+    return parts.length ? `${row.name} ${parts.join(' ')}` : '';
+  }).filter(Boolean).join('\n');
+}
+$("penalty-rows").addEventListener('input', savePenalties);
+$("clear-penalties").onclick = () => {
+  $("penalty-rows").querySelectorAll('input').forEach(input => { input.value = ''; });
+  savePenalties(); invalidate();
+};
+const values = () => ({...Object.fromEntries(new FormData(form)), manualAdjustments: manualAdjustments()});
 function saveForm() {
   try {
     sessionStorage.setItem("rdb-form-v1", JSON.stringify(values()));
@@ -50,6 +107,7 @@ function invalidate() {
   $("preview-note").textContent =
     "Os ajustes mudaram. Prepare novamente antes de gerar o MP4.";
   visibility();
+  showPenalties();
   saveForm();
 }
 form.elements.season.value = new Date().getFullYear();
@@ -58,7 +116,7 @@ try {
   for (const [key, value] of Object.entries(saved))
     if (
       form.elements[key] &&
-      !["eventUrl", "articleUrl", "soundtrackPath"].includes(key)
+      !["eventUrl", "articleUrl", "soundtrackPath", "manualAdjustments"].includes(key)
     )
       form.elements[key].value = value;
 } catch {}
@@ -143,6 +201,7 @@ form.onsubmit = (event) => {
         return;
       }
       snapshot = data.id;
+      showPenalties(data.job);
       window.showPreview(data.job);
       $("render").disabled = false;
       $("preview-note").textContent =

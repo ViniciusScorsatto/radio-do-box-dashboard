@@ -2296,7 +2296,7 @@ const formatRaceGapMs = (gapMs) => {
 };
 
 const parseRaceGapMs = (value) => {
-  const rawValue = String(value ?? '').trim();
+  const rawValue = String(value ?? '').trim().replace(/\s*s$/i, '');
   const numericGap = rawValue.match(/^\+?\s*(\d+(?:[.,]\d+)?)$/);
   if (numericGap) {
     return Number(numericGap[1].replace(',', '.')) * 1000;
@@ -2468,7 +2468,8 @@ const applyManualClassificationAdjustments = (entries, template, manualAdjustmen
       ...item.entry,
       position: index + 1,
     };
-    if (template === 'race-results' && Number.isFinite(item.adjustedRaceMs)) {
+    if (template === 'race-results' && Number.isFinite(item.adjustedRaceMs) &&
+        (Number(item.entry.position) === 1 || parseRaceGapMs(item.entry.value) !== null)) {
       nextEntry.value =
         index === 0
           ? Number(item.entry.position) === 1
@@ -3880,7 +3881,7 @@ const sourceResultEventName = (eventUrl = '') => {
   return sourceEventLabel('', raw || 'etapa oficial');
 };
 
-const buildSourceResultsJob = async ({season, category = 'f1', eventUrl, session = 'race', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName}) => {
+const buildSourceResultsJob = async ({manualAdjustments, season, category = 'f1', eventUrl, session = 'race', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName}) => {
   const result = await loadOfficialSourceResults({season, category, eventUrl, session});
   if (!result.rows.length) throw new Error(result.warning || 'Nenhum resultado publicado foi encontrado.');
   const isGrid = ['starting-grid', 'qualifying', 'practice'].includes(session);
@@ -3900,14 +3901,15 @@ const buildSourceResultsJob = async ({season, category = 'f1', eventUrl, session
     const points = row.points || '0';
     return {position: row.position, name: driver, team, badge, value, secondaryValue: isGrid ? undefined : `${points} pts`, driverNumber: row.number, accentColor: badge.accentColor};
   }));
-  const podium = entries.slice(0, 3).map((entry) => ({...entry, stat: entry.secondaryValue || entry.value}));
+  const adjusted = applyManualClassificationAdjustments(entries, template, manualAdjustments);
+  const podium = adjusted.entries.slice(0, 3).map((entry) => ({...entry, stat: entry.secondaryValue || entry.value}));
   return {
     ...createBaseJob({template, templateConfig, themeConfig, competitionConfig, season, brandName, soundtrackPath, soundtrackVolume, raceType: session, raceName: eventName, title: labelOverride?.trim() || eventName, subtitle: isGrid ? 'Classificação de Largada' : session === 'sprint' ? 'Resultado da Sprint' : 'Resultado da Corrida', countryCode: '', circuitName: eventName, brandLogoPath: pickBrandLogoPath(themeConfig.variant), dataSource: sourceCategory(category).site, sourceUrl: result.sourceUrl, outputName: outputName?.trim() || `${category}-${sanitize(eventName)}-${session}-${season}.mp4`}),
     podium,
-    entries: entries.slice(3),
+    entries: adjusted.entries.slice(3),
     category,
     sourceLabel: sourceCategory(category).site,
-    manualAdjustments: [`Fonte oficial: ${result.sourceUrl}`, `Dados extraídos em ${result.extractedAt}.`],
+    manualAdjustments: [`Fonte oficial: ${result.sourceUrl}`, `Dados extraídos em ${result.extractedAt}.`, ...adjusted.appliedAdjustments],
   };
 };
 
@@ -4875,7 +4877,7 @@ export const prepareF1Job = async ({
         soundtrackVolume,
       });
     } else if (template === 'source-results') {
-      job = await buildSourceResultsJob({season, category, eventUrl, session: raceType || 'race', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName});
+      job = await buildSourceResultsJob({manualAdjustments, season, category, eventUrl, session: raceType || 'race', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName});
     } else if (template === 'fia-standings' || template === 'fia-constructor-standings') {
       job = await buildFiaStandingsJob({season, category, constructors: template === 'fia-constructor-standings', brandName, competitionName, labelOverride, soundtrackPath, soundtrackVolume, outputName});
     } else if (template === 'source-driver-standings' || template === 'source-constructor-standings') {

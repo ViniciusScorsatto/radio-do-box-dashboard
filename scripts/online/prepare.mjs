@@ -70,7 +70,11 @@ export async function prepare(body) {
     throw new Error("invalid_volume");
   const shortText = (v) =>
     typeof v === "string" ? v.slice(0, 160) : undefined;
+  if (body.manualAdjustments !== undefined &&
+      (typeof body.manualAdjustments !== "string" || body.manualAdjustments.length > 8000))
+    throw new Error("invalid_adjustments");
   const result = await prepareF1Job({
+    manualAdjustments: body.template === "source-results" ? body.manualAdjustments : undefined,
     template: body.template,
     season,
     category,
