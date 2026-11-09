@@ -118,10 +118,12 @@ const BaseF1StandingsComposition = ({
   const isF2 = category === 'f2' || category === 'f3' || category === 'f1-academy' || category === 'indycar' || category === 'stock-pro' || category === 'stock-light';
   const rows = entries.length > 0 ? entries.slice(0, maxRows) : [];
   const headerSubtitle = sanitizeStandingsSubtitle(title, subtitle);
-  const pageOneRows = rows.slice(1, 11);
-  const pageCount = 1 + Math.ceil(Math.max(0, rows.length - 11) / 12);
+  const firstPageSize = forceConstructorLogos ? 11 : 12;
+  const pageOneRows = rows.slice(1, firstPageSize);
+  const laterPageSize = !forceConstructorLogos && rows.length === 25 ? 13 : 12;
+  const pageCount = 1 + Math.ceil(Math.max(0, rows.length - firstPageSize) / laterPageSize);
   const pageIndex = pageCount > 2 ? Math.min(pageCount - 1, Math.floor(frame / (durationInFrames / pageCount))) : frame >= PAGE_SWITCH_FRAME ? 1 : 0;
-  const pageTwoRows = rows.slice(11 + Math.max(0, pageIndex - 1) * 12, 23 + Math.max(0, pageIndex - 1) * 12);
+  const pageTwoRows = rows.slice(firstPageSize + Math.max(0, pageIndex - 1) * laterPageSize, firstPageSize + (Math.max(0, pageIndex - 1) + 1) * laterPageSize);
   const hasSecondPageRows = pageTwoRows.length > 0;
   const showSecondPage = hasSecondPageRows && pageIndex > 0;
   const effectiveLeader =
@@ -172,8 +174,8 @@ const BaseF1StandingsComposition = ({
             logoPath={brandLogoPath}
             secondPage
             isConstructorStandings={forceConstructorLogos}
-            rowGap={12}
-            rowMinHeight={112}
+            rowGap={pageTwoRows.length > 12 ? 10 : 12}
+            rowMinHeight={pageTwoRows.length > 12 ? 108 : 112}
           />
         )}
       </div>
@@ -196,7 +198,7 @@ export const F1DriverStandingsComposition = (props: F1StandingsCompositionProps)
     {...props}
     brandLogoPath="/branding/radio-do-box/red.png"
     forceConstructorLogos={false}
-    maxRows={props.category === 'f3' || props.category === 'indycar' || props.category === 'stock-pro' || props.category === 'stock-light' ? props.entries.length : 23}
+    maxRows={props.entries.length}
   />
 );
 

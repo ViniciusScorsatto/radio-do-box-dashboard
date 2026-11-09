@@ -58,3 +58,23 @@ test('source Shorts apply time and grid penalties once, preserve status and allo
   assert.match(grid.entries[0].secondaryValue, /PEN \+3 POS/);
   await assert.rejects(prepare({...body, manualAdjustments: ['Driver Two +5s']}), /invalid_adjustments/);
 });
+
+test('local portraits accept Sainz with or without Jr and distinguish Camara full names', async (t) => {
+  const {prepare} = await import('../online/prepare.mjs');
+  for (const [name, image] of [
+    ['Carlos Sainz', 'williams-f1-team-carlos-sainz-jr.png'],
+    ['Carlos Sainz Jr.', 'williams-f1-team-carlos-sainz-jr.png'],
+    ['C. Sainz', 'williams-f1-team-carlos-sainz-jr.png'],
+    ['Rafael Câmara', 'haas-f1-team-rafa-camara.png'],
+    ['Sergio Sette Camara', 'stock-pro-2026-sergio-sette-camara.png'],
+  ]) {
+    const mock = t.mock.method(globalThis, 'fetch', async () => new Response(htmlTable([
+      ['1', '55', name, 'Team', '1', '1:20.000', '0'],
+    ])));
+    try {
+      const job = await prepare({template: 'source-results', category: 'f1', season: 2026,
+        eventUrl: 'https://www.formula1.com/test/race-result'});
+      assert.equal(job.podium[0].badge.imagePath, `/f1/drivers/${image}`, name);
+    } finally { mock.mock.restore(); }
+  }
+});

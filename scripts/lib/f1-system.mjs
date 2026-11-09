@@ -1173,10 +1173,14 @@ const resolvePastedDriver = (pastedName, team) => {
 
 const localDriverImageFor = async (name) => {
   const files = await fs.readdir(f1DriverImagesDir).catch(() => []);
-  const surname = normalizePastedDriverKey(name.split(/\s+/).at(-1));
-  const fullName = normalizePastedDriverKey(name);
-  const match = files.find((file) => normalizePastedDriverKey(path.parse(file).name).endsWith(fullName))
-    ?? files.find((file) => normalizePastedDriverKey(path.parse(file).name).endsWith(surname));
+  const withoutSuffix = (value) => sanitize(value).replace(/(?:-(?:jr|junior|sr|ii|iii))+$/, '');
+  const normalizedName = withoutSuffix(name);
+  const surname = normalizePastedDriverKey(normalizedName.split('-').at(-1));
+  const fullName = normalizePastedDriverKey(normalizedName);
+  if (!fullName) return undefined;
+  const fileKey = (file) => normalizePastedDriverKey(withoutSuffix(path.parse(file).name));
+  const match = files.find((file) => fileKey(file).endsWith(fullName))
+    ?? files.find((file) => fileKey(file).endsWith(surname));
   return match ? `/f1/drivers/${match}` : undefined;
 };
 
